@@ -501,8 +501,8 @@ class SystemConfigService:
         channel: str,
         items: Sequence[Dict[str, str]],
         mask_token: str = "******",
-        title: str = "DSA 通知测试",
-        content: str = "这是一条来自 DSA Web 设置页的通知测试消息。",
+        title: str = "DSA Notification Test",
+        content: str = "This is a notification test message from DSA Web settings page.",
         timeout_seconds: float = 20.0,
     ) -> Dict[str, Any]:
         """Send one real notification test without persisting submitted values."""
@@ -518,7 +518,7 @@ class SystemConfigService:
         if missing:
             return self._build_notification_test_result(
                 success=False,
-                message=f"通知渠道配置不完整，缺少: {', '.join(missing)}",
+                message=f"Notification channel configuration is incomplete, missing: {', '.join(missing)}",
                 error_code="config_missing",
                 stage="config_validation",
                 retryable=False,
@@ -555,7 +555,7 @@ class SystemConfigService:
             error_code, retryable = self._classify_notification_exception(exc)
             return self._build_notification_test_result(
                 success=False,
-                message=f"通知测试异常: {exc}",
+                message=f"Notification test exception: {exc}",
                 error_code=error_code,
                 stage="notification_send",
                 retryable=retryable,
@@ -2104,7 +2104,7 @@ class SystemConfigService:
             )
             warnings.append(
                 (
-                    "新闻窗口已按策略计算："
+                    "News window calculated by strategy: "
                     f"NEWS_STRATEGY_PROFILE={profile}, "
                     f"NEWS_MAX_AGE_DAYS={max_age}, "
                     f"effective_days={effective_days} "
@@ -2120,15 +2120,15 @@ class SystemConfigService:
             if reload_now:
                 warnings.append(
                     (
-                        f"MAX_WORKERS={max_workers} 已保存。任务队列空闲时会自动应用；"
-                        "若当前存在运行中任务，将在队列空闲后生效。"
+                        f"MAX_WORKERS={max_workers} saved. Task queue will apply automatically when idle; "
+                        "if there are running tasks, it will take effect after the queue becomes idle."
                     )
                 )
             else:
                 warnings.append(
                     (
-                        f"MAX_WORKERS={max_workers} 已写入 .env，但本次未触发运行时重载"
-                        "（reload_now=false）；重载后才会应用。"
+                        f"MAX_WORKERS={max_workers} written to .env, but runtime reload was not triggered "
+                        "this time (reload_now=false); it will apply after reload."
                     )
                 )
 
@@ -2138,9 +2138,10 @@ class SystemConfigService:
         if startup_only_run_keys:
             warnings.append(
                 (
-                    f"{', '.join(sorted(startup_only_run_keys))} 已写入 .env。"
-                    "它属于启动期单次运行配置：当前已运行的 WebUI/API 进程不会因为本次保存立即触发分析；"
-                    "请重启当前进程后，在非 schedule 模式下按新值生效。"
+                    f"{', '.join(sorted(startup_only_run_keys))} written to .env. "
+                    "These are startup-only single-run configurations: the currently running WebUI/API process "
+                    "will not trigger analysis immediately due to this save; "
+                    "please restart the current process and run in non-schedule mode for the new values to take effect."
                 )
             )
 
@@ -2150,9 +2151,10 @@ class SystemConfigService:
         if startup_only_schedule_keys:
             warnings.append(
                 (
-                    f"{', '.join(sorted(startup_only_schedule_keys))} 已写入 .env。"
-                    "这些属于启动期调度模式配置：当前已运行的 WebUI/API 进程不会因为本次保存启动、"
-                    "停止或重建 scheduler；请重启当前进程，并以 schedule 模式重新启动后生效。"
+                    f"{', '.join(sorted(startup_only_schedule_keys))} written to .env. "
+                    "These are startup-only scheduler mode configurations: the currently running WebUI/API process "
+                    "will not start, stop, or rebuild the scheduler due to this save; "
+                    "please restart the current process and restart in schedule mode for them to take effect."
                 )
             )
 
@@ -2160,9 +2162,10 @@ class SystemConfigService:
             schedule_enabled = (current_map.get("SCHEDULE_ENABLED", "false") or "false").strip().lower()
             warnings.append(
                 (
-                    f"SCHEDULE_ENABLED={schedule_enabled} 已写入 .env。"
-                    "如果当前进程是 WebUI/API/Desktop 长运行进程，runtime scheduler 会按新配置启停；"
-                    "CLI schedule 模式仍按启动参数和配置运行。"
+                    f"SCHEDULE_ENABLED={schedule_enabled} written to .env. "
+                    "If the current process is a WebUI/API/Desktop long-running process, the runtime scheduler "
+                    "will start/stop according to the new configuration; "
+                    "CLI schedule mode still runs according to startup arguments and configuration."
                 )
             )
 
@@ -2172,9 +2175,9 @@ class SystemConfigService:
             effective = schedule_times or schedule_time
             warnings.append(
                 (
-                    f"SCHEDULE_TIMES={effective} 已写入 .env。"
-                    "有效时间点会去重、排序；为空时继续使用 SCHEDULE_TIME。"
-                    "如果当前进程存在 runtime scheduler，会按新时间重建 daily jobs。"
+                    f"SCHEDULE_TIMES={effective} written to .env. "
+                    "Effective time points will be deduplicated and sorted; when empty, SCHEDULE_TIME is still used. "
+                    "If the current process has a runtime scheduler, daily jobs will be rebuilt with the new times."
                 )
             )
 
@@ -2182,9 +2185,10 @@ class SystemConfigService:
             schedule_time = (current_map.get("SCHEDULE_TIME", "") or "").strip() or "18:00"
             warnings.append(
                 (
-                    f"SCHEDULE_TIME={schedule_time} 已写入 .env。"
-                    "如果当前进程已经以 schedule 模式运行，scheduler 会在下一轮检查中自动重建 daily job；"
-                    "如果当前进程未以 schedule 模式运行，本次保存不会启动 scheduler。"
+                    f"SCHEDULE_TIME={schedule_time} written to .env. "
+                    "If the current process is already running in schedule mode, the scheduler will automatically "
+                    "rebuild the daily job on the next check; "
+                    "if the current process is not running in schedule mode, this save will not start the scheduler."
                 )
             )
 
@@ -2195,9 +2199,10 @@ class SystemConfigService:
         if startup_only_bind_keys:
             warnings.append(
                 (
-                    f"{', '.join(sorted(startup_only_bind_keys))} 已写入 .env。"
-                    "这些属于启动期监听配置：当前已运行的 WebUI/API 进程不会因为本次保存重新绑定监听地址或端口；"
-                    "请重启当前进程、Docker 容器或服务管理器后生效。"
+                    f"{', '.join(sorted(startup_only_bind_keys))} written to .env. "
+                    "These are startup-only bind configurations: the currently running WebUI/API process "
+                    "will not rebind the listening address or port due to this save; "
+                    "please restart the current process, Docker container, or service manager for changes to take effect."
                 )
             )
 
@@ -2211,9 +2216,9 @@ class SystemConfigService:
     ) -> List[str]:
         """Explain when save payload clears stale runtime model references."""
         runtime_labels = {
-            "LITELLM_MODEL": "主模型",
-            "AGENT_LITELLM_MODEL": "Agent 主模型",
-            "VISION_MODEL": "Vision 模型",
+            "LITELLM_MODEL": "Primary Model",
+            "AGENT_LITELLM_MODEL": "Agent Primary Model",
+            "VISION_MODEL": "Vision Model",
         }
         cleared_labels: List[str] = []
         for key, label in runtime_labels.items():
@@ -2239,14 +2244,14 @@ class SystemConfigService:
 
         cleaned_targets = list(cleared_labels)
         if removed_fallbacks:
-            cleaned_targets.append("备选模型中的失效项")
+            cleaned_targets.append("invalid items in fallback models")
 
         cleaned_text = " / ".join(cleaned_targets)
         warning = (
-            f"检测到已同步清理失效的运行时模型引用：{cleaned_text}。"
-            "如需恢复，请先补回对应渠道模型列表后重新选择；"
-            "也可用桌面端导出备份或手动 .env 还原之前的 LLM_* / "
-            "LITELLM_MODEL / AGENT_LITELLM_MODEL / VISION_MODEL / LLM_TEMPERATURE。"
+            f"Detected cleanup of stale runtime model references: {cleaned_text}. "
+            "To restore, add back the corresponding channel model list and reselect; "
+            "or use desktop export backup or manual .env restore for previous LLM_* / "
+            "LITELLM_MODEL / AGENT_LITELLM_MODEL / VISION_MODEL / LLM_TEMPERATURE."
         )
         return [warning]
 
@@ -2271,11 +2276,11 @@ class SystemConfigService:
 
         return [
             (
-                "检测到已清理 Hermes Phase 3 不支持的配置项："
-                f"{', '.join(cleared)}。"
-                "Hermes reserved channel 只支持单个 LLM_HERMES_API_KEY，不支持多 Key 或额外 Header；"
-                "如需恢复旧值，请从 .env 备份、Git 历史或桌面端导出备份手动还原，"
-                "但非空 LLM_HERMES_API_KEYS / LLM_HERMES_EXTRA_HEADERS 仍会被后端校验拒绝。"
+                "Detected cleanup of unsupported Hermes Phase 3 configuration items: "
+                f"{', '.join(cleared)}. "
+                "Hermes reserved channels only support a single LLM_HERMES_API_KEY; multiple keys or extra headers are not supported. "
+                "To restore old values, manually restore from .env backup, Git history, or desktop export backup, "
+                "but non-empty LLM_HERMES_API_KEYS / LLM_HERMES_EXTRA_HEADERS will still be rejected by backend validation."
             )
         ]
 
@@ -2296,7 +2301,7 @@ class SystemConfigService:
         """Parse raw `.env` text into update items without expanding app templates."""
         normalized_content = content.replace("\ufeff", "")
         if not normalized_content.strip():
-            raise ConfigImportError("未识别到有效 .env 配置")
+            raise ConfigImportError("No valid .env configuration found")
 
         from dotenv import dotenv_values
 
@@ -2313,7 +2318,7 @@ class SystemConfigService:
             )
 
         if not updates:
-            raise ConfigImportError("未识别到有效 .env 配置")
+            raise ConfigImportError("No valid .env configuration found")
 
         return updates
 

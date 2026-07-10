@@ -298,7 +298,7 @@ class TestFeishuSender(unittest.TestCase):
         cfg = _config(
             feishu_webhook_url="https://feishu.example/hook",
             feishu_webhook_secret="secret-token",
-            feishu_webhook_keyword="股票日报",
+            feishu_webhook_keyword="DailyStockReport",
         )
         sender = FeishuSender(cfg)
 
@@ -317,7 +317,7 @@ class TestFeishuSender(unittest.TestCase):
         self.assertEqual(payload["sign"], expected_sign)
         self.assertEqual(
             payload["card"]["elements"][0]["text"]["content"],
-            "股票日报\nhello",
+            "DailyStockReport\nhello",
         )
 
     @mock.patch("src.notification_sender.feishu_sender.requests.post")
@@ -961,7 +961,7 @@ class TestNtfySender(unittest.TestCase):
         )
         sender = NtfySender(cfg)
 
-        result = sender.send_to_ntfy("正文 **Markdown**", title="中文标题", timeout_seconds=5)
+        result = sender.send_to_ntfy("body text **Markdown**", title="Chinese title", timeout_seconds=5)
 
         self.assertTrue(result)
         mock_post.assert_called_once()
@@ -971,8 +971,8 @@ class TestNtfySender(unittest.TestCase):
             call_kw["json"],
             {
                 "topic": "dsa-topic",
-                "title": "中文标题",
-                "message": "正文 **Markdown**",
+                "title": "Chinese title",
+                "message": "body text **Markdown**",
                 "markdown": True,
             },
         )
@@ -1064,7 +1064,7 @@ class TestGotifySender(unittest.TestCase):
         )
         sender = GotifySender(cfg)
 
-        result = sender.send_to_gotify("正文 **Markdown**", title="中文标题", timeout_seconds=5)
+        result = sender.send_to_gotify("body text **Markdown**", title="Chinese title", timeout_seconds=5)
 
         self.assertTrue(result)
         mock_post.assert_called_once()
@@ -1073,8 +1073,8 @@ class TestGotifySender(unittest.TestCase):
         self.assertEqual(
             call_kw["json"],
             {
-                "title": "中文标题",
-                "message": "正文 **Markdown**",
+                "title": "Chinese title",
+                "message": "body text **Markdown**",
                 "extras": {
                     "client::display": {
                         "contentType": "text/markdown",

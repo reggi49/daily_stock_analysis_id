@@ -18,16 +18,16 @@ _CONSERVATIVE_TEXT_MARKERS_ZH = ("退潮", "观望", "高风险", "谨慎", "保
 _CONSERVATIVE_TEXT_MARKERS_EN = ("high risk", "risk-off", "risk off", "watch", "cautious", "conservative", "position cap", "position limit")
 _CONSERVATIVE_TEXT_MARKERS_KO = ("고위험", "관망", "위험", "신중", "보수", "비중 상한", "비중 축소", "경량")
 _AGGRESSIVE_BUY_MARKERS_ZH = (
-    "立即买入",
-    "马上买入",
-    "建议买入",
-    "分批买入",
-    "分批低吸",
-    "回踩买入",
-    "积极买入",
-    "激进买入",
-    "追高",
-    "加仓",
+    "Aggressive buying",
+    "Aggressive buying",
+    "Aggressive buying",
+    "Aggressive buying",
+    "Aggressive buying",
+    "Aggressive buying",
+    "Aggressive buying",
+    "Aggressive buying",
+    "chasing high",
+    "Add to position",
 )
 _AGGRESSIVE_BUY_MARKERS_EN = ("buy now", "strong buy", "aggressive buy", "chase", "add aggressively")
 _AGGRESSIVE_BUY_MARKERS_KO = (
@@ -146,8 +146,8 @@ def _softened_position_advice(language: str) -> dict[str, str]:
             "has_position": "소량만 보유하고 비중을 늘리지 마세요. 리스크 관리선이 무너지면 비중을 줄이세요.",
         }
     return {
-        "no_position": "大盘环境偏谨慎，暂不开新仓，等待风险缓解或确认信号。",
-        "has_position": "仅保留小仓观察，暂不扩大仓位；若跌破风控位优先降低仓位。",
+        "no_position": "The market environment is cautious，No new positions will be opened at the moment，Waiting for risk mitigation or confirmation signals。",
+        "has_position": "Only Ogura observation is retained，No expansion of positions yet；If it falls below the risk control level, reduce the position first。",
     }
 
 
@@ -166,9 +166,9 @@ def _softened_position_strategy(language: str) -> dict[str, str]:
             "risk_control": "시장 위험이 완화되기 전까지 비중을 늘리지 말고 낙폭을 엄격히 관리하세요.",
         }
     return {
-        "suggested_position": "小仓/低仓位",
+        "suggested_position": "Ogura/low position",
         "entry_plan": position_advice["no_position"],
-        "risk_control": "大盘风险未缓解前不扩大仓位，严格控制回撤。",
+        "risk_control": "Do not expand positions until market risks are alleviated，Strictly control drawdowns。",
     }
 
 
@@ -181,7 +181,7 @@ def _append_softening_limitation(phase_decision: dict[str, Any], *, language: st
     elif language == "ko":
         limitation = "대시장 환경이 보수적/고위험이라 공격적 매수 권고를 완화했습니다."
     else:
-        limitation = "大盘环境偏谨慎/高风险，已软化激进买入建议。"
+        limitation = "The market environment is cautious/high risk，Aggressive buy recommendation softened。"
     if limitation not in limitations:
         limitations.append(limitation)
     phase_decision["data_limitations"] = limitations
@@ -191,7 +191,7 @@ def _append_softening_limitation(phase_decision: dict[str, Any], *, language: st
     elif language == "ko":
         reason_note = "시장 환경상 보수적인 비중 관리가 필요합니다."
     else:
-        reason_note = "大盘环境要求降低进攻性并控制仓位。"
+        reason_note = "The market environment requires reducing aggressiveness and controlling positions。"
     separator = "; " if language == "en" else "；"
     phase_decision["confidence_reason"] = (
         f"{reason}{separator}{reason_note}" if reason else reason_note

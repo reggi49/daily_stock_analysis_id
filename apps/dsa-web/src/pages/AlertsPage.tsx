@@ -89,12 +89,12 @@ function formatNotificationChannel(channel: string): string {
 }
 
 function formatNotificationStatus(notification: AlertNotificationItem): string {
-  if (notification.success) return '成功';
+  if (notification.success) return 'success';
   if (notification.errorCode === 'cooldown_active') return '冷却抑制';
   if (notification.errorCode === 'cooldown_read_failed') return '冷却读取失败';
   if (notification.errorCode === 'noise_suppressed') return '降噪抑制';
   if (notification.errorCode === 'no_channel') return '无渠道';
-  return '失败';
+  return 'failed';
 }
 
 const AlertsPage: React.FC = () => {

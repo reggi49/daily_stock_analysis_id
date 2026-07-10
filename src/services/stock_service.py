@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-股票数据服务层
+Stock Data Service Layer
 ===================================
 
-职责：
-1. 封装股票数据获取逻辑
-2. 提供实时行情和历史数据接口
+Responsibilities:
+1. Encapsulate stock data fetching logic
+2. Provide real-time quote and historical data interfaces
 """
 
 import logging
@@ -20,38 +20,38 @@ logger = logging.getLogger(__name__)
 
 class StockService:
     """
-    股票数据服务
-    
-    封装股票数据获取的业务逻辑
+    Stock Data Service
+
+    Encapsulates business logic for stock data fetching.
     """
     
     def __init__(self):
-        """初始化股票数据服务"""
+        """Initialize stock data service."""
         self.repo = StockRepository()
     
     def get_realtime_quote(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
-        获取股票实时行情
-        
+        Get real-time stock quote.
+
         Args:
-            stock_code: 股票代码
-            
+            stock_code: Stock code
+
         Returns:
-            实时行情数据字典
+            Real-time quote data dictionary
         """
         try:
-            # 调用数据获取器获取实时行情
+            # Call DataFetcherManager to get real-time quote
             from data_provider.base import DataFetcherManager
             
             manager = DataFetcherManager()
             quote = manager.get_realtime_quote(stock_code)
             
             if quote is None:
-                logger.warning(f"获取 {stock_code} 实时行情失败")
+                logger.warning(f"Failed to get real-time quote for {stock_code}")
                 return None
             
-            # UnifiedRealtimeQuote 是 dataclass，使用 getattr 安全访问字段
-            # 字段映射: UnifiedRealtimeQuote -> API 响应
+            # UnifiedRealtimeQuote is a dataclass, use getattr for safe field access
+            # Field mapping: UnifiedRealtimeQuote -> API response
             # - code -> stock_code
             # - name -> stock_name
             # - price -> current_price
@@ -79,10 +79,10 @@ class StockService:
             }
             
         except ImportError:
-            logger.warning("DataFetcherManager 未找到，使用占位数据")
+            logger.warning("DataFetcherManager not found, using placeholder data")
             return self._get_placeholder_quote(stock_code)
         except Exception as e:
-            logger.error(f"获取实时行情失败: {e}", exc_info=True)
+            logger.error(f"Failed to get real-time quote: {e}", exc_info=True)
             return None
     
     def get_history_data(
@@ -92,41 +92,41 @@ class StockService:
         days: int = 30
     ) -> Dict[str, Any]:
         """
-        获取股票历史行情
-        
+        Get historical stock data.
+
         Args:
-            stock_code: 股票代码
-            period: K 线周期 (daily/weekly/monthly)
-            days: 获取天数
-            
+            stock_code: Stock code
+            period: K-line period (daily/weekly/monthly)
+            days: Number of days to fetch
+
         Returns:
-            历史行情数据字典
-            
+            Historical data dictionary
+
         Raises:
-            ValueError: 当 period 不是 daily 时抛出（weekly/monthly 暂未实现）
+            ValueError: When period is not daily (weekly/monthly not yet implemented)
         """
-        # 验证 period 参数，只支持 daily
+        # Validate period parameter, only daily is supported
         if period != "daily":
             raise ValueError(
-                f"暂不支持 '{period}' 周期，目前仅支持 'daily'。"
-                "weekly/monthly 聚合功能将在后续版本实现。"
+                f"'{period}' period is not yet supported; only 'daily' is available. "
+                "Weekly/monthly aggregation will be implemented in a future version."
             )
         
         try:
-            # 调用数据获取器获取历史数据
+            # Call DataFetcherManager to get historical data
             from data_provider.base import DataFetcherManager
             
             manager = DataFetcherManager()
             df, source = manager.get_daily_data(stock_code, days=days)
             
             if df is None or df.empty:
-                logger.warning(f"获取 {stock_code} 历史数据失败")
+                logger.warning(f"Failed to get historical data for {stock_code}")
                 return {"stock_code": stock_code, "period": period, "data": []}
             
-            # 获取股票名称
+            # Get stock name
             stock_name = manager.get_stock_name(stock_code)
             
-            # 转换为响应格式
+            # Convert to response format
             data = []
             for _, row in df.iterrows():
                 date_val = row.get("date")
@@ -154,25 +154,25 @@ class StockService:
             }
             
         except ImportError:
-            logger.warning("DataFetcherManager 未找到，返回空数据")
+            logger.warning("DataFetcherManager not found, returning empty data")
             return {"stock_code": stock_code, "period": period, "data": []}
         except Exception as e:
-            logger.error(f"获取历史数据失败: {e}", exc_info=True)
+            logger.error(f"Failed to get historical data: {e}", exc_info=True)
             return {"stock_code": stock_code, "period": period, "data": []}
     
     def _get_placeholder_quote(self, stock_code: str) -> Dict[str, Any]:
         """
-        获取占位行情数据（用于测试）
-        
+        Get placeholder quote data (for testing).
+
         Args:
-            stock_code: 股票代码
-            
+            stock_code: Stock code
+
         Returns:
-            占位行情数据
+            Placeholder quote data
         """
         return {
             "stock_code": stock_code,
-            "stock_name": f"股票{stock_code}",
+            "stock_name": f"Stock {stock_code}",
             "current_price": 0.0,
             "change": None,
             "change_percent": None,

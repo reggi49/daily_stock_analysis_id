@@ -12,18 +12,18 @@ import type {
 import { ApiErrorAlert, Badge, Button, InlineAlert, Input, Select } from '../common';
 import { SettingsSectionCard } from './SettingsSectionCard';
 
-function getChannelOptions(language: 'zh' | 'en'): Array<{ value: NotificationTestChannel; label: string }> {
+function getChannelOptions(): Array<{ value: NotificationTestChannel; label: string }> {
   return [
-    { value: 'wechat', label: language === 'en' ? 'WeCom' : '企业微信' },
-    { value: 'feishu', label: language === 'en' ? 'Feishu Webhook' : '飞书 Webhook' },
+    { value: 'wechat', label: 'WeCom' },
+    { value: 'feishu', label: 'Feishu Webhook' },
     { value: 'telegram', label: 'Telegram' },
-    { value: 'email', label: language === 'en' ? 'Email' : '邮件' },
+    { value: 'email', label: 'Email' },
     { value: 'pushover', label: 'Pushover' },
     { value: 'ntfy', label: 'ntfy' },
     { value: 'gotify', label: 'Gotify' },
     { value: 'pushplus', label: 'PushPlus' },
     { value: 'serverchan3', label: 'ServerChan3' },
-    { value: 'custom', label: language === 'en' ? 'Custom Webhook' : '自定义 Webhook' },
+    { value: 'custom', label: 'Custom Webhooks' },
     { value: 'discord', label: 'Discord' },
     { value: 'slack', label: 'Slack' },
     { value: 'astrbot', label: 'AstrBot' },
@@ -47,7 +47,7 @@ export const NotificationTestPanel: React.FC<NotificationTestPanelProps> = ({
   maskToken,
   disabled = false,
 }) => {
-  const { language, t } = useUiLanguage();
+  const { t } = useUiLanguage();
   const [channel, setChannel] = useState<NotificationTestChannel>('wechat');
   const [title, setTitle] = useState(t('settings.notificationTestTitleValue'));
   const [content, setContent] = useState(t('settings.notificationTestContent'));
@@ -116,7 +116,7 @@ export const NotificationTestPanel: React.FC<NotificationTestPanelProps> = ({
         <Select
           label={t('settings.notificationTestChannel')}
           value={channel}
-          options={getChannelOptions(language)}
+          options={getChannelOptions()}
           disabled={disabled || isTesting}
           onChange={(value) => setChannel(value as NotificationTestChannel)}
         />

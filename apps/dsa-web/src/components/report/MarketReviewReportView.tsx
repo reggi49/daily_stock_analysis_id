@@ -68,10 +68,10 @@ const stripTopHeading = (markdown: string, title?: string): string => {
   const reportTitle = normalizeHeading(title || '');
   const genericTitles = new Set([
     'market review',
-    '大盘复盘',
-    '大盘复盘详情',
-    'a股市场复盘',
-    'a 股市场复盘',
+    'Market review',
+    'Market Review Details',
+    'A-Share Market Review',
+    'A Share Market Review',
   ]);
 
   if (heading === reportTitle || genericTitles.has(heading)) {
@@ -83,19 +83,19 @@ const stripTopHeading = (markdown: string, title?: string): string => {
 
 const getSectionIcon = (title: string): typeof FileText => {
   const normalized = normalizeHeading(title);
-  if (/指数|index|overview|大盘/.test(normalized)) {
+  if (/index|overview|market/.test(normalized)) {
     return BarChart3;
   }
-  if (/情绪|赚钱|sentiment|breadth|temperature/.test(normalized)) {
+  if (/sentiment|breadth|temperature/.test(normalized)) {
     return Gauge;
   }
-  if (/行业|板块|主题|轮动|sector|theme|rotation/.test(normalized)) {
+  if (/sector|theme|rotation/.test(normalized)) {
     return TrendingUp;
   }
-  if (/资金|成交|量能|flow|turnover|volume|capital/.test(normalized)) {
+  if (/flow|turnover|volume|capital/.test(normalized)) {
     return WalletCards;
   }
-  if (/风险|机会|观察|risk|watch|next/.test(normalized)) {
+  if (/risk|watch|next/.test(normalized)) {
     return ShieldAlert;
   }
   return FileText;
@@ -106,7 +106,7 @@ const splitMarketReviewSections = (markdown: string): MarketReviewSection[] => {
   if (matches.length === 0) {
     return [{
       id: 'full-review',
-      title: '复盘正文',
+      title: 'Market Review Content',
       content: markdown,
       icon: FileText,
     }];
@@ -116,7 +116,7 @@ const splitMarketReviewSections = (markdown: string): MarketReviewSection[] => {
   const sections: MarketReviewSection[] = intro
     ? [{
         id: 'overview',
-        title: '复盘概览',
+        title: 'Review Overview',
         content: intro,
         icon: FileText,
       }]
@@ -280,27 +280,27 @@ const MARKET_REVIEW_TEXT: Record<ReportLanguage, {
   lagging: string;
 }> = {
   zh: {
-    reviewSummary: '复盘摘要',
-    noReviewSummary: '暂无摘要',
-    noSentimentScore: '暂无评分',
-    rotationAndFunds: '轮动与资金',
-    noRotationView: '暂无轮动观点',
-    riskAndWatch: '风险与观察',
-    noRiskWatch: '暂无观察重点',
-    structuredMarketData: '结构化大盘数据',
-    noBreadthData: '暂无数据',
-    advancers: '上涨家数',
-    decliners: '下跌家数',
-    limitUpDown: '涨停/跌停',
-    turnover: '成交额',
-    index: '指数',
-    last: '最新',
-    change: '涨跌幅',
-    highLow: '高/低',
-    industryBoards: '行业板块',
-    conceptBoards: '概念板块',
-    leading: '领涨',
-    lagging: '领跌',
+    reviewSummary: 'Review Summary',
+    noReviewSummary: 'No review summary yet',
+    noSentimentScore: 'No score yet',
+    rotationAndFunds: 'Rotation & Funds',
+    noRotationView: 'No rotation view yet',
+    riskAndWatch: 'Risks & Watchlist',
+    noRiskWatch: 'No key observations yet',
+    structuredMarketData: 'Structured Market Data',
+    noBreadthData: 'No data',
+    advancers: 'Advancers',
+    decliners: 'Decliners',
+    limitUpDown: 'Limit Up/Down',
+    turnover: 'Turnover',
+    index: 'Index',
+    last: 'Last',
+    change: 'Change',
+    highLow: 'High/Low',
+    industryBoards: 'Industry Sectors',
+    conceptBoards: 'Concept Themes',
+    leading: 'Leading',
+    lagging: 'Lagging',
   },
   en: {
     reviewSummary: 'Review Summary',
@@ -677,7 +677,7 @@ export const MarketReviewReportView: React.FC<MarketReviewReportViewProps> = ({
                       </div>
                     );
                   });
-                  // 两类板块都存在时按 行业|概念 左右并列，节省纵向空间；只有一类时保留 领涨|领跌 横向布局。
+                  // When both board types exist, display industry|concept side by side to save vertical space; when only one type exists, keep leading|lagging in horizontal layout.
                   if (boardTypes.length >= 2) {
                     return (
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

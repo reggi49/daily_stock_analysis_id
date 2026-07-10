@@ -87,7 +87,7 @@ describe('stockIndexLoader', () => {
   });
 
   describe('loadStockIndex - Load stock index', () => {
-    test('successfully loads object format index', async () => {
+    test('Successfully loads object format index', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockIndexData,
@@ -101,7 +101,7 @@ describe('stockIndexLoader', () => {
       expect(result.error).toBeUndefined();
     });
 
-    test('successfully loads compressed format index (tuple format)', async () => {
+    test('Successfully loads compressed format index (tuple format)', async () => {
       const compressedData = [
         ['600519.SH', '600519', '贵州茅台', 'guizhoumaotai', 'gzmt', ['茅台'], 'CN', 'stock', true, 100],
         ['000001.SZ', '000001', '平安银行', 'pinganyinxing', 'payh', ['平银'], 'CN', 'stock', true, 90],
@@ -121,7 +121,7 @@ describe('stockIndexLoader', () => {
       expect(result.data[0].nameZh).toBe('贵州茅台');
     });
 
-    test('returns fallback mode on network error', async () => {
+    test('Returns fallback mode on network error', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       const result = await loadStockIndex();
@@ -132,7 +132,7 @@ describe('stockIndexLoader', () => {
       expect(result.error).toBeInstanceOf(Error);
     });
 
-    test('returns fallback mode on HTTP error', async () => {
+    test('Returns fallback mode on HTTP error', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
@@ -147,7 +147,7 @@ describe('stockIndexLoader', () => {
       expect(result.error).toBeDefined();
     });
 
-    test('returns fallback mode on JSON parse error', async () => {
+    test('Returns fallback mode on JSON parse error', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => {
@@ -163,7 +163,7 @@ describe('stockIndexLoader', () => {
       expect(result.error).toBeDefined();
     });
 
-    test('handles empty array', async () => {
+    test('Handles empty array', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => [],
@@ -176,7 +176,7 @@ describe('stockIndexLoader', () => {
       expect(result.data).toEqual([]);
     });
 
-    test('fetch call includes cache-busting parameter', async () => {
+    test('Fetch call includes cache-busting parameter', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockIndexData,
@@ -190,7 +190,7 @@ describe('stockIndexLoader', () => {
   });
 
   describe('compressIndex - Compress index', () => {
-    test('converts object format to tuple format', () => {
+    test('Converts object format to tuple format', () => {
       const compressed = compressIndex(mockIndexData);
 
       expect(compressed).toHaveLength(mockIndexData.length);
@@ -208,12 +208,12 @@ describe('stockIndexLoader', () => {
       ]);
     });
 
-    test('handles empty aliases array', () => {
+    test('Handles empty aliases array', () => {
       const itemWithoutAliases: StockIndexItem[] = [
         {
           canonicalCode: 'TEST.US',
           displayCode: 'TEST',
-          nameZh: '测试',
+          nameZh: 'Test',
           pinyinFull: 'test',
           pinyinAbbr: 'test',
           aliases: [],
@@ -229,12 +229,12 @@ describe('stockIndexLoader', () => {
       expect(compressed[0][5]).toEqual([]);
     });
 
-    test('handles undefined aliases', () => {
+    test('Handles undefined aliases', () => {
       const itemWithUndefinedAliases: StockIndexItem[] = [
         {
           canonicalCode: 'TEST.US',
           displayCode: 'TEST',
-          nameZh: '测试',
+          nameZh: 'Test',
           pinyinFull: 'test',
           pinyinAbbr: 'test',
           aliases: undefined as unknown as string[],
@@ -250,44 +250,44 @@ describe('stockIndexLoader', () => {
       expect(compressed[0][5]).toEqual([]);
     });
 
-    test('handles empty array', () => {
+    test('Handles empty array', () => {
       const compressed = compressIndex([]);
       expect(compressed).toEqual([]);
     });
   });
 
   describe('findStockInIndex - Find stock', () => {
-    test('finds existing stock', () => {
+    test('Finds existing stock', () => {
       const result = findStockInIndex('600519.SH', mockIndexData);
       expect(result).not.toBeNull();
       expect(result?.canonicalCode).toBe('600519.SH');
       expect(result?.nameZh).toBe('贵州茅台');
     });
 
-    test('returns null for non-existent stock', () => {
+    test('Returns null for non-existent stock', () => {
       const result = findStockInIndex('NOTFOUND.US', mockIndexData);
       expect(result).toBeNull();
     });
 
-    test('finds inactive stock', () => {
+    test('Finds inactive stock', () => {
       const result = findStockInIndex('600000.SH', mockIndexData);
       expect(result).not.toBeNull();
       expect(result?.active).toBe(false);
     });
 
-    test('handles empty index', () => {
+    test('Handles empty index', () => {
       const result = findStockInIndex('600519.SH', []);
       expect(result).toBeNull();
     });
 
-    test('case-sensitive search', () => {
+    test('Case-sensitive search', () => {
       const result = findStockInIndex('600519.sh', mockIndexData);
       expect(result).toBeNull();
     });
   });
 
   describe('getPopularStocks - Get popular stocks', () => {
-    test('sorts by popularity descending', () => {
+    test('Sorts by popularity descending', () => {
       const result = getPopularStocks(mockIndexData, 3);
 
       expect(result).toHaveLength(3);
@@ -296,7 +296,7 @@ describe('stockIndexLoader', () => {
       expect(result[2].canonicalCode).toBe('00700.HK'); // popularity: 95
     });
 
-    test('filters out inactive stocks', () => {
+    test('Filters out inactive stocks', () => {
       const result = getPopularStocks(mockIndexData, 10);
 
       // 600000.SH is inactive, should not appear
@@ -304,27 +304,27 @@ describe('stockIndexLoader', () => {
       expect(hasInactive).toBe(false);
     });
 
-    test('limits return count', () => {
+    test('Limits return count', () => {
       const result = getPopularStocks(mockIndexData, 2);
       expect(result.length).toBeLessThanOrEqual(2);
     });
 
-    test('defaults to limit of 20', () => {
+    test('Defaults to limit of 20', () => {
       const result = getPopularStocks(mockIndexData);
       expect(result.length).toBeLessThanOrEqual(20);
     });
 
-    test('handles empty index', () => {
+    test('Handles empty index', () => {
       const result = getPopularStocks([]);
       expect(result).toEqual([]);
     });
 
-    test('handles all inactive stocks', () => {
+    test('Handles all inactive stocks', () => {
       const inactiveOnly: StockIndexItem[] = [
         {
           canonicalCode: 'TEST.US',
           displayCode: 'TEST',
-          nameZh: '测试',
+          nameZh: 'Test',
           pinyinFull: 'test',
           pinyinAbbr: 'test',
           aliases: [],
@@ -339,7 +339,7 @@ describe('stockIndexLoader', () => {
       expect(result).toEqual([]);
     });
 
-    test('maintains stable sorting for same popularity', () => {
+    test('Maintains stable sorting for same popularity', () => {
       const samePopularity: StockIndexItem[] = [
         {
           canonicalCode: 'A.US',
@@ -375,7 +375,7 @@ describe('stockIndexLoader', () => {
   });
 
   describe('groupStocksByMarket - Group stocks by market', () => {
-    test('groups different markets correctly', () => {
+    test('Groups different markets correctly', () => {
       const result = groupStocksByMarket(mockIndexData);
 
       expect(result.size).toBe(3); // CN, HK, US
@@ -384,7 +384,7 @@ describe('stockIndexLoader', () => {
       expect(result.get('US')).toHaveLength(1);
     });
 
-    test('filters out inactive stocks', () => {
+    test('Filters out inactive stocks', () => {
       const result = groupStocksByMarket(mockIndexData);
 
       const cnStocks = result.get('CN')!;
@@ -392,12 +392,12 @@ describe('stockIndexLoader', () => {
       expect(allActive).toBe(true);
     });
 
-    test('handles empty index', () => {
+    test('Handles empty index', () => {
       const result = groupStocksByMarket([]);
       expect(result.size).toBe(0);
     });
 
-    test('handles all inactive stocks', () => {
+    test('Handles all inactive stocks', () => {
       const inactiveOnly: StockIndexItem[] = [
         {
           canonicalCode: 'A.US',
@@ -417,7 +417,7 @@ describe('stockIndexLoader', () => {
       expect(result.size).toBe(0);
     });
 
-    test('returns independent arrays for groups', () => {
+    test('Returns independent arrays for groups', () => {
       const result = groupStocksByMarket(mockIndexData);
 
       const cnStocks = result.get('CN')!;
@@ -432,7 +432,7 @@ describe('stockIndexLoader', () => {
       expect(cnStocks2.length).toBe(originalLength);
     });
 
-    test('maintains order within groups', () => {
+    test('Maintains order within groups', () => {
       const result = groupStocksByMarket(mockIndexData);
 
       const cnStocks = result.get('CN')!;
@@ -442,7 +442,7 @@ describe('stockIndexLoader', () => {
   });
 
   describe('Edge case comprehensive tests', () => {
-    test('handles very large datasets', () => {
+    test('Handles very large datasets', () => {
       const largeIndex: StockIndexItem[] = Array.from({ length: 10000 }, (_, i) => ({
         canonicalCode: `TEST${i}.US`,
         displayCode: `TEST${i}`,
@@ -461,7 +461,7 @@ describe('stockIndexLoader', () => {
       expect(() => getPopularStocks(largeIndex, 10)).not.toThrow();
     });
 
-    test('handles special characters', () => {
+    test('Handles special characters', () => {
       const specialChars: StockIndexItem[] = [
         {
           canonicalCode: 'TEST.US',

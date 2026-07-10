@@ -53,7 +53,7 @@ router = APIRouter(dependencies=[Security(admin_session_cookie)])
 AUTH_RESPONSE = {
     401: {
         "model": ErrorResponse,
-        "description": "未登录或管理员会话无效（ADMIN_AUTH_ENABLED=true 时）",
+        "description": "Not logged in or admin session invalid (when ADMIN_AUTH_ENABLED=true)",
     },
 }
 
@@ -92,17 +92,18 @@ def _internal_error(message: str, exc: Exception) -> HTTPException:
     response_model=DecisionSignalMutationResponse,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": ErrorResponse, "description": "请求字段非法"},
-        422: {"model": ErrorResponse, "description": "请求体或路径参数校验失败"},
-        500: {"model": ErrorResponse, "description": "创建失败"},
+        400: {"model": ErrorResponse, "description": "Invalid request fields"},
+        422: {"model": ErrorResponse, "description": "Request body or path parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Creation failed"},
     },
-    summary="创建或去重决策信号",
+    summary="Create or deduplicate decision signal",
     description=(
-        "显式写入 DecisionSignal。未传 horizon/expires_at 时由服务补默认生命周期；"
-        "命中同源去重键或窄 relaxed 去重时返回已有记录和 created=false；"
-        "active 新建或 expired 续期会失效同股旧 active 相反信号，"
-        "active duplicate retry 也会重跑该修复；普通旧 duplicate/replay 不作为新的激活事件；"
-        "不保证并发绝对幂等。"
+        "Explicitly write a DecisionSignal. When horizon/expires_at are not provided, "
+        "the service fills in the default lifecycle. "
+        "When hitting the same-source dedup key or narrow relaxed dedup, returns existing record with created=false; "
+        "active creation or expired renewal will invalidate old active opposite signals for the same stock; "
+        "active duplicate retry also reruns this fix; ordinary old duplicate/replay does not count as a new activation event; "
+        "absolute concurrent idempotency is not guaranteed."
     ),
     operation_id="createDecisionSignal",
 )
@@ -124,17 +125,20 @@ def create_signal(request: DecisionSignalCreateRequest) -> DecisionSignalMutatio
     response_model=DecisionSignalListResponse,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": ErrorResponse, "description": "查询参数非法"},
-        422: {"model": ErrorResponse, "description": "查询参数校验失败"},
-        500: {"model": ErrorResponse, "description": "查询失败"},
+        400: {"model": ErrorResponse, "description": "Invalid query parameters"},
+        422: {"model": ErrorResponse, "description": "Query parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Query failed"},
     },
-    summary="查询决策信号列表",
+    summary="Query decision signal list",
     description=(
-        "分页查询 DecisionSignal；读取前会懒过期已到 expires_at 的 active 信号。"
-        "当 source_type=analysis 且只传 source_report_id 查询时，若无命中信号会尝试基于该历史报告一次性懒回填 "
-        "（仅首次命中列表场景，且该精确查询会触发历史决策信号回填写入，属于 read-with-write 行为；"
-        "不影响其他分页列表筛选参数场景）。"
-        "holding_only=true 只读取 active 账户的 portfolio_positions 缓存持仓，不触发 portfolio snapshot replay。"
+        "Paginated query of DecisionSignal; lazily expires active signals past expires_at before reading. "
+        "When source_type=analysis and only source_report_id is queried, if no matching signals are found "
+        "it attempts a one-time lazy backfill based on that historical report "
+        "(only for the first list-hit scenario, and this precise query triggers historical decision signal backfill writes, "
+        "which is a read-with-write behavior; "
+        "does not affect other paginated list filter parameter scenarios). "
+        "holding_only=true only reads active account portfolio_positions cached holdings, "
+        "does not trigger portfolio snapshot replay."
     ),
     operation_id="listDecisionSignals",
 )
@@ -196,16 +200,17 @@ def list_signals(
     response_model=DecisionSignalOutcomeRunResponse,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": ErrorResponse, "description": "请求字段非法"},
-        404: {"model": ErrorResponse, "description": "信号不存在"},
-        422: {"model": ErrorResponse, "description": "请求体校验失败"},
-        500: {"model": ErrorResponse, "description": "后验计算失败"},
+        400: {"model": ErrorResponse, "description": "Invalid request fields"},
+        404: {"model": ErrorResponse, "description": "Signal not found"},
+        422: {"model": ErrorResponse, "description": "Request body validation failed"},
+        500: {"model": ErrorResponse, "description": "Post-evaluation calculation failed"},
     },
-    summary="触发决策信号后验评估",
+    summary="Trigger decision signal outcome evaluation",
     description=(
-        "显式触发 signal-level outcome 计算；默认跳过 completed 和终态 unable，"
-        "但会重算缺少行情数据等可恢复 unable；force=true 会重算并覆盖同一 "
-        "signal_id+horizon+engine_version。"
+        "Explicitly trigger signal-level outcome calculation; by default skips completed and terminal unable, "
+        "but recalculates recoverable unable such as missing market data; "
+        "force=true recalculates and overwrites the same "
+        "signal_id+horizon+engine_version."
     ),
     operation_id="runDecisionSignalOutcomes",
 )
@@ -238,12 +243,12 @@ def run_outcomes(request: DecisionSignalOutcomeRunRequest) -> DecisionSignalOutc
     response_model=DecisionSignalOutcomeListResponse,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": ErrorResponse, "description": "查询参数非法"},
-        422: {"model": ErrorResponse, "description": "查询参数校验失败"},
-        500: {"model": ErrorResponse, "description": "查询失败"},
+        400: {"model": ErrorResponse, "description": "Invalid query parameters"},
+        422: {"model": ErrorResponse, "description": "Query parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Query failed"},
     },
-    summary="查询决策信号后验结果",
-    description="分页查询 signal-level outcome；默认只查当前 signal 后验 engine_version。",
+    summary="Query decision signal outcome results",
+    description="Paginated query of signal-level outcomes; by default only queries current signal outcome engine_version.",
     operation_id="listDecisionSignalOutcomes",
 )
 def list_outcomes(
@@ -279,12 +284,12 @@ def list_outcomes(
     response_model=DecisionSignalOutcomeStatsResponse,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": ErrorResponse, "description": "查询参数非法"},
-        422: {"model": ErrorResponse, "description": "查询参数校验失败"},
-        500: {"model": ErrorResponse, "description": "统计失败"},
+        400: {"model": ErrorResponse, "description": "Invalid query parameters"},
+        422: {"model": ErrorResponse, "description": "Query parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Statistics failed"},
     },
-    summary="查询决策信号后验统计",
-    description="默认统计当前 engine_version，且排除 archived 信号。",
+    summary="Query decision signal outcome statistics",
+    description="By default statistics are for the current engine_version, excluding archived signals.",
     operation_id="getDecisionSignalOutcomeStats",
 )
 def get_outcome_stats(
@@ -312,15 +317,16 @@ def get_outcome_stats(
     response_model=DecisionSignalReassessResponse,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": ErrorResponse, "description": "重评估请求不支持或历史报告不适用"},
-        404: {"model": ErrorResponse, "description": "来源历史报告不存在"},
-        422: {"model": ErrorResponse, "description": "请求体校验失败"},
-        500: {"model": ErrorResponse, "description": "重评估失败"},
+        400: {"model": ErrorResponse, "description": "Reassessment request not supported or historical report not applicable"},
+        404: {"model": ErrorResponse, "description": "Source historical report not found"},
+        422: {"model": ErrorResponse, "description": "Request body validation failed"},
+        500: {"model": ErrorResponse, "description": "Reassessment failed"},
     },
-    summary="预览决策风格重评估",
+    summary="Preview decision style reassessment",
     description=(
-        "基于 source_report_id 对应的持久化历史报告快照生成 decision_profile preview；"
-        "P3a 仅支持 persist=false，不写入 DecisionSignal。"
+        "Generate a decision_profile preview based on the persisted historical report snapshot "
+        "corresponding to source_report_id; "
+        "P3a only supports persist=false, does not write to DecisionSignal."
     ),
     operation_id="reassessDecisionSignalPreview",
 )
@@ -361,12 +367,12 @@ def reassess_signal(request: DecisionSignalReassessRequest) -> DecisionSignalRea
     response_model=DecisionSignalListResponse,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": ErrorResponse, "description": "请求参数非法"},
-        422: {"model": ErrorResponse, "description": "路径或查询参数校验失败"},
-        500: {"model": ErrorResponse, "description": "查询失败"},
+        400: {"model": ErrorResponse, "description": "Invalid request parameters"},
+        422: {"model": ErrorResponse, "description": "Path or query parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Query failed"},
     },
-    summary="查询股票最新 active 决策信号",
-    description="返回指定股票最新 active 信号列表；读取前会执行懒过期。",
+    summary="Query latest active decision signals for a stock",
+    description="Returns the latest active signal list for a specified stock; lazily expires before reading.",
     operation_id="getLatestDecisionSignals",
 )
 def get_latest_active(
@@ -396,12 +402,12 @@ def get_latest_active(
     response_model=DecisionSignalItem,
     responses={
         **AUTH_RESPONSE,
-        404: {"model": ErrorResponse, "description": "信号不存在"},
-        422: {"model": ErrorResponse, "description": "路径参数校验失败"},
-        500: {"model": ErrorResponse, "description": "查询失败"},
+        404: {"model": ErrorResponse, "description": "Signal not found"},
+        422: {"model": ErrorResponse, "description": "Path parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Query failed"},
     },
-    summary="查询单条决策信号",
-    description="按 ID 查询单条 DecisionSignal；读取前会执行懒过期。",
+    summary="Query a single decision signal",
+    description="Query a single DecisionSignal by ID; lazily expires before reading.",
     operation_id="getDecisionSignal",
 )
 def get_signal(signal_id: int) -> DecisionSignalItem:
@@ -421,12 +427,12 @@ def get_signal(signal_id: int) -> DecisionSignalItem:
     response_model=DecisionSignalOutcomeListResponse,
     responses={
         **AUTH_RESPONSE,
-        404: {"model": ErrorResponse, "description": "信号不存在"},
-        422: {"model": ErrorResponse, "description": "路径参数校验失败"},
-        500: {"model": ErrorResponse, "description": "查询失败"},
+        404: {"model": ErrorResponse, "description": "Signal not found"},
+        422: {"model": ErrorResponse, "description": "Path parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Query failed"},
     },
-    summary="查询单个决策信号后验结果",
-    description="返回指定 signal_id 在当前 engine_version 下的后验结果。",
+    summary="Query outcomes for a single decision signal",
+    description="Returns the outcome results for the specified signal_id under the current engine_version.",
     operation_id="listDecisionSignalOutcomesBySignal",
 )
 def list_signal_outcomes(signal_id: int) -> DecisionSignalOutcomeListResponse:
@@ -444,12 +450,12 @@ def list_signal_outcomes(signal_id: int) -> DecisionSignalOutcomeListResponse:
     response_model=DecisionSignalFeedbackItem,
     responses={
         **AUTH_RESPONSE,
-        404: {"model": ErrorResponse, "description": "信号不存在"},
-        422: {"model": ErrorResponse, "description": "路径参数校验失败"},
-        500: {"model": ErrorResponse, "description": "查询失败"},
+        404: {"model": ErrorResponse, "description": "Signal not found"},
+        422: {"model": ErrorResponse, "description": "Path parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Query failed"},
     },
-    summary="查询决策信号用户反馈",
-    description="没有反馈时返回 feedback_value=null；信号不存在时返回 404。",
+    summary="Query decision signal user feedback",
+    description="Returns feedback_value=null when no feedback exists; returns 404 when signal not found.",
     operation_id="getDecisionSignalFeedback",
 )
 def get_feedback(signal_id: int) -> DecisionSignalFeedbackItem:
@@ -467,13 +473,13 @@ def get_feedback(signal_id: int) -> DecisionSignalFeedbackItem:
     response_model=DecisionSignalFeedbackItem,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": ErrorResponse, "description": "请求字段非法"},
-        404: {"model": ErrorResponse, "description": "信号不存在"},
-        422: {"model": ErrorResponse, "description": "请求体或路径参数校验失败"},
-        500: {"model": ErrorResponse, "description": "更新失败"},
+        400: {"model": ErrorResponse, "description": "Invalid request fields"},
+        404: {"model": ErrorResponse, "description": "Signal not found"},
+        422: {"model": ErrorResponse, "description": "Request body or path parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Update failed"},
     },
-    summary="写入决策信号用户反馈",
-    description="按 signal_id upsert 最新 useful/not_useful 反馈。",
+    summary="Write decision signal user feedback",
+    description="Upsert the latest useful/not_useful feedback by signal_id.",
     operation_id="putDecisionSignalFeedback",
 )
 def put_feedback(signal_id: int, request: DecisionSignalFeedbackRequest) -> DecisionSignalFeedbackItem:
@@ -501,15 +507,16 @@ def put_feedback(signal_id: int, request: DecisionSignalFeedbackRequest) -> Deci
     response_model=DecisionSignalItem,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": ErrorResponse, "description": "状态非法"},
-        404: {"model": ErrorResponse, "description": "信号不存在"},
-        422: {"model": ErrorResponse, "description": "请求体或路径参数校验失败"},
-        500: {"model": ErrorResponse, "description": "更新失败"},
+        400: {"model": ErrorResponse, "description": "Invalid status"},
+        404: {"model": ErrorResponse, "description": "Signal not found"},
+        422: {"model": ErrorResponse, "description": "Request body or path parameter validation failed"},
+        500: {"model": ErrorResponse, "description": "Update failed"},
     },
-    summary="更新决策信号状态",
+    summary="Update decision signal status",
     description=(
-        "只更新合法状态和可选 metadata；传入 metadata 时按整包替换保存。"
-        "expired/invalidated/closed/archived 等 terminal 状态不能直接 PATCH 回 active。"
+        "Only updates valid status and optional metadata; when metadata is provided, "
+        "it replaces the entire package. "
+        "Terminal states like expired/invalidated/closed/archived cannot be PATCHed back to active."
     ),
     operation_id="updateDecisionSignalStatus",
 )

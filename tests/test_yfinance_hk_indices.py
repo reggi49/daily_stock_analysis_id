@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-data_provider/yfinance_fetcher 中港股指数获取逻辑的单元测试
+Unit tests for HK stock index fetching logic in data_provider/yfinance_fetcher.
 
-使用 unittest.mock 模拟 yfinance API 响应，覆盖：
-- _get_hk_main_indices 港股指数批量获取
-- 港股指数 Yahoo Finance 符号映射正确性
-- 部分/全部失败的降级场景
+Uses unittest.mock to simulate yfinance API responses, covering:
+- _get_hk_main_indices batch HK index fetching
+- HK index Yahoo Finance symbol mapping correctness
+- Partial/all failure fallback scenarios
 """
 import sys
 import os
@@ -13,16 +13,16 @@ import unittest
 from unittest.mock import MagicMock, patch
 import pandas as pd
 
-# 在导入 data_provider 前 mock 可能缺失的依赖，避免环境差异导致测试无法运行
+# # Mock possibly-missing dependencies before importing data_provider, to avoid env-difference test failures
 if 'fake_useragent' not in sys.modules:
     sys.modules['fake_useragent'] = MagicMock()
 
-# 确保能导入项目模块
+# # Ensure project modules can be imported
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 def _make_mock_hist(close: float, prev_close: float, high: float = None, low: float = None) -> pd.DataFrame:
-    """构造模拟的 history DataFrame，包含计算涨跌幅所需字段"""
+    """Build a mock history DataFrame with the fields needed to compute change percent"""
     high = high if high is not None else close + 100
     low = low if low is not None else close - 100
     return pd.DataFrame({
@@ -35,7 +35,7 @@ def _make_mock_hist(close: float, prev_close: float, high: float = None, low: fl
 
 
 def _make_mock_yf(hist_df: pd.DataFrame):
-    """构造模拟的 yf 模块，Ticker().history() 返回给定 DataFrame"""
+    """Build a mock yf module whose Ticker().history() returns the given DataFrame"""
     mock_ticker = MagicMock()
     mock_ticker.history.return_value = hist_df
     mock_yf = MagicMock()
@@ -44,14 +44,14 @@ def _make_mock_yf(hist_df: pd.DataFrame):
 
 
 class TestHkIndexSymbolMapping(unittest.TestCase):
-    """验证港股指数 Yahoo Finance 符号映射的正确性"""
+    """Verify the correctness of HK-stock-index Yahoo Finance symbol mapping"""
 
     def setUp(self):
         from data_provider.yfinance_fetcher import YfinanceFetcher
         self.fetcher = YfinanceFetcher()
 
     def test_hk_indices_mapping_symbols(self):
-        """港股指数映射应使用正确的 Yahoo Finance 符号"""
+        """HK-stock-index mapping should use the correct Yahoo Finance symbols"""
         mock_yf = MagicMock()
         mock_ticker = MagicMock()
         mock_ticker.history.return_value = pd.DataFrame()
@@ -59,7 +59,7 @@ class TestHkIndexSymbolMapping(unittest.TestCase):
 
         self.fetcher._get_hk_main_indices(mock_yf)
 
-        # 收集所有 Ticker() 调用的参数
+        # Collect all Ticker() call arguments
         ticker_calls = [call.args[0] for call in mock_yf.Ticker.call_args_list]
 
         self.assertIn('^HSI', ticker_calls, '恒生指数应使用 ^HSI')
@@ -67,7 +67,7 @@ class TestHkIndexSymbolMapping(unittest.TestCase):
         self.assertIn('^HSCE', ticker_calls, '国企指数应使用 ^HSCE，而非 ^HSCEI')
 
     def test_hk_indices_mapping_no_invalid_symbols(self):
-        """确保不再使用已知错误的旧映射符号"""
+        """Ensure the known-wrong old mapping symbols are no longer used"""
         mock_yf = MagicMock()
         mock_ticker = MagicMock()
         mock_ticker.history.return_value = pd.DataFrame()
@@ -82,14 +82,14 @@ class TestHkIndexSymbolMapping(unittest.TestCase):
 
 
 class TestGetHkMainIndices(unittest.TestCase):
-    """_get_hk_main_indices 港股指数批量获取测试"""
+    """_get_hk_main_indices HK-stock index batch-fetch test"""
 
     def setUp(self):
         from data_provider.yfinance_fetcher import YfinanceFetcher
         self.fetcher = YfinanceFetcher()
 
     def test_returns_list_when_all_succeed(self):
-        """全部指数取数成功时返回包含三个指数的列表"""
+        """When all indices fetch successfully, return a list containing the three indices"""
         mock_hist = _make_mock_hist(close=20000.0, prev_close=19800.0)
         mock_yf = _make_mock_yf(mock_hist)
 
@@ -111,7 +111,7 @@ class TestGetHkMainIndices(unittest.TestCase):
             self.assertIn('amplitude', item)
 
     def test_returns_correct_computed_values(self):
-        """验证涨跌幅和振幅的计算结果"""
+        """Verify the computed change percent and amplitude"""
         mock_hist = _make_mock_hist(
             close=20000.0, prev_close=19800.0, high=20200.0, low=19700.0
         )
@@ -130,7 +130,7 @@ class TestGetHkMainIndices(unittest.TestCase):
         self.assertAlmostEqual(item['amplitude'], expected_amplitude)
 
     def test_handles_partial_failure(self):
-        """部分指数 history 为空时仍返回能取到数据的指数"""
+        """When some indices have empty history, still return the indices that could be fetched"""
         call_count = [0]
 
         def history_side_effect(period):
@@ -151,7 +151,7 @@ class TestGetHkMainIndices(unittest.TestCase):
         self.assertEqual(len(result), 1)
 
     def test_returns_none_when_all_fail(self):
-        """全部取数失败时返回 None"""
+        """Return None when all fetches fail"""
         mock_yf = _make_mock_yf(pd.DataFrame())
 
         result = self.fetcher._get_hk_main_indices(mock_yf)
@@ -159,7 +159,7 @@ class TestGetHkMainIndices(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_handles_ticker_exception(self):
-        """Ticker.history 抛异常时跳过该指数，不整体失败"""
+        """When Ticker.history raises, skip that index instead of failing entirely"""
         mock_ticker = MagicMock()
         mock_ticker.history.side_effect = Exception("Network error")
         mock_yf = MagicMock()
@@ -170,7 +170,7 @@ class TestGetHkMainIndices(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_return_codes_match_expected_keys(self):
-        """返回的 code 字段应为 HSI/HSTECH/HSCEI，与 MarketAnalyzer prompt 一致"""
+        """The returned code field should be HSI/HSTECH/HSCEI, consistent with the MarketAnalyzer prompt"""
         mock_hist = _make_mock_hist(close=20000.0, prev_close=19800.0)
         mock_yf = _make_mock_yf(mock_hist)
 
@@ -184,14 +184,14 @@ class TestGetHkMainIndices(unittest.TestCase):
 
 
 class TestGetMainIndicesDispatch(unittest.TestCase):
-    """get_main_indices region 分发测试"""
+    """get_main_indices region-dispatch test"""
 
     def setUp(self):
         from data_provider.yfinance_fetcher import YfinanceFetcher
         self.fetcher = YfinanceFetcher()
 
     def test_region_hk_dispatches_to_hk_method(self):
-        """region='hk' 应委托给 _get_hk_main_indices"""
+        """region='hk' should delegate to _get_hk_main_indices"""
         mock_yf = MagicMock()
         with patch.dict('sys.modules', {'yfinance': mock_yf}):
             with patch.object(self.fetcher, '_get_hk_main_indices', return_value=[{'code': 'HSI'}]) as mock_hk:

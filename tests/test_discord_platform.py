@@ -21,7 +21,7 @@ def _make_platform(public_key: str) -> DiscordPlatform:
 
 
 def _current_timestamp() -> str:
-    """返回当前 Unix 秒字符串，用于生成有效签名。"""
+    """Return the current Unix-second string, used to generate a valid signature."""
     return str(int(time.time()))
 
 
@@ -54,7 +54,7 @@ def test_signed_ping_request_is_accepted():
 
 
 def test_signed_interaction_request_returns_deferred_ack():
-    """type=2 交互应返回 type 5 延迟 ACK，同时仍解析出 BotMessage。"""
+    """A type=2 interaction should return a type 5 deferred ACK while still parsing out the BotMessage."""
     signing_key = SigningKey.generate()
     platform = _make_platform(signing_key.verify_key.encode().hex())
     payload = {
@@ -85,12 +85,12 @@ def test_signed_interaction_request_returns_deferred_ack():
         payload,
     )
 
-    # 应返回 type 5 延迟 ACK
+    # Should return a type 5 deferred ACK
     assert response is not None
     assert response.status_code == 200
     assert response.body == {"type": 5}
 
-    # 同时仍解析出消息
+    # While still parsing out the message
     assert message is not None
     assert message.platform == "discord"
     assert message.chat_id == "channel-1"
@@ -98,7 +98,7 @@ def test_signed_interaction_request_returns_deferred_ack():
     assert message.user_id == "user-1"
     assert message.user_name == "tester"
     assert message.content == "/analyze 600519"
-    # follow-up 需要的字段存在于 raw_data
+    # The fields needed for follow-up exist in raw_data
     assert message.raw_data.get("application_id") == "app-123"
     assert message.raw_data.get("token") == "interaction-token"
 
@@ -162,12 +162,12 @@ def test_invalid_public_key_configuration_is_rejected():
 
 
 def test_expired_timestamp_is_rejected():
-    """过期 timestamp（超出 ±5 分钟窗口）应被拒绝，防重放攻击。"""
+    """An expired timestamp (outside the ±5 minute window) should be rejected, to prevent replay attacks."""
     signing_key = SigningKey.generate()
     platform = _make_platform(signing_key.verify_key.encode().hex())
     payload = {"type": 1}
     body = json.dumps(payload).encode("utf-8")
-    # 10 分钟前的 timestamp
+    # A timestamp from 10 minutes ago
     stale_ts = str(int(time.time()) - 600)
 
     message, response = platform.handle_webhook(
@@ -182,7 +182,7 @@ def test_expired_timestamp_is_rejected():
 
 
 def test_format_response_wraps_interaction_callback():
-    """type=2 交互响应应使用 Interaction Response 回调格式（type=4 + data）。"""
+    """A type=2 interaction response should use the Interaction Response callback format (type=4 + data)."""
     from bot.models import BotMessage, BotResponse, ChatType
 
     platform = _make_platform("00" * 32)
@@ -208,7 +208,7 @@ def test_format_response_wraps_interaction_callback():
 
 
 def test_send_followup_patches_original_message():
-    """send_followup 应 PATCH Discord follow-up webhook。"""
+    """send_followup should PATCH the Discord follow-up webhook."""
     from bot.models import BotMessage, BotResponse, ChatType
 
     platform = _make_platform("00" * 32)
@@ -241,7 +241,7 @@ def test_send_followup_patches_original_message():
 
 
 def test_send_followup_chunks_long_content():
-    """超过 2000 字符的 follow-up 应被分块：首块 PATCH，后续 POST。"""
+    """A follow-up over 2000 characters should be chunked: first chunk PATCH, the rest POST."""
     from bot.models import BotMessage, BotResponse, ChatType
 
     platform = _make_platform("00" * 32)
@@ -259,7 +259,7 @@ def test_send_followup_chunks_long_content():
             "token": "interaction-token",
         },
     )
-    # 生成超过 2000 字符的内容
+    # Generate content exceeding 2000 characters
     long_content = "A" * 3500
     response = BotResponse.text_response(long_content)
 
@@ -270,18 +270,18 @@ def test_send_followup_chunks_long_content():
         result = platform.send_followup(response, message)
 
     assert result is True
-    # 首块使用 PATCH
+    # First chunk uses PATCH
     mock_requests.patch.assert_called_once()
     patch_url = mock_requests.patch.call_args[0][0]
     assert "/messages/@original" in patch_url
-    # 后续块使用 POST
+    # Subsequent chunks use POST
     assert mock_requests.post.call_count >= 1
     post_url = mock_requests.post.call_args[0][0]
     assert post_url.endswith("/app-123/interaction-token")
 
 
 def test_send_followup_missing_token_returns_false():
-    """缺少 interaction token 时 send_followup 应返回 False。"""
+    """send_followup should return False when the interaction token is missing."""
     from bot.models import BotMessage, BotResponse, ChatType
 
     platform = _make_platform("00" * 32)
@@ -300,7 +300,7 @@ def test_send_followup_missing_token_returns_false():
 
 
 def test_non_numeric_timestamp_is_rejected():
-    """非数字 timestamp 应被拒绝。"""
+    """A non-numeric timestamp should be rejected."""
     signing_key = SigningKey.generate()
     platform = _make_platform(signing_key.verify_key.encode().hex())
     payload = {"type": 1}
@@ -318,7 +318,7 @@ def test_non_numeric_timestamp_is_rejected():
 
 
 def test_boolean_option_true_emits_name():
-    """布尔 True 选项应输出 option name，而非字面 'true'。"""
+    """A boolean True option should output the option name, not the literal 'true'."""
     platform = _make_platform("00" * 32)
     interaction_data = {
         "name": "analyze",
@@ -332,7 +332,7 @@ def test_boolean_option_true_emits_name():
 
 
 def test_boolean_option_false_is_omitted():
-    """布尔 False 选项应被忽略，不出现在命令内容中。"""
+    """A boolean False option should be ignored and not appear in the command content."""
     platform = _make_platform("00" * 32)
     interaction_data = {
         "name": "analyze",

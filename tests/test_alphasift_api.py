@@ -1041,17 +1041,17 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
         provider.hotspot_detail = MagicMock(side_effect=[
             {
                 "topic": "钼",
-                "summary": "旧详情",
-                "route": [{"title": "旧发酵", "description": "旧缓存", "source": "eastmoney_board_change"}],
-                "stocks": [{"code": "001257", "name": "旧龙头"}],
+                "summary": "stale detail",
+                "route": [{"title": "stale event", "description": "stale cache", "source": "eastmoney_board_change"}],
+                "stocks": [{"code": "001257", "name": "盛龙股份"}],
                 "stock_count": 1,
                 "source_errors": [],
             },
             {
                 "topic": "钼",
-                "summary": "新详情",
-                "route": [{"title": "新发酵", "description": "实时刷新", "source": "eastmoney_board_change"}],
-                "stocks": [{"code": "001257", "name": "新龙头"}],
+                "summary": "fresh detail",
+                "route": [{"title": "fresh event", "description": "real-time refresh", "source": "eastmoney_board_change"}],
+                "stocks": [{"code": "001257", "name": "盛龙股份"}],
                 "stock_count": 1,
                 "source_errors": [],
             },
@@ -1069,10 +1069,10 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
                 refreshed = self._hotspot_detail(config=config, provider="akshare", topic="钼", refresh=True)
 
         self.assertEqual(provider.hotspot_detail.call_count, 2)
-        self.assertEqual(first["stocks"][0]["name"], "旧龙头")
-        self.assertEqual(cached["stocks"][0]["name"], "旧龙头")
+        self.assertEqual(first["stocks"][0]["name"], "盛龙股份")
+        self.assertEqual(cached["stocks"][0]["name"], "盛龙股份")
         self.assertTrue(cached["cache_used"])
-        self.assertEqual(refreshed["stocks"][0]["name"], "新龙头")
+        self.assertEqual(refreshed["stocks"][0]["name"], "盛龙股份")
         self.assertFalse(refreshed.get("cache_used", False))
 
     def test_hotspot_detail_adds_real_search_event_when_configured(self) -> None:
@@ -1165,7 +1165,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
             "topic": "机器人执行器",
             "summary": "机器人执行器 盘中发酵。",
             "route": [{"title": "盘中发酵", "description": "provider fallback route.", "source": "eastmoney_board_change"}],
-            "stocks": [{"code": "002000", "name": "旧路径个股"}],
+            "stocks": [{"code": "002000", "name": "汇川技术"}],
             "stock_count": 1,
             "source_errors": [],
         })
@@ -1203,7 +1203,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
                 "description": "机器人执行器 当前有异动记录。",
                 "source": "eastmoney_board_change",
             }],
-            "stocks": [{"code": "002000", "name": "旧路径个股"}],
+            "stocks": [{"code": "002000", "name": "汇川技术"}],
             "stock_count": 1,
             "source_errors": [],
         })
@@ -1218,7 +1218,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
                 },
                 "stocks": [{
                     "code": "300000",
-                    "name": "合约路径个股",
+                    "name": "宁德时代",
                     "source": "alphasift_contract",
                 }],
             }
@@ -1235,7 +1235,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
 
         self.assertEqual(payload["route"][0]["title"], "盘中发酵")
         self.assertEqual(payload["route"][0]["source"], "eastmoney_board_change")
-        self.assertEqual(payload["stocks"][0]["name"], "合约路径个股")
+        self.assertEqual(payload["stocks"][0]["name"], "宁德时代")
         provider.hotspot_detail.assert_called_once_with("机器人执行器")
 
     def test_hotspot_detail_returns_route_and_concept_stocks(self) -> None:
@@ -1247,7 +1247,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
                     "topic": topic,
                     "summary": f"{topic} 盘中发酵。",
                     "route": [{"title": "盘中发酵", "description": "出现大笔买入。"}],
-                    "stocks": [{"code": "920438", "name": "戈碧迦", "role": "异动核心"}],
+                    "stocks": [{"code": "920438", "name": "戈碧迦", "role": "key_mover"}],
                     "stock_count": 1,
                     "source_errors": [],
                 }
@@ -1435,7 +1435,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
                 }])
 
             def _fetch_ths_summary_event(self, topic: str) -> str:
-                return "需求升温"
+                return "demand warming"
 
             def _fetch_ths_info(self, topic: str) -> Dict[str, str]:
                 return {}

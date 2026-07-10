@@ -34,7 +34,7 @@ _BUILD_INPUT_DIRS = ("src", "public")
 
 
 def _is_truthy_env(var_name: str, default: str = "true") -> bool:
-    """解析常见的环境变量真值/假值表达（大小写不敏感）。"""
+    """When empty or missing/When empty or missing（When empty or missing）。"""
     value = os.getenv(var_name, default).strip().lower()
     return value not in _FALSEY_ENV_VALUES
 
@@ -107,14 +107,14 @@ def _needs_frontend_build(frontend_dir: Path, force_build: bool) -> tuple[bool, 
 def _run_frontend_commands(commands: Sequence[Sequence[str]], frontend_dir: Path) -> bool:
     try:
         for command in commands:
-            logger.info("执行前端命令: %s", " ".join(command))
+            logger.info("Execute front-end commands: %s", " ".join(command))
             subprocess.run(command, cwd=frontend_dir, check=True)
-        logger.info("前端静态资源构建完成")
+        logger.info("Front-end static resource construction completed")
         return True
     except subprocess.CalledProcessError as exc:
         cmd_display = " ".join(exc.cmd) if isinstance(exc.cmd, (list, tuple)) else str(exc.cmd)
         logger.error(
-            "前端命令执行失败（exit_code=%s）: %s",
+            "Front-end command execution failed（exit_code=%s）: %s",
             getattr(exc, "returncode", "N/A"),
             cmd_display,
         )
@@ -128,10 +128,10 @@ def _manual_build_command(frontend_dir: Path) -> str:
 
 
 def _has_static_assets(static_dir: Path) -> bool:
-    """检查 static/assets/ 是否存在且包含 CSS/JS 文件。
+    """When empty or missing static/assets/ When empty or missing CSS/JS When empty or missing。
 
-    index.html 存在但 assets/ 为空或缺失时，浏览器无法加载样式与脚本，
-    会导致页面元素异常放大、布局错乱（纯裸 HTML 渲染）。
+    index.html When empty or missing assets/ When empty or missing，The browser cannot load styles and scripts，
+    Will cause page elements to be abnormally enlarged、Confusing layout（pure nudity HTML rendering）。
     """
     assets_dir = static_dir / "assets"
     if not assets_dir.is_dir():
@@ -146,22 +146,22 @@ def _has_static_assets(static_dir: Path) -> bool:
 
 
 def _warn_if_assets_missing(artifact_index: Path, frontend_dir: Path) -> None:
-    """当 index.html 存在但 assets/ 缺失时，发出页面显示异常警告。"""
+    """when index.html When empty or missing assets/ When missing，Issue a page display exception warning。"""
     static_dir = artifact_index.parent
     assets_dir = static_dir / "assets"
     if not _has_static_assets(static_dir):
         logger.warning(
-            "检测到 %s 但 %s 目录不存在或无 CSS/JS 文件，"
-            "WebUI 将因缺少样式与脚本而显示异常（元素过大、布局错乱）",
+            "detected %s but %s Directory does not exist or is missing CSS/JS When empty or missing，"
+            "WebUI Exceptions will be displayed due to missing styles and scripts（Element too large、Confusing layout）",
             artifact_index,
             assets_dir,
         )
         logger.warning(
-            "请重新构建前端以修复此问题: %s",
+            "Please rebuild the frontend to fix this issue: %s",
             _manual_build_command(frontend_dir),
         )
         logger.warning(
-            "Docker 用户请执行: docker-compose -f ./docker/docker-compose.yml build --no-cache"
+            "Docker User please execute: docker-compose -f ./docker/docker-compose.yml build --no-cache"
         )
 
 
@@ -183,33 +183,33 @@ def prepare_webui_frontend_assets() -> bool:
 
     if not auto_build_enabled:
         if artifact_index.exists():
-            logger.info("WEBUI_AUTO_BUILD=false，检测到前端静态产物: %s", artifact_index)
+            logger.info("WEBUI_AUTO_BUILD=false，Front-end static artifact detected: %s", artifact_index)
             _warn_if_assets_missing(artifact_index, frontend_dir)
             return True
-        logger.warning("未检测到 WebUI 前端静态产物: %s", artifact_index)
-        logger.warning("当前配置 WEBUI_AUTO_BUILD=false，不会在后端启动时自动编译前端")
-        logger.warning("请先手动构建前端: %s", _manual_build_command(frontend_dir))
-        logger.warning("如需启动时自动构建，可设置 WEBUI_AUTO_BUILD=true")
+        logger.warning("not detected WebUI Front-end static products: %s", artifact_index)
+        logger.warning("Current configuration WEBUI_AUTO_BUILD=false，The frontend will not be automatically compiled when the backend starts")
+        logger.warning("Please build the frontend manually first: %s", _manual_build_command(frontend_dir))
+        logger.warning("If you want to build automatically at startup，Can be set WEBUI_AUTO_BUILD=true")
         return False
 
     force_build = _is_truthy_env("WEBUI_FORCE_BUILD", "false")
     needs_build, artifact_index = _needs_frontend_build(frontend_dir=frontend_dir, force_build=force_build)
 
     if not needs_build:
-        logger.info("检测到可直接复用的前端静态产物，跳过运行时自动构建: %s", artifact_index)
+        logger.info("Detected front-end static products that can be directly reused，Skip automatic build at runtime: %s", artifact_index)
         _warn_if_assets_missing(artifact_index, frontend_dir)
         return True
 
     package_json = frontend_dir / "package.json"
     if not package_json.exists():
-        logger.warning("未找到前端项目，无法自动构建: %s", package_json)
-        logger.warning("可先手动检查前端目录或关闭 WEBUI_AUTO_BUILD")
+        logger.warning("Frontend project not found，Unable to build automatically: %s", package_json)
+        logger.warning("You can manually check the front-end directory or close it first WEBUI_AUTO_BUILD")
         return False
 
     npm_path = shutil.which("npm")
     if not npm_path:
-        logger.warning("未检测到 npm，无法自动构建前端")
-        logger.warning("请先手动构建前端静态资源: %s", _manual_build_command(frontend_dir))
+        logger.warning("not detected npm，Unable to automatically build frontend")
+        logger.warning("Please build the front-end static resources manually first: %s", _manual_build_command(frontend_dir))
         return False
 
     lock_file = frontend_dir / "package-lock.json"
@@ -228,7 +228,7 @@ def prepare_webui_frontend_assets() -> bool:
         commands.append([npm_path, "run", "build"])
 
     logger.info(
-        "前端构建检查结果: needs_install=%s, needs_build=%s, artifact=%s",
+        "Front-end build check results: needs_install=%s, needs_build=%s, artifact=%s",
         needs_install,
         needs_build,
         artifact_index,

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class FeishuDocManager:
-    """飞书云文档管理器 (基于官方 SDK lark-oapi)"""
+    """Feishu Cloud Document Manager (Based on official SDK lark-oapi)"""
 
     def __init__(self):
         self.config = get_config()
@@ -19,8 +19,8 @@ class FeishuDocManager:
         self.app_secret = self.config.feishu_app_secret
         self.folder_token = self.config.feishu_folder_token
 
-        # 初始化 SDK 客户端
-        # SDK 会自动处理 tenant_access_token 的获取和刷新，无需人工干预
+        # of SDK of
+        # SDK of tenant_access_token of，of
         if self.is_configured():
             self.client = lark.Client.builder() \
                 .app_id(self.app_id) \
@@ -31,20 +31,20 @@ class FeishuDocManager:
             self.client = None
 
     def is_configured(self) -> bool:
-        """检查配置是否完整"""
+        """Check whether the configuration is complete"""
         return bool(self.app_id and self.app_secret and self.folder_token)
 
     def create_daily_doc(self, title: str, content_md: str) -> Optional[str]:
         """
-        创建日报文档
+        Create daily document
         """
         if not self.client or not self.is_configured():
-            logger.warning("飞书 SDK 未初始化或配置缺失，跳过创建")
+            logger.warning("Feishu SDK not initialized or configuration missing, skipping creation")
             return None
 
         try:
-            # 1. 创建文档
-            # 使用官方 SDK 的 Builder 模式构造请求
+            # 1. of
+            # Use official SDK of Builder Here's
             create_request = CreateDocumentRequest.builder() \
                 .request_body(CreateDocumentRequestBody.builder()
                               .folder_token(self.folder_token)
@@ -55,19 +55,19 @@ class FeishuDocManager:
             response = self.client.docx.v1.document.create(create_request)
 
             if not response.success():
-                logger.error(f"创建文档失败: {response.code} - {response.msg} - {response.error}")
+                logger.error(f"Failed to create document: {response.code} - {response.msg} - {response.error}")
                 return None
 
             doc_id = response.data.document.document_id
-            # 这里的 domain 只是为了生成链接，实际访问会重定向
+            # Here's domain Just to generate links，parse
             doc_url = f"https://feishu.cn/docx/{doc_id}"
-            logger.info(f"飞书文档创建成功: {title} (ID: {doc_id})")
+            logger.info(f"Feishu document created successfully: {title} (ID: {doc_id})")
 
-            # 2. 解析 Markdown 并写入内容
-            # 将 Markdown 转换为 SDK 需要的 Block 对象列表
+            # 2. parse Markdown Will
+            # Will Markdown Convert to SDK needed Block object list
             blocks = self._markdown_to_sdk_blocks(content_md)
 
-            # 飞书 API 限制每次写入 Block 数量（建议 50 个左右），分批写入
+            # Feishu API quantity Block quantity（suggestion 50 about），分批写入
             batch_size = 50
             doc_block_id = doc_id  # 文档本身也是一个 block
 
@@ -79,7 +79,7 @@ class FeishuDocManager:
                     .document_id(doc_id) \
                     .block_id(doc_block_id) \
                     .request_body(CreateDocumentBlockChildrenRequestBody.builder()
-                                  .children(batch_blocks)  # SDK 需要 Block 对象列表
+                                  .children(batch_blocks)  # SDK 需要 Block object list
                                   .index(-1)  # 追加到末尾
                                   .build()) \
                     .build()
@@ -87,20 +87,20 @@ class FeishuDocManager:
                 write_resp = self.client.docx.v1.document_block_children.create(batch_add_request)
 
                 if not write_resp.success():
-                    logger.error(f"写入文档内容失败(批次{i}): {write_resp.code} - {write_resp.msg}")
+                    logger.error(f"Failed to write document content(batch{i}): {write_resp.code} - {write_resp.msg}")
 
-            logger.info(f"文档内容写入完成")
+            logger.info(f"Document content writing is completed")
             return doc_url
 
         except Exception as e:
-            logger.error(f"飞书文档操作异常: {e}")
+            logger.error(f"Feishu document operation abnormality: {e}")
             import traceback
             logger.error(traceback.format_exc())
             return None
 
     def _markdown_to_sdk_blocks(self, md_text: str) -> List[Block]:
         """
-        将简单的 Markdown 转换为飞书 SDK 的 Block 对象
+        将简单的 Markdown Convert to Feishu SDK of Block object
         """
         blocks = []
         lines = md_text.split('\n')
@@ -110,11 +110,11 @@ class FeishuDocManager:
             if not line:
                 continue
 
-            # 默认普通文本 (Text = 2)
+            # Default normal text (Text = 2)
             block_type = 2
             text_content = line
 
-            # 识别标题
+            # Identify title
             if line.startswith('# '):
                 block_type = 3  # H1
                 text_content = line[2:]
@@ -132,8 +132,8 @@ class FeishuDocManager:
                               .build())
                 continue
 
-            # 构造 Text 类型的 Block
-            # SDK 的结构嵌套比较深: Block -> Text -> elements -> TextElement -> TextRun -> content
+            # structure Text type Block
+            # SDK The structure of is deeply nested: Block -> Text -> elements -> TextElement -> TextRun -> content
             text_run = TextRun.builder() \
                 .content(text_content) \
                 .text_element_style(TextElementStyle.builder().build()) \
@@ -148,7 +148,7 @@ class FeishuDocManager:
                 .style(TextStyle.builder().build()) \
                 .build()
 
-            # 根据 block_type 放入正确的属性容器
+            # according to block_type into the correct property container
             block_builder = Block.builder().block_type(block_type)
 
             if block_type == 2:

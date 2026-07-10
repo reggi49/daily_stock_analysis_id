@@ -22,11 +22,11 @@ const signal: DecisionSignalItem = {
   entryHigh: 1620,
   stopLoss: 1550,
   targetPrice: 1700,
-  invalidation: '跌破 1550',
-  watchConditions: '观察成交量',
-  reason: '趋势保持',
-  riskSummary: '放量下跌风险',
-  catalystSummary: '业绩窗口',
+  invalidation: 'Breaks below 1550',
+  watchConditions: 'Monitor trading volume',
+  reason: 'Trend maintained',
+  riskSummary: 'Risk of high-volume decline',
+  catalystSummary: 'Earnings window',
   evidence: { technical: 'ma' },
   dataQualitySummary: { freshness: 'ok' },
   planQuality: 'complete',
@@ -54,14 +54,14 @@ describe('DecisionSignalCard', () => {
     expect(screen.getByText('贵州茅台').closest('button')).toBeNull();
     expect(screen.getByText('72%')).toBeInTheDocument();
     expect(screen.getByText('1600 - 1620')).toBeInTheDocument();
-    expect(screen.getByText('业绩窗口')).toBeInTheDocument();
-    expect(screen.getByText('跌破 1550')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '查看 贵州茅台 AI 建议详情' }));
+    expect(screen.getByText('Earnings window')).toBeInTheDocument();
+    expect(screen.getByText('Breaks below 1550')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'View 贵州茅台 AI suggestion details' }));
 
     expect(onSelect).toHaveBeenCalledWith(signal);
-    expect(screen.getByText('3 日')).toBeInTheDocument();
-    expect(screen.getByText('计划质量: 完整')).toBeInTheDocument();
-    expect(screen.getByText('阶段: 盘中')).toBeInTheDocument();
+    expect(screen.getByText('3 days')).toBeInTheDocument();
+    expect(screen.getByText('Plan quality: Complete')).toBeInTheDocument();
+    expect(screen.getByText('Phase: Intraday')).toBeInTheDocument();
     expect(screen.queryByText('3d')).not.toBeInTheDocument();
     expect(screen.queryByText('complete')).not.toBeInTheDocument();
     expect(screen.queryByText('intraday')).not.toBeInTheDocument();
@@ -71,7 +71,7 @@ describe('DecisionSignalCard', () => {
     renderCard();
 
     expect(screen.getByText('贵州茅台')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '查看 贵州茅台 AI 建议详情' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'View 贵州茅台 AI suggestion details' })).not.toBeInTheDocument();
   });
 
   it('hides missing optional plan text for sparse legacy signals', () => {
@@ -96,15 +96,15 @@ describe('DecisionSignalCard', () => {
       </UiLanguageProvider>,
     );
 
-    expect(screen.getByText('评分')).toBeInTheDocument();
-    expect(screen.getByText('置信度')).toBeInTheDocument();
-    expect(screen.getByText('周期')).toBeInTheDocument();
+    expect(screen.getByText('Score')).toBeInTheDocument();
+    expect(screen.getByText('Confidence')).toBeInTheDocument();
+    expect(screen.getByText('Horizon')).toBeInTheDocument();
     expect(screen.getAllByText('-').length).toBeGreaterThanOrEqual(3);
-    expect(screen.queryByText('入场区间')).not.toBeInTheDocument();
-    expect(screen.queryByText('止损')).not.toBeInTheDocument();
-    expect(screen.queryByText('目标价')).not.toBeInTheDocument();
-    expect(screen.queryByText('催化')).not.toBeInTheDocument();
-    expect(screen.queryByText('失效条件')).not.toBeInTheDocument();
+    expect(screen.queryByText('Entry range')).not.toBeInTheDocument();
+    expect(screen.queryByText('Stop loss')).not.toBeInTheDocument();
+    expect(screen.queryByText('Target price')).not.toBeInTheDocument();
+    expect(screen.queryByText('Catalyst')).not.toBeInTheDocument();
+    expect(screen.queryByText('Invalidation')).not.toBeInTheDocument();
   });
 });
 
@@ -117,12 +117,12 @@ describe('DecisionSignalDetails', () => {
       </UiLanguageProvider>,
     );
 
-    const entryRange = screen.getByText('入场区间').closest('div');
+    const entryRange = screen.getByText('Entry range').closest('div');
     expect(entryRange).not.toBeNull();
     expect(entryRange as HTMLElement).toHaveTextContent('1680');
-    expect(screen.getByText('3 日')).toBeInTheDocument();
-    expect(screen.getByText('完整')).toBeInTheDocument();
-    expect(screen.getByText('盘中')).toBeInTheDocument();
+    expect(screen.getByText('3 days')).toBeInTheDocument();
+    expect(screen.getByText('Complete')).toBeInTheDocument();
+    expect(screen.getByText('Intraday')).toBeInTheDocument();
     expect(screen.queryByText('3d')).not.toBeInTheDocument();
   });
 
@@ -192,15 +192,15 @@ describe('DecisionSignalDetails', () => {
       </UiLanguageProvider>,
     );
 
-    expect(screen.getByText('后验结果')).toBeInTheDocument();
-    expect(screen.getAllByText('3 日').length).toBeGreaterThan(1);
-    expect(screen.getByText('命中')).toBeInTheDocument();
+    expect(screen.getByText('Posterior results')).toBeInTheDocument();
+    expect(screen.getAllByText('3 days').length).toBeGreaterThan(1);
+    expect(screen.getByText('Hit')).toBeInTheDocument();
     expect(screen.getByText('5%')).toBeInTheDocument();
-    expect(screen.getByText('催化')).toBeInTheDocument();
-    expect(screen.getByText('业绩窗口')).toBeInTheDocument();
-    expect(screen.getByText('失效条件')).toBeInTheDocument();
-    expect(screen.getByText('跌破 1550')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '无用' }));
+    expect(screen.getByText('Catalyst')).toBeInTheDocument();
+    expect(screen.getByText('Earnings window')).toBeInTheDocument();
+    expect(screen.getByText('Invalidation')).toBeInTheDocument();
+    expect(screen.getByText('Breaks below 1550')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Not useful' }));
     expect(onFeedbackSubmit).toHaveBeenCalledWith('not_useful');
   });
 

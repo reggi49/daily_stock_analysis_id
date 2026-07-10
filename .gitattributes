@@ -1,6 +1,6 @@
-# 对 changelog 使用 union 合并策略
-# 多个并发 PR 向 [Unreleased] 末尾追加条目时，Git 直接取两边所有行而不产生冲突标记。
-# 适用于 append-only 的 changelog 文件。
+# Use union merge strategy for changelog
+# When multiple concurrent PRs append entries to the end of [Unreleased], Git takes all lines from both sides without producing conflict markers.
+# Applies to append-only changelog files.
 docs/CHANGELOG.md merge=union
 
 # Documentation image/design assets are binary. Keep GitHub review diffs from
@@ -20,23 +20,23 @@ docs/assets/**/*.jpeg binary
 docs/assets/**/*.png binary
 docs/assets/**/*.psd binary
 
-# === 强制 LF 的文件类型（内核/系统解释器直接消费） ===
-# Shell 脚本（entrypoint.sh、任何 .sh）
+# === File types forced to LF (consumed directly by kernel/system interpreters) ===
+# Shell scripts (entrypoint.sh, any .sh)
 *.sh text eol=lf
 *.bash text eol=lf
 
-# Dockerfile（包括多阶段或变体）
+# Dockerfile (including multi-stage or variants)
 Dockerfile text eol=lf
 Dockerfile.* text eol=lf
 
 # Makefile
 Makefile text eol=lf
 
-# 环境变量文件（如果被 shell 直接 source 使用）
+# Env files (if sourced directly by shell)
 .env text eol=lf
 
-# === 新增：二进制文件（禁止 Git 修改换行/编码） ===
-# 证书、密钥等（如果有）
+# === New: binary files (Git must not change line endings/encoding) ===
+# Certificates, keys, etc. (if any)
 *.pem binary
 *.crt binary
 *.key binary

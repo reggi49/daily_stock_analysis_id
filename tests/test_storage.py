@@ -204,33 +204,33 @@ class TestStorage(unittest.TestCase):
         temp_dir.cleanup()
     
     def test_parse_sniper_value(self):
-        """测试解析狙击点位数值"""
+        """Test parsing sniper-price values"""
         
-        # 1. 正常数值
+        # 1. Normal value
         self.assertEqual(DatabaseManager._parse_sniper_value(100), 100.0)
         self.assertEqual(DatabaseManager._parse_sniper_value(100.5), 100.5)
         self.assertEqual(DatabaseManager._parse_sniper_value("100"), 100.0)
         self.assertEqual(DatabaseManager._parse_sniper_value("100.5"), 100.5)
         
-        # 2. 包含中文描述和"元"
+        # 2. Contains Chinese description and "元"
         self.assertEqual(DatabaseManager._parse_sniper_value("建议在 100 元附近买入"), 100.0)
         self.assertEqual(DatabaseManager._parse_sniper_value("价格：100.5元"), 100.5)
         
-        # 3. 包含干扰数字（修复的Bug场景）
-        # 之前 "MA5" 会被错误提取为 5.0，现在应该提取 "元" 前面的 100
+        # 3. Contains interfering numbers (the fixed-bug scenario)
+        # Previously "MA5" was wrongly extracted as 5.0; now it should extract the 100 before "元"
         text_bug = "无法给出。需等待MA5数据恢复，在股价回踩MA5且乖离率<2%时考虑100元"
         self.assertEqual(DatabaseManager._parse_sniper_value(text_bug), 100.0)
         
-        # 4. 更多干扰场景
+        # 4. More interfering scenarios
         text_complex = "MA10为20.5，建议在30元买入"
         self.assertEqual(DatabaseManager._parse_sniper_value(text_complex), 30.0)
         
         text_multiple = "支撑位10元，阻力位20元" # 应该提取最后一个"元"前面的数字，即20，或者更复杂的逻辑？
-        # 当前逻辑是找最后一个冒号，然后找之后的第一个"元"，提取中间的数字。
-        # 测试没有冒号的情况
+        # Current logic finds the last colon, then the first "元" after it, and extracts the number in between.
+        # Test the no-colon case
         self.assertEqual(DatabaseManager._parse_sniper_value("30元"), 30.0)
         
-        # 测试多个数字在"元"之前
+        # Test multiple numbers before "元"
         self.assertEqual(DatabaseManager._parse_sniper_value("MA5 10 20元"), 20.0)
         
         # 5. Fallback: no "元" character — extracts last non-MA number
@@ -239,17 +239,17 @@ class TestStorage(unittest.TestCase):
         self.assertEqual(DatabaseManager._parse_sniper_value("93.40下方（MA20支撑）"), 93.4)
         self.assertEqual(DatabaseManager._parse_sniper_value("108.00-110.00（前期高点阻力）"), 110.0)
 
-        # 6. 无效输入
+        # 6. Invalid input
         self.assertIsNone(DatabaseManager._parse_sniper_value(None))
         self.assertIsNone(DatabaseManager._parse_sniper_value(""))
         self.assertIsNone(DatabaseManager._parse_sniper_value("没有数字"))
         self.assertIsNone(DatabaseManager._parse_sniper_value("MA5但没有元"))
 
-        # 7. 回归：括号内技术指标数字不应被提取
+        # 7. Regression: indicator numbers inside parentheses should not be extracted
         self.assertNotEqual(DatabaseManager._parse_sniper_value("1.52-1.53 (回踩MA5/10附近)"), 10.0)
         self.assertNotEqual(DatabaseManager._parse_sniper_value("1.55-1.56(MA5/M20支撑)"), 20.0)
         self.assertNotEqual(DatabaseManager._parse_sniper_value("1.49-1.50(MA60附近企稳)"), 60.0)
-        # 验证正确值在区间内
+        # Verify the correct value is within range
         self.assertIn(DatabaseManager._parse_sniper_value("1.52-1.53 (回踩MA5/10附近)"), [1.52, 1.53])
         self.assertIn(DatabaseManager._parse_sniper_value("1.55-1.56(MA5/M20支撑)"), [1.55, 1.56])
         self.assertIn(DatabaseManager._parse_sniper_value("1.49-1.50(MA60附近企稳)"), [1.49, 1.50])

@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-A股自选股智能分析系统 - 环境验证测试
+AStock selection intelligent analysis system - Environmental validation testing
 ===================================
 
-用于验证 .env 配置是否正确，包括：
-1. 配置加载测试
-2. 数据库查看
-3. 数据源测试
-4. LLM 调用测试
-5. 通知推送测试
+For verifying whether .env is configured correctly, including:
+1. Configure load test
+2. Database view
+3. Data source testing
+4. LLM Call test
+5. How to use
 
-使用方法：
-    python scripts/check_env.py              # 运行所有测试
-    python scripts/check_env.py --db         # 仅查看数据库
-    python scripts/check_env.py --llm        # 仅测试 LLM
-    python scripts/check_env.py --fetch      # 仅测试数据获取
-    python scripts/check_env.py --notify     # 仅测试通知
+Usage:
+    python scripts/check_env.py              # Run all tests
+    python scripts/check_env.py --db         # View database only
+    python scripts/check_env.py --llm        # Test LLM only
+    python scripts/check_env.py --fetch      # Test data fetch only
+    python scripts/check_env.py --notify     # Test notification only
 
 """
 import os
@@ -64,7 +64,7 @@ def configure_console_encoding():
         _reconfigure_output_stream(stream)
 
 
-# 配置日志
+# Query recent
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)-8s | %(message)s',
@@ -74,70 +74,70 @@ logger = logging.getLogger(__name__)
 
 
 def print_header(title: str):
-    """打印标题"""
+    """Print title"""
     print("\n" + "=" * 60)
     print(f"  {title}")
     print("=" * 60)
 
 
 def print_section(title: str):
-    """打印小节"""
+    """Print section"""
     print(f"\n--- {title} ---")
 
 
 def check_config():
-    """测试配置加载"""
-    print_header("1. 配置加载测试")
+    """Test configuration loading"""
+    print_header("1. Configuration Load Test")
     
     from src.config import get_config
     config = get_config()
     
-    print_section("基础配置")
-    print(f"  股票列表: {config.stock_list}")
-    print(f"  数据库路径: {config.database_path}")
-    print(f"  最大并发数: {config.max_workers}")
-    print(f"  调试模式: {config.debug}")
+    print_section("Basic Configuration")
+    print(f"  stock list: {config.stock_list}")
+    print(f"  Database path: {config.database_path}")
+    print(f"  Maximum concurrent workers: {config.max_workers}")
+    print(f"  Debug mode: {config.debug}")
     
-    print_section("API 配置")
-    print(f"  Tushare Token: {'已配置 ✓' if config.tushare_token else '未配置 ✗'}")
+    print_section("API Configuration")
+    print(f"  Tushare Token: {'Configured ✓' if config.tushare_token else 'Not configured ✗'}")
     if config.tushare_token:
-        print(f"    Token 前8位: {config.tushare_token[:8]}...")
+        print(f"    Token Bit8Bit: {config.tushare_token[:8]}...")
     
-    print(f"  Gemini API Key: {'已配置 ✓' if config.gemini_api_key else '未配置 ✗'}")
+    print(f"  Gemini API Key: {'Configured ✓' if config.gemini_api_key else 'Not configured ✗'}")
     if config.gemini_api_key:
-        print(f"    Key 前8位: {config.gemini_api_key[:8]}...")
-    print(f"  Gemini 主模型: {config.gemini_model}")
-    print(f"  Gemini 备选模型: {config.gemini_model_fallback}")
+        print(f"    Key Bit8Bit: {config.gemini_api_key[:8]}...")
+    print(f"  Gemini primary model: {config.gemini_model}")
+    print(f"  Gemini fallback model: {config.gemini_model_fallback}")
     
-    print(f"  企业微信 Webhook: {'已配置 ✓' if config.wechat_webhook_url else '未配置 ✗'}")
+    print(f"  Enterprise WeChat Webhook: {'Configured ✓' if config.wechat_webhook_url else 'Not configured ✗'}")
     
-    print_section("配置验证")
+    print_section("Configuration Validation")
     issues = config.validate_structured()
     _prefix = {"error": "  ✗", "warning": "  ⚠", "info": "  ·"}
     for issue in issues:
         print(f"{_prefix.get(issue.severity, '  ?')} [{issue.severity.upper()}] {issue.message}")
     if not any(i.severity in ("error", "warning") for i in issues):
-        print("  ✓ 关键配置项验证通过")
+        print("  ✓ Key configuration items passed verification")
     
     return True
 
 
 def view_database():
-    """查看数据库内容"""
-    print_header("2. 数据库内容查看")
+    """View database contents"""
+    print_header("2. Database Contents")
     
     from src.storage import get_db
     from sqlalchemy import text
     
     db = get_db()
     
-    print_section("数据库连接")
-    print(f"  ✓ 连接成功")
+    print_section("Database Connection")
+    print(f"  ✓ Connection successful")
     
-    # 使用独立的 session 查询
+    # Query recent session Query today's data
     session = db.get_session()
     try:
-        # 统计信息
+        # Query data
         result = session.execute(text("""
             SELECT 
                 code,
@@ -151,16 +151,16 @@ def view_database():
         """))
         stocks = result.fetchall()
         
-        print_section(f"已存储股票数据 (共 {len(stocks)} 只)")
+        print_section(f"Stored Stock Data (total {len(stocks)} stocks)")
         if stocks:
-            print(f"  {'代码':<10} {'记录数':<8} {'起始日期':<12} {'最新日期':<12} {'数据源'}")
+            print(f"  {'Code':<10} {'Records':<8} {'Start Date':<12} {'Latest Date':<12} {'Source'}")
             print("  " + "-" * 60)
             for row in stocks:
                 print(f"  {row[0]:<10} {row[1]:<8} {row[2]!s:<12} {row[3]!s:<12} {row[4] or 'Unknown'}")
         else:
-            print("  暂无数据")
+            print("  No data yet")
         
-        # 查询今日数据
+        # Query today's data
         today = date.today()
         result = session.execute(text("""
             SELECT code, date, open, high, low, close, pct_chg, volume, ma5, ma10, ma20, volume_ratio
@@ -170,18 +170,18 @@ def view_database():
         """), {"today": today})
         today_data = result.fetchall()
         
-        print_section(f"今日数据 ({today})")
+        print_section(f"Today's Data ({today})")
         if today_data:
             for row in today_data:
                 code, dt, open_, high, low, close, pct_chg, volume, ma5, ma10, ma20, vol_ratio = row
                 print(f"\n  【{code}】")
-                print(f"    开盘: {open_:.2f}  最高: {high:.2f}  最低: {low:.2f}  收盘: {close:.2f}")
-                print(f"    涨跌幅: {pct_chg:.2f}%  成交量: {volume/10000:.2f}万股")
-                print(f"    MA5: {ma5:.2f}  MA10: {ma10:.2f}  MA20: {ma20:.2f}  量比: {vol_ratio:.2f}")
+                print(f"    Open: {open_:.2f}  High: {high:.2f}  Low: {low:.2f}  Close: {close:.2f}")
+                print(f"    Change: {pct_chg:.2f}%  Volume: {volume/10000:.2f} 10k")
+                print(f"    MA5: {ma5:.2f}  MA10: {ma10:.2f}  MA20: {ma20:.2f}  Vol Ratio: {vol_ratio:.2f}")
         else:
-            print("  今日暂无数据")
+            print("  No data for today")
         
-        # 查询最近10条数据
+        # Query most recent 10 records
         result = session.execute(text("""
             SELECT code, date, close, pct_chg, volume, data_source
             FROM stock_daily 
@@ -190,12 +190,12 @@ def view_database():
         """))
         recent = result.fetchall()
         
-        print_section("最近10条记录")
+        print_section("Recent 10 Records")
         if recent:
-            print(f"  {'代码':<10} {'日期':<12} {'收盘':<10} {'涨跌%':<8} {'成交量':<15} {'来源'}")
+            print(f"  {'Code':<10} {'Date':<12} {'Close':<10} {'Chg%':<8} {'Volume':<15} {'Source'}")
             print("  " + "-" * 70)
             for row in recent:
-                vol_str = f"{row[4]/10000:.2f}万" if row[4] else "N/A"
+                vol_str = f"{row[4]/10000:.2f} 10k" if row[4] else "N/A"
                 print(f"  {row[0]:<10} {row[1]!s:<12} {row[2]:<10.2f} {row[3]:<8.2f} {vol_str:<15} {row[5] or 'Unknown'}")
     finally:
         session.close()
@@ -204,28 +204,28 @@ def view_database():
 
 
 def check_data_fetch(stock_code: str = "600519"):
-    """测试数据获取"""
-    print_header("3. 数据获取测试")
+    """Test data acquisition"""
+    print_header("3. Data Fetch Test")
     
     from data_provider import DataFetcherManager
     
     manager = DataFetcherManager()
     
-    print_section("数据源列表")
+    print_section("Data Source List")
     for i, name in enumerate(manager.available_fetchers, 1):
         print(f"  {i}. {name}")
     
-    print_section(f"获取 {stock_code} 数据")
-    print(f"  正在获取（可能需要几秒钟）...")
+    print_section(f"Fetching {stock_code} data")
+    print(f"  Fetching (this may take a few seconds)...")
     
     try:
         df, source = manager.get_daily_data(stock_code, days=5)
         
-        print(f"  ✓ 获取成功")
-        print(f"    数据源: {source}")
-        print(f"    记录数: {len(df)}")
+        print(f"  ✓ Fetch successful")
+        print(f"    Data source: {source}")
+        print(f"    Record count: {len(df)}")
         
-        print_section("数据预览（最近5条）")
+        print_section("Data Preview (last 5 rows)")
         if not df.empty:
             preview_cols = ['date', 'open', 'high', 'low', 'close', 'pct_chg', 'volume']
             existing_cols = [c for c in preview_cols if c in df.columns]
@@ -234,13 +234,13 @@ def check_data_fetch(stock_code: str = "600519"):
         return True
         
     except Exception as e:
-        print(f"  ✗ 获取失败: {e}")
+        print(f"  ✗ Failed to obtain: {e}")
         return False
 
 
 def check_llm():
-    """测试 LLM 调用"""
-    print_header("4. LLM (Gemini) 调用测试")
+    """Test LLM call"""
+    print_header("4. LLM (Gemini) Call Test")
     
     from src.analyzer import GeminiAnalyzer
     from src.config import get_config
@@ -248,33 +248,33 @@ def check_llm():
     
     config = get_config()
     
-    print_section("模型配置")
-    print(f"  主模型: {config.gemini_model}")
-    print(f"  备选模型: {config.gemini_model_fallback}")
+    print_section("Model Configuration")
+    print(f"  master model: {config.gemini_model}")
+    print(f"  alternative model: {config.gemini_model_fallback}")
     
-    # 检查网络连接
-    print_section("网络连接检查")
+    # Check network connection
+    print_section("Network Connection Check")
     try:
         import socket
         socket.setdefaulttimeout(10)
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("generativelanguage.googleapis.com", 443))
-        print(f"  ✓ 可以连接到 Google API 服务器")
+        print(f"  ✓ Can connect to Google API server")
     except Exception as e:
-        print(f"  ✗ 无法连接到 Google API 服务器: {e}")
-        print(f"  提示: 请检查网络连接或配置代理")
-        print(f"  提示: 可以设置环境变量 HTTPS_PROXY=http://your-proxy:port")
+        print(f"  ✗ Unable to connect to Google API server: {e}")
+        print(f"  Hint: Please check network connection or configure proxy")
+        print(f"  Hint: Set environment variable HTTPS_PROXY=http://your-proxy:port")
         return False
     
     analyzer = GeminiAnalyzer()
     
-    print_section("模型初始化")
+    print_section("Model Initialization")
     if analyzer.is_available():
-        print(f"  ✓ 模型初始化成功")
+        print(f"  ✓ Model initialized successfully")
     else:
-        print(f"  ✗ 模型初始化失败（请检查 API Key）")
+        print(f"  ✗ Model initialization failed (please check API Key)")
         return False
     
-    # 构造测试上下文
+    # Construct test context
     test_context = {
         'code': '600519',
         'date': date.today().isoformat(),
@@ -291,14 +291,14 @@ def check_llm():
             'ma20': 1410.0,
             'volume_ratio': 1.1,
         },
-        'ma_status': '多头排列 📈',
+        'ma_status': 'multi-head arrangement 📈',
         'volume_change_ratio': 1.05,
         'price_change_ratio': 0.56,
     }
     
-    print_section("发送测试请求")
-    print(f"  测试股票: 贵州茅台 (600519)")
-    print(f"  正在调用 Gemini API（超时: 60秒）...")
+    print_section("Send Test Request")
+    print(f"  Test stock: Kweichow Moutai (600519)")
+    print(f"  Calling Gemini API (timeout: 60s)...")
     
     start_time = time.time()
     
@@ -306,44 +306,44 @@ def check_llm():
         result = analyzer.analyze(test_context)
         
         elapsed = time.time() - start_time
-        print(f"\n  ✓ API 调用成功 (耗时: {elapsed:.2f}秒)")
+        print(f"\n  ✓ API call successful (elapsed: {elapsed:.2f}s)")
         
-        print_section("分析结果")
-        print(f"  情绪评分: {result.sentiment_score}/100")
-        print(f"  趋势预测: {result.trend_prediction}")
-        print(f"  操作建议: {result.operation_advice}")
-        print(f"  技术分析: {result.technical_analysis[:80]}..." if len(result.technical_analysis) > 80 else f"  技术分析: {result.technical_analysis}")
-        print(f"  消息面: {result.news_summary[:80]}..." if len(result.news_summary) > 80 else f"  消息面: {result.news_summary}")
-        print(f"  综合摘要: {result.analysis_summary}")
+        print_section("Analysis Results")
+        print(f"  Sentiment score: {result.sentiment_score}/100")
+        print(f"  Trend prediction: {result.trend_prediction}")
+        print(f"  Trading advice: {result.operation_advice}")
+        print(f"  Technical analysis: {result.technical_analysis[:80]}..." if len(result.technical_analysis) > 80 else f"  Technical analysis: {result.technical_analysis}")
+        print(f"  News summary: {result.news_summary[:80]}..." if len(result.news_summary) > 80 else f"  News summary: {result.news_summary}")
+        print(f"  Analysis summary: {result.analysis_summary}")
         
         if not result.success:
-            print(f"\n  ⚠ 注意: {result.error_message}")
+            print(f"\n  ⚠ Call failed: {result.error_message}")
         
         return result.success
         
     except Exception as e:
         elapsed = time.time() - start_time
-        print(f"\n  ✗ API 调用失败 (耗时: {elapsed:.2f}秒)")
-        print(f"  错误: {e}")
+        print(f"\n  ✗ API call failed (elapsed: {elapsed:.2f}s)")
+        print(f"  Error: {e}")
         
-        # 提供更详细的错误提示
+        # Provide more detailed error messages
         error_str = str(e).lower()
         if 'timeout' in error_str or 'unavailable' in error_str:
-            print(f"\n  诊断: 网络超时，可能原因:")
-            print(f"    1. 网络不通（需要代理访问 Google）")
-            print(f"    2. API 服务暂时不可用")
-            print(f"    3. 请求量过大被限流")
+            print(f"\n  Diagnosis: Network timeout, possible causes:")
+            print(f"    1. Network blocked (proxy required to access Google)")
+            print(f"    2. API service temporarily unavailable")
+            print(f"    3. Request volume too large, rate limited")
         elif 'invalid' in error_str or 'api key' in error_str:
-            print(f"\n  诊断: API Key 可能无效")
+            print(f"\n  Diagnosis: API Key may be invalid")
         elif 'model' in error_str:
-            print(f"\n  诊断: 模型名称可能不正确，尝试修改 .env 中的 GEMINI_MODEL")
+            print(f"\n  Diagnosis: Model name may be incorrect, try modifying GEMINI_MODEL in .env")
         
         return False
 
 
 def check_notification():
-    """测试通知推送"""
-    print_header("5. 通知推送测试")
+    """Test notification push"""
+    print_header("5. Notification Push Test")
     
     from src.notification import NotificationService
     from src.config import get_config
@@ -351,86 +351,86 @@ def check_notification():
     config = get_config()
     service = NotificationService()
     
-    print_section("配置检查")
+    print_section("Configuration Check")
     if service.is_available():
-        print(f"  ✓ 企业微信 Webhook 已配置")
+        print(f"  ✓ Enterprise WeChat Webhook configured")
         webhook_preview = config.wechat_webhook_url[:50] + "..." if len(config.wechat_webhook_url) > 50 else config.wechat_webhook_url
         print(f"    URL: {webhook_preview}")
     else:
-        print(f"  ✗ 企业微信 Webhook 未配置")
+        print(f"  ✗ Enterprise WeChat Webhook not configured")
         return False
     
-    print_section("发送测试消息")
+    print_section("Send Test Message")
     
-    test_message = f"""## 🧪 系统测试消息
+    test_message = f"""## 🧪 System Test Message
 
-这是一条来自 **A股自选股智能分析系统** 的测试消息。
+This is a test message from **AStock Selection Intelligent Analysis System**.
 
-- 测试时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-- 测试目的: 验证企业微信 Webhook 配置
+- Test time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+- Test purpose: Verify Enterprise WeChat Webhook configuration
 
-如果您收到此消息，说明通知功能配置正确 ✓"""
+If you receive this message, it means the notification function is configured correctly ✓"""
     
-    print(f"  正在发送...")
+    print(f"  Sending...")
     
     try:
         success = service.send_to_wechat(test_message)
         
         if success:
-            print(f"  ✓ 消息发送成功，请检查企业微信")
+            print(f"  ✓ Message sent successfully, please check Enterprise WeChat")
         else:
-            print(f"  ✗ 消息发送失败")
+            print(f"  ✗ Message sending failed")
         
         return success
         
     except Exception as e:
-        print(f"  ✗ 发送异常: {e}")
+        print(f"  ✗ Send exception: {e}")
         return False
 
 
 def run_all_tests():
-    """运行所有测试"""
+    """Run all tests"""
     print("\n" + "🚀" * 20)
-    print("  A股自选股智能分析系统 - 环境验证")
+    print("  AStock Selection Intelligent Analysis System - Environment Verification")
     print("  " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     print("🚀" * 20)
     
     results = {}
     
-    # 1. 配置测试
+    # 1. Configuration test
     try:
-        results['配置加载'] = check_config()
+        results['Config Load'] = check_config()
     except Exception as e:
-        print(f"  ✗ 配置测试失败: {e}")
-        results['配置加载'] = False
+        print(f"  ✗ Configuration test failed: {e}")
+        results['Config Load'] = False
     
-    # 2. 数据库查看
+    # 2. Database view
     try:
-        results['数据库'] = view_database()
+        results['Database'] = view_database()
     except Exception as e:
-        print(f"  ✗ 数据库测试失败: {e}")
-        results['数据库'] = False
+        print(f"  ✗ Database test failed: {e}")
+        results['Database'] = False
     
-    # 3. 数据获取（跳过，避免太慢）
-    # results['数据获取'] = check_data_fetch()
+    # 3. Data fetch (skipped to avoid being too slow)
+    # results['Data Fetch'] = check_data_fetch()
     
-    # 4. LLM 测试（可选）
-    # results['LLM调用'] = check_llm()
+    # 4. LLM test (optional)
+    # results['LLM Call'] = check_llm()
     
-    # 汇总
-    print_header("测试结果汇总")
+    # Summary
+    print_header("Test Results Summary")
     for name, passed in results.items():
-        status = "✓ 通过" if passed else "✗ 失败"
+        status = "✓ pass" if passed else "✗ fail"
         print(f"  {status}: {name}")
     
-    print(f"\n提示: 使用 --llm 参数单独测试 LLM 调用")
-    print(f"提示: 使用 --fetch 参数单独测试数据获取")
-    print(f"提示: 使用 --notify 参数单独测试通知推送")
+    print(f"\nHint: Use --llm to individually test LLM calls")
+    print(f"Hint: Use --fetch to individually test data fetching")
+    print(f"Hint: Use --notify to individually test notification push")
 
 
 def query_stock_data(stock_code: str, days: int = 10):
-    """查询指定股票的数据"""
-    print_header(f"查询股票数据: {stock_code}")
+    """Query data for a specified stock"""
+    print_header(f"Query Stock Data: {stock_code}")
     
     from src.storage import get_db
     from sqlalchemy import text
@@ -450,14 +450,14 @@ def query_stock_data(stock_code: str, days: int = 10):
         rows = result.fetchall()
         
         if rows:
-            print(f"\n  最近 {len(rows)} 条记录:\n")
-            print(f"  {'日期':<12} {'开盘':<10} {'最高':<10} {'最低':<10} {'收盘':<10} {'涨跌%':<8} {'MA5':<10} {'MA10':<10} {'量比':<8}")
+            print(f"\n  Most recent {len(rows)} records:\n")
+            print(f"  {'Date':<12} {'Open':<10} {'High':<10} {'Low':<10} {'Close':<10} {'Chg%':<8} {'MA5':<10} {'MA10':<10} {'Vol Ratio':<8}")
             print("  " + "-" * 100)
             for row in rows:
                 dt, open_, high, low, close, pct_chg, vol, amt, ma5, ma10, ma20, vol_ratio = row
                 print(f"  {dt!s:<12} {open_:<10.2f} {high:<10.2f} {low:<10.2f} {close:<10.2f} {pct_chg:<8.2f} {ma5:<10.2f} {ma10:<10.2f} {vol_ratio:<8.2f}")
         else:
-            print(f"  未找到 {stock_code} 的数据")
+            print(f"  No data found for {stock_code}")
     finally:
         session.close()
 
@@ -466,26 +466,26 @@ def main():
     configure_console_encoding()
 
     parser = argparse.ArgumentParser(
-        description='A股自选股智能分析系统 - 环境验证测试',
+        description='AStock Selection Intelligent Analysis System - Environment Verification',
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     
-    parser.add_argument('--db', action='store_true', help='查看数据库内容')
-    parser.add_argument('--llm', action='store_true', help='测试 LLM 调用')
-    parser.add_argument('--fetch', action='store_true', help='测试数据获取')
-    parser.add_argument('--notify', action='store_true', help='测试通知推送')
-    parser.add_argument('--config', action='store_true', help='查看配置')
-    parser.add_argument('--stock', type=str, help='查询指定股票数据，如 --stock 600519')
-    parser.add_argument('--all', action='store_true', help='运行所有测试（包括 LLM）')
+    parser.add_argument('--db', action='store_true', help='View database contents')
+    parser.add_argument('--llm', action='store_true', help='Test LLM calls')
+    parser.add_argument('--fetch', action='store_true', help='Test data fetching')
+    parser.add_argument('--notify', action='store_true', help='Test notification push')
+    parser.add_argument('--config', action='store_true', help='View configuration')
+    parser.add_argument('--stock', type=str, help='Query specific stock data, e.g. --stock 600519')
+    parser.add_argument('--all', action='store_true', help='Run all tests (including LLM)')
     
     args = parser.parse_args()
     
-    # 如果没有指定任何参数，运行基础测试
+    # If no parameters specified, run basic tests
     if not any([args.db, args.llm, args.fetch, args.notify, args.config, args.stock, args.all]):
         run_all_tests()
         return 0
     
-    # 根据参数运行指定测试
+    # Run specified tests based on parameters
     if args.config:
         check_config()
     

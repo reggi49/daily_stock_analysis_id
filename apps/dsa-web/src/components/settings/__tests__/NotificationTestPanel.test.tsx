@@ -49,8 +49,8 @@ describe('NotificationTestPanel', () => {
 
     expect(screen.getByRole('option', { name: 'ntfy' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Gotify' })).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('渠道'), { target: { value: 'custom' } });
-    fireEvent.click(screen.getByRole('button', { name: /发送测试/ }));
+    fireEvent.change(screen.getByLabelText('Channel'), { target: { value: 'custom' } });
+    fireEvent.click(screen.getByRole('button', { name: /Send test/ }));
 
     await waitFor(() => expect(testNotificationChannel).toHaveBeenCalledWith(expect.objectContaining({
       channel: 'custom',
@@ -58,7 +58,7 @@ describe('NotificationTestPanel', () => {
       maskToken: '******',
       timeoutSeconds: 20,
     })));
-    expect(await screen.findByText('测试成功')).toBeInTheDocument();
+    expect(await screen.findByText('Test passed')).toBeInTheDocument();
     expect(screen.getByText('HTTP 200')).toBeInTheDocument();
     expect(screen.getByText('https://example.com/hook?token=***')).toBeInTheDocument();
   });
@@ -89,11 +89,11 @@ describe('NotificationTestPanel', () => {
       </UiLanguageProvider>
     );
 
-    const titleInput = screen.getByLabelText('标题');
-    const contentInput = screen.getByLabelText('正文');
+    const titleInput = screen.getByLabelText('Title');
+    const contentInput = screen.getByLabelText('Content');
 
-    expect(titleInput).toHaveValue('DSA 通知测试');
-    expect(contentInput).toHaveValue('这是一条来自 DSA Web 设置页的通知测试消息。');
+    expect(titleInput).toHaveValue('DSA notification test');
+    expect(contentInput).toHaveValue('This is a test notification from the DSA Web settings page.');
 
     fireEvent.click(screen.getByRole('button', { name: 'switch-en' }));
 
@@ -136,21 +136,21 @@ describe('NotificationTestPanel', () => {
       </UiLanguageProvider>
     );
 
-    const titleInput = screen.getByLabelText('标题');
-    const contentInput = screen.getByLabelText('正文');
+    const titleInput = screen.getByLabelText('Title');
+    const contentInput = screen.getByLabelText('Content');
 
-    fireEvent.change(titleInput, { target: { value: '自定义标题' } });
-    fireEvent.change(contentInput, { target: { value: '自定义正文' } });
+    fireEvent.change(titleInput, { target: { value: 'Custom title' } });
+    fireEvent.change(contentInput, { target: { value: 'Custom content' } });
 
     fireEvent.click(screen.getByRole('button', { name: 'switch-en' }));
-    expect(titleInput).toHaveValue('自定义标题');
-    expect(contentInput).toHaveValue('自定义正文');
+    expect(titleInput).toHaveValue('Custom title');
+    expect(contentInput).toHaveValue('Custom content');
   });
 
   it('renders custom webhook partial failure attempts', async () => {
     testNotificationChannel.mockResolvedValueOnce({
       success: true,
-      message: '自定义 Webhook 通知测试部分成功（1/2）',
+      message: 'Custom webhook notification test partially succeeded (1/2)',
       errorCode: null,
       stage: 'notification_send',
       retryable: true,
@@ -188,11 +188,11 @@ describe('NotificationTestPanel', () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText('渠道'), { target: { value: 'custom' } });
-    fireEvent.click(screen.getByRole('button', { name: /发送测试/ }));
+    fireEvent.change(screen.getByLabelText('Channel'), { target: { value: 'custom' } });
+    fireEvent.click(screen.getByRole('button', { name: /Send test/ }));
 
-    expect(await screen.findByText('测试成功')).toBeInTheDocument();
-    expect(screen.getByText(/部分成功/)).toBeInTheDocument();
+    expect(await screen.findByText('Test passed')).toBeInTheDocument();
+    expect(screen.getByText(/Partially successful/)).toBeInTheDocument();
     expect(screen.getAllByText('HTTP 500').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('HTTP 200')).toBeInTheDocument();
     expect(screen.getByText('http_500')).toHaveClass('text-warning');
@@ -202,7 +202,7 @@ describe('NotificationTestPanel', () => {
   it('renders retryable timeout diagnostics', async () => {
     testNotificationChannel.mockResolvedValueOnce({
       success: false,
-      message: '通知测试异常: timeout',
+      message: 'Notification test error: timeout',
       errorCode: 'timeout',
       stage: 'notification_send',
       retryable: true,
@@ -229,9 +229,9 @@ describe('NotificationTestPanel', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /发送测试/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Send test/ }));
 
-    expect(await screen.findByText('测试失败')).toBeInTheDocument();
+    expect(await screen.findByText('Test failed')).toBeInTheDocument();
     const timeoutEntries = screen.getAllByText('timeout');
     expect(timeoutEntries[0]).toBeInTheDocument();
     expect(screen.getByText('https://qyapi.example.com/cgi-bin/webhook/send?key=***')).toBeInTheDocument();

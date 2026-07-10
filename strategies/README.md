@@ -1,97 +1,97 @@
-# 交易策略目录 / Trading Strategies
+# Trading Strategies Directory
 
-本目录存放 **自然语言交易策略文件**（YAML 格式）。系统启动时自动加载此目录下所有 `.yaml` 文件。
+This directory stores **natural-language trading strategy files** (YAML format). All `.yaml` files in this directory are automatically loaded at system startup.
 
-对用户和文档，我们继续把这些能力称为“策略”；在代码、配置和 API 字段里，它们统一命名为 `skill`，你可以把它理解为“可复用的策略能力包”。
+For users and documentation, we continue to refer to these capabilities as "strategies"; in code, configuration, and API fields, they are uniformly named `skill`, which can be understood as a "reusable strategy capability pack."
 
-## 如何编写自定义策略（Strategy Skill）
+## How to Write a Custom Strategy (Strategy Skill)
 
-只需创建一个 `.yaml` 文件，用中文（或任意语言）描述你的交易策略即可，**无需编写任何代码**。
+Simply create a `.yaml` file describing your trading strategy in natural language (any language). **No code is required.**
 
-### 最简模板
+### Minimal Template
 
 ```yaml
-name: my_strategy          # 唯一标识（英文，下划线连接）
-display_name: 我的策略      # 显示名称（中文）
-description: 简短描述策略用途
+name: my_strategy          # Unique identifier (English, underscore-separated)
+display_name: My Strategy  # Display name
+description: Brief description of the strategy's purpose
 
 instructions: |
-  你的策略描述...
-  用自然语言写出判断标准、入场条件、出场条件等。
-  可以引用工具名称（如 get_daily_history、analyze_trend）来指导 AI 使用哪些数据。
+  Your strategy description...
+  Write entry criteria, entry conditions, exit conditions, etc. in natural language.
+  You can reference tool names (e.g. get_daily_history, analyze_trend) to guide which data the AI uses.
 ```
 
-### 完整模板
+### Full Template
 
 ```yaml
 name: my_strategy
-display_name: 我的策略
-description: 简短描述策略适用的市场场景
+display_name: My Strategy
+description: Brief description of the market scenarios the strategy is suited for
 
-# 策略分类：trend（趋势）、pattern（形态）、reversal（反转）、framework（框架）
+# Strategy category: trend, pattern, reversal, framework
 category: trend
 
-# 关联的核心交易理念编号（1-7），可选
+# Associated core trading rule numbers (1-7), optional
 core_rules: [1, 2]
 
-# 策略需要使用的工具列表，可选
-# 可用工具：get_daily_history, analyze_trend, get_realtime_quote,
-#           get_sector_rankings, search_stock_news, get_stock_info
+# List of tools the strategy requires, optional
+# Available tools: get_daily_history, analyze_trend, get_realtime_quote,
+#                 get_sector_rankings, search_stock_news, get_stock_info
 required_tools:
   - get_daily_history
   - analyze_trend
 
-# 可选别名（用于 /ask 等自然语言技能选择）
-aliases: [我的战法, 我的模型]
+# Optional aliases (for natural-language skill selection such as /ask)
+aliases: [My Method, My Model]
 
-# 以下元数据用于驱动默认行为（可选）
-# default_active: 是否属于默认激活技能集
-# default_router: 是否属于路由 fallback 技能集
-# default_priority: 默认展示/排序优先级，数值越小越靠前
-# market_regimes: 该技能优先适配的市场状态标签
+# The following metadata drives default behavior (optional)
+# default_active: Whether this is part of the default active skill set
+# default_router: Whether this is part of the router fallback skill set
+# default_priority: Default display/sort priority (lower number = higher priority)
+# market_regimes: Market regime tags this skill is best suited for
 default_active: true
 default_router: false
 default_priority: 100
 market_regimes: [trending_up]
 
-# 策略详细说明（自然语言，支持 Markdown 格式）
+# Detailed strategy description (natural language, supports Markdown)
 instructions: |
-  **我的策略名称**
+  **My Strategy Name**
 
-  判断标准：
+  Criteria:
 
-  1. **条件一**：
-     - 使用 `analyze_trend` 检查均线排列。
-     - 描述你期望看到的趋势特征...
+  1. **Condition 1**:
+     - Use `analyze_trend` to check moving average alignment.
+     - Describe the trend characteristics you expect to see...
 
-  2. **条件二**：
-     - 描述量能要求...
+  2. **Condition 2**:
+     - Describe the volume requirements...
 
-  评分调整：
-  - 满足条件时建议的 sentiment_score 调整
-  - 在 `buy_reason` 中注明策略名称
+  Score adjustment:
+  - Suggested sentiment_score adjustment when conditions are met
+  - Note the strategy name in `buy_reason`
 ```
 
-### 核心交易理念参考
+### Core Trading Rules Reference
 
-| 编号 | 理念 |
+| Number | Rule |
 |------|------|
-| 1 | 严进策略：乖离率 < 5% 才考虑入场 |
-| 2 | 趋势交易：MA5 > MA10 > MA20 多头排列 |
-| 3 | 效率优先：量能确认趋势有效性 |
-| 4 | 买点偏好：优先回踩均线支撑 |
-| 5 | 风险排查：利空新闻一票否决 |
-| 6 | 量价配合：成交量验证价格运动 |
-| 7 | 强势趋势股放宽：龙头股可适当放宽标准 |
+| 1 | Strict entry: Only consider entry when deviation rate < 5% |
+| 2 | Trend trading: MA5 > MA10 > MA20 bullish alignment |
+| 3 | Efficiency first: Volume confirms trend validity |
+| 4 | Entry preference: Prefer pullback to moving average support |
+| 5 | Risk screening: Negative news has veto power |
+| 6 | Volume-price coordination: Volume validates price movement |
+| 7 | Relaxed rules for strong trend stocks: Leading stocks may have relaxed criteria |
 
-## 自定义策略目录
+## Custom Strategy Directories
 
-除了本目录（内置策略），你还可以通过环境变量指定额外的自定义策略目录：
+In addition to this directory (built-in strategies), you can specify additional custom strategy directories via environment variable:
 
 ```env
 AGENT_SKILL_DIR=./my_skills
 ```
 
-系统会同时加载内置策略和自定义策略。如果名称冲突，自定义策略覆盖内置策略。
+The system will load both built-in and custom strategies. If names conflict, custom strategies override built-in ones.
 
-环境变量名仍然是 `AGENT_SKILL_DIR`，这是内部统一命名后的配置入口；在产品语义上，它依然表示“自定义策略目录”。
+The environment variable name remains `AGENT_SKILL_DIR`; this is the unified internal configuration entry point. In product semantics, it still represents "custom strategy directory."

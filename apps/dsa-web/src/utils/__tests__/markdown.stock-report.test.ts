@@ -44,13 +44,13 @@ target = 1750
     // Verify key content is preserved
     expect(result).toContain('贵州茅台');
     expect(result).toContain('600519');
-    expect(result).toContain('技术分析');
+    expect(result).toContain('Technical analysis');
     expect(result).toContain('MACD');
-    expect(result).toContain('金叉信号');
-    expect(result).toContain('市盈率');
-    expect(result).toContain('风险提示');
+    expect(result).toContain('Golden cross signal');
+    expect(result).toContain('P/E ratio');
+    expect(result).toContain('Risk warning');
     expect(result).toContain('entry_zone');
-    expect(result).toContain('查看详细数据');
+    expect(result).toContain('View detailed data');
 
     // Verify markdown symbols are removed
     expect(result).not.toMatch(/^#{1,6}\s+/m);
@@ -90,7 +90,7 @@ RSI(14) = 58.3 (中性偏强)
     expect(result).toContain('368.20');
     expect(result).toContain('Resistance 1');
     expect(result).toContain('Support 1');
-    expect(result).toContain('建议在回调');
+    expect(result).toContain('Recommend on pullback');
     expect(result).toContain('MA5 > MA10');
     expect(result).toContain('Click for more details');
   });
@@ -181,11 +181,11 @@ const riskReward = (targetPrice - entryPrice) / (entryPrice - stopLoss);
     const result = markdownToPlainText(marketReview);
 
     expect(result).toContain('A股市场复盘');
-    expect(result).toContain('上证指数');
+    expect(result).toContain('Shanghai Composite');
     expect(result).toContain('3050.32');
-    expect(result).toContain('人工智能');
+    expect(result).toContain('AI');
     expect(result).toContain('科大讯飞');
-    expect(result).toContain('北向资金');
+    expect(result).toContain('Northbound funds');
     expect(result).toContain('85.5亿');
     expect(result).toContain('3040-3065');
   });
@@ -226,12 +226,12 @@ $$RSI = 100 - \frac{100}{1 + RS}$$
 
     const result = markdownToPlainText(report);
 
-    expect(result).toContain('MACD 计算');
+    expect(result).toContain('MACD calculation');
     expect(result).toContain('EMA(12) - EMA(26)');
     expect(result).toContain('RSI');
-    expect(result).toContain('布林带');
+    expect(result).toContain('Bollinger Bands');
     expect(result).toContain('MA(20)');
-    expect(result).toContain('注意回调风险');
+    expect(result).toContain('Watch for pullback risk');
   });
 
   it('handles report with code snippets in multiple languages', () => {
@@ -261,9 +261,9 @@ def moving_average_strategy(data, short=5, long=20):
     const result = markdownToPlainText(report);
 
     // Verify key content is preserved
-    expect(result).toContain('策略回测代码');
+    expect(result).toContain('Strategy backtest code');
     expect(result).toContain('Python 策略');
-    expect(result).toContain('以上代码可直接用于策略回测');
+    expect(result).toContain('The above code can be directly used for strategy backtesting');
 
     // Verify code content is preserved
     expect(result).toContain('import pandas');
@@ -302,8 +302,8 @@ def moving_average_strategy(data, short=5, long=20):
     expect(result).toContain('000858');
     expect(result).toContain('601012');
     expect(result).toContain('贵州茅台');
-    expect(result).toContain('宁德时代');
-    expect(result).toContain('筛选条件');
+    expect(result).toContain('CATL');
+    expect(result).toContain('Filter criteria');
     expect(result).toContain('ROE');
   });
 
@@ -323,12 +323,12 @@ def moving_average_strategy(data, short=5, long=20):
 
     const result = markdownToPlainText(text);
 
-    expect(result).toContain('主要观点');
-    expect(result).toContain('短期看涨');
+    expect(result).toContain('Key insights');
+    expect(result).toContain('Short-term bullish');
     expect(result).toContain('195.00');
     expect(result).toContain('Risk: Trade war impact');
-    expect(result).toContain('风险提示');
-    expect(result).toContain('关注点');
+    expect(result).toContain('Risk warning');
+    expect(result).toContain('Focus area');
     expect(result).toContain('AI chip business');
   });
 

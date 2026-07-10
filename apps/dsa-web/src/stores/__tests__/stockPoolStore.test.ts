@@ -31,7 +31,7 @@ const historyItem = {
   stockCode: '600519',
   stockName: '贵州茅台',
   sentimentScore: 82,
-  operationAdvice: '买入',
+  operationAdvice: 'Buy',
   createdAt: '2026-03-18T08:00:00Z',
 };
 
@@ -45,9 +45,9 @@ const historyReport = {
     createdAt: '2026-03-18T08:00:00Z',
   },
   summary: {
-    analysisSummary: '趋势维持强势',
-    operationAdvice: '继续观察买点',
-    trendPrediction: '短线震荡偏强',
+    analysisSummary: 'Trend maintains strength',
+    operationAdvice: 'Continue watching for entry points',
+    trendPrediction: 'Short-term oscillation with upward bias',
     sentimentScore: 78,
   },
 };
@@ -59,7 +59,7 @@ const marketReviewHistoryReport = {
     id: 10,
     queryId: 'q-10',
     stockCode: '',
-    stockName: '大盘复盘',
+    stockName: 'Market Review',
     reportType: 'market_review' as const,
   },
 };
@@ -268,7 +268,7 @@ describe('stockPoolStore', () => {
       id: 10,
       queryId: 'market-review-q-10',
       stockCode: 'MARKET',
-      stockName: '大盘复盘',
+      stockName: 'Market Review',
       reportType: 'market_review' as const,
     };
     useStockPoolStore.setState({
@@ -313,9 +313,9 @@ describe('stockPoolStore', () => {
       id: 10,
       queryId: 'market-review-q-10',
       stockCode: 'MARKET',
-      stockName: '大盘复盘',
+      stockName: 'Market Review',
       reportType: 'market_review' as const,
-      operationAdvice: '查看复盘',
+      operationAdvice: 'View review',
       sentimentScore: 50,
     };
     vi.mocked(historyApi.getList).mockResolvedValue({
@@ -344,7 +344,7 @@ describe('stockPoolStore', () => {
       id,
       queryId: `market-review-q-${id}`,
       stockCode: 'MARKET',
-      stockName: '大盘复盘',
+      stockName: 'Market Review',
       reportType: 'market_review' as const,
     });
     const loadedItems = Array.from({ length: 20 }, (_, index) => createMarketReviewItem(index + 1));
@@ -392,7 +392,7 @@ describe('stockPoolStore', () => {
       id: 10,
       queryId: 'market-review-q-10',
       stockCode: 'MARKET',
-      stockName: '大盘复盘',
+      stockName: 'Market Review',
       reportType: 'market_review' as const,
     };
     useStockPoolStore.setState({
@@ -487,7 +487,7 @@ describe('stockPoolStore', () => {
 
   it('surfaces duplicate task errors without replacing the dashboard error state', async () => {
     vi.mocked(analysisApi.analyzeAsync).mockRejectedValue(
-      new DuplicateTaskError('600519', 'task-1', '股票 600519 正在分析中'),
+      new DuplicateTaskError('600519', 'task-1', 'Stock 600519 is being analyzed'),
     );
 
     useStockPoolStore.getState().setQuery('600519');
@@ -505,7 +505,7 @@ describe('stockPoolStore', () => {
     await useStockPoolStore.getState().submitAnalysis();
 
     const state = useStockPoolStore.getState();
-    expect(state.inputError).toBe('请输入有效的股票代码或股票名称');
+    expect(state.inputError).toBe('Please enter a valid stock code or stock name');
     expect(state.isAnalyzing).toBe(false);
     expect(analysisApi.analyzeAsync).not.toHaveBeenCalled();
   });
@@ -1028,7 +1028,7 @@ describe('stockPoolStore', () => {
       progress: 100,
       reportType: 'detailed',
       createdAt: '2026-03-18T08:00:00Z',
-      error: '分析失败',
+      error: 'Analysis failed',
     });
 
     const state = useStockPoolStore.getState();
@@ -1081,7 +1081,7 @@ describe('stockPoolStore', () => {
 
   it('upserts pending and processing tasks from the backend snapshot', async () => {
     const existingTask = createTask({ taskId: 'task-existing', progress: 30 });
-    const updatedTask = createTask({ taskId: 'task-existing', progress: 80, message: 'LLM 正在生成分析结果' });
+    const updatedTask = createTask({ taskId: 'task-existing', progress: 80, message: 'LLM is generating analysis results' });
     const newTask = createTask({
       taskId: 'task-new',
       stockCode: '000001',
@@ -1152,7 +1152,7 @@ describe('stockPoolStore', () => {
       taskId: 'task-cancel-requested',
       status: 'cancel_requested',
       progress: 60,
-      message: '正在取消任务',
+      message: 'Cancelling task',
     });
     useStockPoolStore.getState().syncTaskCreated(staleTask);
     vi.mocked(analysisApi.getTasks).mockResolvedValue(

@@ -55,27 +55,27 @@ def detect_market(stock_code: Optional[str]) -> str:
 
 _MARKET_ROLES = {
     "cn": {
-        "zh": " A 股",
+        "zh": " A Korean stocks",
         "en": "China A-shares",
     },
     "hk": {
-        "zh": "港股",
+        "zh": "Korean stocks",
         "en": "Hong Kong stock",
     },
     "us": {
-        "zh": "美股",
+        "zh": "Korean stocks",
         "en": "US stock",
     },
     "jp": {
-        "zh": "日股",
+        "zh": "Taiwan stocks",
         "en": "Japan stock",
     },
     "kr": {
-        "zh": "韩股",
+        "zh": "Korean stocks",
         "en": "Korea stock",
     },
     "tw": {
-        "zh": "台股",
+        "zh": "Taiwan stocks",
         "en": "Taiwan stock",
     },
 }
@@ -83,8 +83,8 @@ _MARKET_ROLES = {
 _MARKET_GUIDELINES = {
     "cn": {
         "zh": (
-            "- 本次分析对象为 **A 股**（中国沪深交易所上市股票）。\n"
-            "- 请关注 A 股特有的涨跌停机制（±10%/±20%/±30%）、T+1 交易制度及相关政策因素。"
+            "- The object of this analysis is **A Korean stocks**（Stocks listed on China's Shanghai and Shenzhen exchanges）。\n"
+            "- Please pay attention A Stock-specific price limit mechanism（±10%/±20%/±30%）、T+1 Trading system and related policy factors。"
         ),
         "en": (
             "- This analysis covers a **China A-share** (listed on Shanghai/Shenzhen exchanges).\n"
@@ -93,8 +93,8 @@ _MARKET_GUIDELINES = {
     },
     "hk": {
         "zh": (
-            "- 本次分析对象为 **港股**（香港交易所上市股票）。\n"
-            "- 港股无涨跌停限制，支持 T+0 交易，需关注港币汇率、南北向资金流及联交所特有规则。"
+            "- The object of this analysis is **Korean stocks**（Stocks listed on the Hong Kong Stock Exchange）。\n"
+            "- There is no price limit for Hong Kong stocks，support T+0 trade，Need to pay attention to the Hong Kong dollar exchange rate、North-South Fund Flows and Special Rules of the Stock Exchange。"
         ),
         "en": (
             "- This analysis covers a **Hong Kong stock** (listed on HKEX).\n"
@@ -103,8 +103,8 @@ _MARKET_GUIDELINES = {
     },
     "us": {
         "zh": (
-            "- 本次分析对象为 **美股**（美国交易所上市股票）。\n"
-            "- 美股无涨跌停限制（但有熔断机制），支持 T+0 交易和盘前盘后交易，需关注美元汇率、美联储政策及 SEC 监管动态。"
+            "- The object of this analysis is **Korean stocks**（U.S. exchange-listed stocks）。\n"
+            "- There is no price limit for U.S. stocks（But there is a fuse mechanism），support T+0 Trading and Pre-Market and Post-Market Trading，Pay attention to the US dollar exchange rate、Fed policy and SEC Regulatory developments。"
         ),
         "en": (
             "- This analysis covers a **US stock** (listed on NYSE/NASDAQ).\n"
@@ -113,8 +113,8 @@ _MARKET_GUIDELINES = {
     },
     "jp": {
         "zh": (
-            "- 本次分析对象为 **日股**（日本交易所上市股票，Yahoo Finance suffix 如 `.T`）。\n"
-            "- 请按日本市场语境分析，关注日元汇率、日本央行政策、公司治理与行业周期；不要套用 A 股涨跌停、北向资金、龙虎榜、融资融券等 A 股专属概念。"
+            "- The object of this analysis is **Taiwan stocks**（Japan Exchange Listed Stocks，Yahoo Finance suffix like `.T`）。\n"
+            "- Please analyze according to the Japanese market context，Pay attention to the Japanese yen exchange rate、Bank of Japan policy、Corporate governance and industry cycles；Don't apply A Stock price limit、Northbound funds、Dragon and Tiger List、Margin and securities lending, etc. A Stock exclusive concept。"
         ),
         "en": (
             "- This analysis covers a **Japan stock** (Yahoo Finance suffix such as `.T`).\n"
@@ -123,8 +123,8 @@ _MARKET_GUIDELINES = {
     },
     "kr": {
         "zh": (
-            "- 本次分析对象为 **韩股**（韩国交易所/KOSDAQ 上市股票，必须带 `.KS` / `.KQ` 后缀）。\n"
-            "- 请按韩国市场语境分析，关注韩元汇率、韩国央行政策、半导体/互联网产业周期与韩国交易制度；不要套用 A 股涨跌停、北向资金、龙虎榜、融资融券等 A 股专属概念。"
+            "- The object of this analysis is **Korean stocks**（Korea Exchange/KOSDAQ listed stocks，suffix `.KS` / `.KQ` suffix）。\n"
+            "- Please analyze according to the Korean market context，Pay attention to the Korean won exchange rate、Bank of Korea policy、semiconductor/Internet industry cycle and Korean trading system；Don't apply A Stock price limit、Northbound funds、Dragon and Tiger List、Margin and securities lending, etc. A Stock exclusive concept。"
         ),
         "en": (
             "- This analysis covers a **Korea stock** (KOSPI/KOSDAQ suffix `.KS` / `.KQ`).\n"
@@ -133,10 +133,10 @@ _MARKET_GUIDELINES = {
     },
     "tw": {
         "zh": (
-            "- 本次分析对象为 **台股**（台湾证券交易所上市 `.TW`，或台湾柜买中心上柜 `.TWO`）。\n"
-            "- 请按台湾市场语境分析，关注新台币（TWD）汇率、台湾央行政策、半导体/电子代工产业链、"
-            "三大法人（外资／投信／自营商）买卖超、融资融券与当冲，以及 TWSE/TPEx ±10% 涨跌停制度；"
-            "不要套用 A 股专属的北向资金、龙虎榜等概念（台股的法人结构与资金流口径与 A 股不同）。"
+            "- The object of this analysis is **Taiwan stocks**（Listed on Taiwan Stock Exchange `.TW`，Or over the counter at Taiwan Counter Buying Center `.TWO`）。\n"
+            "- Please analyze according to Taiwan market context，Follow NT$（TWD）exchange rate、Taiwan central bank policy、semiconductor/Electronic OEM industry chain、"
+            "Three major legal persons（foreign investment／Put a letter／proprietor）Trading exceeds、Margin lending and hedging，as well as TWSE/TPEx ±10% price limit system；"
+            "Don't apply A Exclusive northbound funds、Concepts such as Dragon and Tiger List（The legal person structure and capital flow caliber of Taiwan stocks are related to A stocks are different）。"
         ),
         "en": (
             "- This analysis covers a **Taiwan stock** (TWSE-listed `.TW`, or TPEx/OTC `.TWO`).\n"
@@ -157,7 +157,7 @@ def get_market_role(stock_code: Optional[str], lang: str = "zh") -> str:
         lang: 'zh' or 'en'.
 
     Returns:
-        Role string like 'A 股投资分析' or 'US stock investment analysis'.
+        Role string like 'A Korean stocks' or 'US stock investment analysis'.
     """
     market = detect_market(stock_code)
     lang_key = "en" if lang in ("en", "ko") else "zh"

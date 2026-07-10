@@ -150,7 +150,7 @@ describe('alphasiftApi', () => {
             enabled: true,
             provider: 'akshare',
             topic: 'AI绠楀姏',
-            route: [{ title: '盘中发酵', description: '事件摘要' }],
+            route: [{ title: 'Intraday catalyst', description: 'Event summary' }],
             stocks: [],
             stock_count: 0,
           },
@@ -201,22 +201,22 @@ describe('alphasiftApi', () => {
       data: {
         enabled: true,
         provider: 'akshare',
-        topic: '玻璃基板',
-        summary: '玻璃基板盘中发酵',
-        route: [{ title: '盘中发酵', description: '出现大笔买入' }],
-        stocks: [{ code: '920438', name: '戈碧迦', role: '异动核心' }],
-        leader_stocks: [{ code: '920438', name: '戈碧迦', role: '异动核心' }],
+        topic: 'Glass substrate',
+        summary: 'Glass substrate intraday catalyst',
+        route: [{ title: 'Intraday catalyst', description: 'Large buy orders appeared' }],
+        stocks: [{ code: '920438', name: '戈碧迦', role: 'Core mover' }],
+        leader_stocks: [{ code: '920438', name: '戈碧迦', role: 'Core mover' }],
         stock_count: 1,
       },
     });
 
-    const result = await alphasiftApi.getHotspotDetail({ topic: '玻璃基板', provider: 'akshare' });
+    const result = await alphasiftApi.getHotspotDetail({ topic: 'Glass substrate', provider: 'akshare' });
 
     expect(get).toHaveBeenCalledWith('/api/v1/alphasift/hotspots/%E7%8E%BB%E7%92%83%E5%9F%BA%E6%9D%BF', {
       params: { provider: 'akshare', refresh: false },
       timeout: 300000,
     });
-    expect(result.topic).toBe('玻璃基板');
+    expect(result.topic).toBe('Glass substrate');
     expect(result.stockCount).toBe(1);
     expect(result.stocks[0].name).toBe('戈碧迦');
     expect(result.leaderStocks?.[0].name).toBe('戈碧迦');
@@ -247,7 +247,7 @@ describe('alphasiftApi', () => {
         task_id: 'screen-task-1',
         trace_id: 'screen-task-1',
         status: 'pending',
-        message: 'AlphaSift 选股任务已提交',
+        message: 'AlphaSift screening task submitted',
         strategy: 'dual_low',
         market: 'cn',
         max_results: 3,
@@ -271,7 +271,7 @@ describe('alphasiftApi', () => {
         trace_id: 'screen-task-1',
         status: 'completed',
         progress: 100,
-        message: '任务执行完成',
+        message: 'Task execution completed',
         result: {
           enabled: true,
           candidates: [],

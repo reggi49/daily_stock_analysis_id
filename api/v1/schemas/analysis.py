@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-分析相关模型
+Analysis Models
 ===================================
 
-职责：
-1. 定义分析请求和响应模型
-2. 定义任务状态模型
-3. 定义异步任务队列相关模型
+Responsibilities:
+1. Define analysis request and response models
+2. Define task status models
+3. Define async task queue related models
 """
 
 from typing import Optional, List, Any, Literal
@@ -18,7 +18,7 @@ from src.utils.analysis_metadata import SELECTION_SOURCE_PATTERN
 
 
 class TaskStatusEnum(str, Enum):
-    """任务状态枚举"""
+    """Task status enumeration."""
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -35,60 +35,60 @@ class AnalyzeRequest(BaseModel):
     
     stock_code: Optional[str] = Field(
         None, 
-        description="单只股票代码", 
+        description="Single stock code", 
         json_schema_extra={"example": "600519"},
     )
     stock_codes: Optional[List[str]] = Field(
         None, 
-        description="多只股票代码（与 stock_code 二选一）",
+        description="Multiple stock codes (mutually exclusive with stock_code)",
         json_schema_extra={"example": ["600519", "000858"]},
     )
     report_type: str = Field(
         "detailed",
-        description="报告类型：simple(精简) / detailed(完整) / full(完整) / brief(简洁)",
+        description="Report type: simple / detailed / full / brief",
         pattern="^(simple|detailed|full|brief)$",
     )
     force_refresh: bool = Field(
         False,
-        description="是否强制刷新（忽略缓存）"
+        description="Whether to force refresh (ignore cache)"
     )
     async_mode: bool = Field(
         False,
-        description="是否使用异步模式"
+        description="Whether to use async mode"
     )
     analysis_phase: AnalysisPhase = Field(
         "auto",
-        description="分析阶段覆盖：auto(自动推断) / premarket(盘前) / intraday(盘中) / postmarket(盘后)",
+        description="Analysis phase override: auto(auto-infer) / premarket / intraday / postmarket",
     )
     stock_name: Optional[str] = Field(
         None,
-        description="用户选中的股票名称（自动补全时提供）",
-        json_schema_extra={"example": "贵州茅台"},
+        description="User-selected stock name (provided during autocomplete)",
+        json_schema_extra={"example": "Kweichow Moutai"},
     )
     original_query: Optional[str] = Field(
         None,
-        description="用户原始输入（如茅台、gzmt、600519）",
-        json_schema_extra={"example": "茅台"},
+        description="User original input (e.g. Moutai, gzmt, 600519)",
+        json_schema_extra={"example": "Moutai"},
     )
     selection_source: Optional[str] = Field(
         None,
-        description="股票选择来源：manual(手动输入) | autocomplete(自动补全) | import(导入) | image(图片识别)",
+        description="Stock selection source: manual | autocomplete | import | image",
         pattern=SELECTION_SOURCE_PATTERN,
         json_schema_extra={"example": "autocomplete"},
     )
     notify: bool = Field(
         True,
-        description="是否发送推送通知（Telegram/企业微信等）"
+        description="Whether to send push notifications (Telegram/WeChat Work, etc.)"
     )
     report_language: Optional[Literal["zh", "en", "ko"]] = Field(
         None,
         validation_alias=AliasChoices("report_language", "reportLanguage"),
-        description="本次分析报告输出语言；未传时使用全局 REPORT_LANGUAGE",
+        description="Analysis report output language; uses global REPORT_LANGUAGE when not provided",
     )
     skills: Optional[List[str]] = Field(
         None,
         validation_alias=AliasChoices("skills", "strategies"),
-        description="本次分析使用的策略 skill ID 列表；兼容 legacy strategies 字段",
+        description="Strategy skill ID list for this analysis; compatible with legacy strategies field",
         json_schema_extra={"example": ["bull_trend", "growth_quality"]},
     )
 
@@ -99,8 +99,8 @@ class AnalyzeRequest(BaseModel):
             "force_refresh": False,
             "async_mode": False,
             "analysis_phase": "auto",
-            "stock_name": "贵州茅台",
-            "original_query": "茅台",
+            "stock_name": "Analysis task has been added to the queue",
+            "original_query": "Analysis task has been added to the queue",
             "selection_source": "autocomplete",
             "notify": True,
             "report_language": "zh",
@@ -114,51 +114,51 @@ class MarketReviewRequest(BaseModel):
 
     send_notification: bool = Field(
         True,
-        description="是否在大盘复盘完成后发送推送通知",
+        description="Whether to send push notification after market review completes",
     )
     report_language: Optional[Literal["zh", "en", "ko"]] = Field(
         None,
         validation_alias=AliasChoices("report_language", "reportLanguage"),
-        description="本次大盘复盘报告输出语言；未传时使用全局 REPORT_LANGUAGE",
+        description="Market review report output language; uses global REPORT_LANGUAGE when not provided",
     )
 
 
 class MarketReviewAccepted(BaseModel):
     """Market review background task accepted response."""
 
-    status: str = Field("accepted", description="提交状态")
-    message: str = Field(..., description="提示信息")
-    send_notification: bool = Field(..., description="是否发送通知")
+    status: str = Field("accepted", description="Submission status")
+    message: str = Field(..., description="Notification message")
+    send_notification: bool = Field(..., description="Whether to send notification")
     trace_id: Optional[str] = Field(
         None,
-        description="本次后台任务的诊断 trace ID",
+        description="Diagnostic trace ID for this background task",
     )
     task_id: Optional[str] = Field(
         None,
-        description="任务 ID（仅当任务实际提交时返回）",
+        description="Task ID (only returned when the task is actually submitted)",
     )
 
 
 class AnalysisResultResponse(BaseModel):
-    """分析结果响应模型"""
+    """Analysis result response model."""
     
-    query_id: str = Field(..., description="分析记录唯一标识")
-    trace_id: Optional[str] = Field(None, description="诊断 trace ID")
-    stock_code: str = Field(..., description="股票代码")
-    stock_name: Optional[str] = Field(None, description="股票名称")
-    report: Optional[Any] = Field(None, description="分析报告")
-    diagnostic_summary: Optional[Any] = Field(None, description="运行诊断摘要")
-    created_at: str = Field(..., description="创建时间")
+    query_id: str = Field(..., description="Analysis record unique identifier")
+    trace_id: Optional[str] = Field(None, description="Diagnostic trace ID")
+    stock_code: str = Field(..., description="Stock code")
+    stock_name: Optional[str] = Field(None, description="Stock name")
+    report: Optional[Any] = Field(None, description="Analysis report")
+    diagnostic_summary: Optional[Any] = Field(None, description="Run diagnostic summary")
+    created_at: str = Field(..., description="Creation time")
     
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "query_id": "abc123def456",
             "stock_code": "600519",
-            "stock_name": "贵州茅台",
+            "stock_name": "Analysis task has been added to the queue",
             "report": {
                 "summary": {
                     "sentiment_score": 75,
-                    "operation_advice": "持有"
+                    "operation_advice": "stock"
                 }
             },
             "created_at": "2024-01-01T12:00:00"
@@ -167,17 +167,17 @@ class AnalysisResultResponse(BaseModel):
 
 
 class TaskAccepted(BaseModel):
-    """异步任务接受响应"""
+    """Async task accepted response."""
     
-    task_id: str = Field(..., description="任务 ID，用于查询状态")
-    trace_id: Optional[str] = Field(None, description="诊断 trace ID")
+    task_id: str = Field(..., description="Task ID, used for status queries")
+    trace_id: Optional[str] = Field(None, description="Diagnostic trace ID")
     status: str = Field(
         ..., 
-        description="任务状态",
+        description="Task status",
         pattern="^(pending|processing)$"
     )
-    message: Optional[str] = Field(None, description="提示信息")
-    analysis_phase: AnalysisPhase = Field("auto", description="请求的分析阶段")
+    message: Optional[str] = Field(None, description="Notification message")
+    analysis_phase: AnalysisPhase = Field("auto", description="Requested analysis phase")
     
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -190,52 +190,52 @@ class TaskAccepted(BaseModel):
 
 
 class BatchTaskAcceptedItem(BaseModel):
-    """批量异步任务中的单个成功提交项。"""
+    """Single successfully submitted item in a batch async task."""
 
-    task_id: str = Field(..., description="任务 ID，用于查询状态")
-    trace_id: Optional[str] = Field(None, description="诊断 trace ID")
-    stock_code: str = Field(..., description="股票代码")
+    task_id: str = Field(..., description="Task ID, used for status queries")
+    trace_id: Optional[str] = Field(None, description="Diagnostic trace ID")
+    stock_code: str = Field(..., description="Stock code")
     status: str = Field(
         ...,
-        description="任务状态",
+        description="Task status",
         pattern="^(pending|processing)$"
     )
-    message: Optional[str] = Field(None, description="提示信息")
-    analysis_phase: AnalysisPhase = Field("auto", description="请求的分析阶段")
+    message: Optional[str] = Field(None, description="Notification message")
+    analysis_phase: AnalysisPhase = Field("auto", description="Requested analysis phase")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "task_id": "task_abc123",
             "stock_code": "600519",
             "status": "pending",
-            "message": "分析任务已加入队列: 600519",
+            "message": "Analysis task has been added to the queue: 600519",
             "analysis_phase": "auto"
         }
     })
 
 
 class BatchDuplicateTaskItem(BaseModel):
-    """批量异步任务中的重复提交项。"""
+    """Duplicate submission item in a batch async task."""
 
-    stock_code: str = Field(..., description="股票代码")
-    existing_task_id: str = Field(..., description="已存在的任务 ID")
-    message: str = Field(..., description="错误信息")
+    stock_code: str = Field(..., description="Stock code")
+    existing_task_id: str = Field(..., description="Existing task ID")
+    message: str = Field(..., description="Error message")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "stock_code": "600519",
             "existing_task_id": "task_existing_123",
-            "message": "股票 600519 正在分析中 (task_id: task_existing_123)"
+            "message": "stock 600519 Under analysis (task_id: task_existing_123)"
         }
     })
 
 
 class BatchTaskAcceptedResponse(BaseModel):
-    """批量异步任务接受响应。"""
+    """Batch async task accepted response."""
 
-    accepted: List[BatchTaskAcceptedItem] = Field(default_factory=list, description="成功提交的任务列表")
-    duplicates: List[BatchDuplicateTaskItem] = Field(default_factory=list, description="重复而跳过的任务列表")
-    message: str = Field(..., description="汇总信息")
+    accepted: List[BatchTaskAcceptedItem] = Field(default_factory=list, description="Successfully submitted task list")
+    duplicates: List[BatchDuplicateTaskItem] = Field(default_factory=list, description="Skipped duplicate task list")
+    message: str = Field(..., description="Summary message")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -244,7 +244,7 @@ class BatchTaskAcceptedResponse(BaseModel):
                     "task_id": "task_abc123",
                     "stock_code": "600519",
                     "status": "pending",
-                    "message": "分析任务已加入队列: 600519",
+                    "message": "Analysis task has been added to the queue: 600519",
                     "analysis_phase": "auto"
                 }
             ],
@@ -252,10 +252,10 @@ class BatchTaskAcceptedResponse(BaseModel):
                 {
                     "stock_code": "000858",
                     "existing_task_id": "task_existing_456",
-                    "message": "股票 000858 正在分析中 (task_id: task_existing_456)"
+                    "message": "stock 000858 Under analysis (task_id: task_existing_456)"
                 }
             ],
-            "message": "已提交 1 个任务，1 个重复跳过"
+            "message": "tasks 1 tasks，1 duplicates skipped"
         }
     })
 
@@ -263,25 +263,25 @@ class BatchTaskAcceptedResponse(BaseModel):
 class TaskStatus(BaseModel):
     """Task status model"""
     
-    task_id: str = Field(..., description="任务 ID")
-    trace_id: Optional[str] = Field(None, description="诊断 trace ID")
+    task_id: str = Field(..., description="Task ID")
+    trace_id: Optional[str] = Field(None, description="Diagnostic trace ID")
     status: TaskStatusEnum = Field(
         ..., 
-        description="任务状态",
+        description="Task status",
     )
     progress: Optional[int] = Field(
         None, 
-        description="进度百分比 (0-100)",
+        description="Progress percentage (0-100)",
         ge=0,
         le=100
     )
     result: Optional[AnalysisResultResponse] = Field(
         None, 
-        description="分析结果（仅在 completed 时存在）"
+        description="Analysis result (only present when completed)"
     )
     market_review_report: Optional[str] = Field(
         None,
-        description="大盘复盘任务返回的报告文本（仅大盘复盘任务）",
+        description="Report text returned from market review task (market review tasks only)",
     )
     market_review_payload: Optional[Any] = Field(
         None,
@@ -289,20 +289,20 @@ class TaskStatus(BaseModel):
     )
     error: Optional[str] = Field(
         None, 
-        description="错误信息（仅在 failed 时存在）"
+        description="Error message (only present when failed)"
     )
-    stock_name: Optional[str] = Field(None, description="股票名称")
-    original_query: Optional[str] = Field(None, description="用户原始输入")
+    stock_name: Optional[str] = Field(None, description="Stock name")
+    original_query: Optional[str] = Field(None, description="User original input")
     selection_source: Optional[str] = Field(
         None,
-        description="选择来源",
+        description="Selection source",
         pattern=SELECTION_SOURCE_PATTERN,
     )
     analysis_phase: Optional[AnalysisPhase] = Field(
         None,
-        description="请求的分析阶段；无持久化字段的历史 DB fallback 可能为空",
+        description="Requested analysis phase; may be empty for historical DB fallbacks without persistent fields",
     )
-    skills: Optional[List[str]] = Field(None, description="本次任务使用的策略 skill ID 列表")
+    skills: Optional[List[str]] = Field(None, description="Strategy skill ID list used for this task")
     
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -312,8 +312,8 @@ class TaskStatus(BaseModel):
             "result": None,
             "market_review_report": None,
             "error": None,
-            "stock_name": "贵州茅台",
-            "original_query": "茅台",
+            "stock_name": "Analysis task has been added to the queue",
+            "original_query": "Analysis task has been added to the queue",
             "selection_source": "autocomplete",
             "analysis_phase": "auto",
             "skills": ["bull_trend"]
@@ -328,41 +328,41 @@ class TaskInfo(BaseModel):
     Used for task list and SSE event delivery
     """
     
-    task_id: str = Field(..., description="任务 ID")
-    trace_id: Optional[str] = Field(None, description="诊断 trace ID")
-    stock_code: str = Field(..., description="股票代码")
-    stock_name: Optional[str] = Field(None, description="股票名称")
-    status: TaskStatusEnum = Field(..., description="任务状态")
-    progress: int = Field(0, description="进度百分比 (0-100)", ge=0, le=100)
-    message: Optional[str] = Field(None, description="状态消息")
-    report_type: str = Field("detailed", description="报告类型")
-    created_at: str = Field(..., description="创建时间")
-    started_at: Optional[str] = Field(None, description="开始执行时间")
-    completed_at: Optional[str] = Field(None, description="完成时间")
-    error: Optional[str] = Field(None, description="错误信息（仅在 failed 时存在）")
-    original_query: Optional[str] = Field(None, description="用户原始输入")
+    task_id: str = Field(..., description="Task ID")
+    trace_id: Optional[str] = Field(None, description="Diagnostic trace ID")
+    stock_code: str = Field(..., description="Stock code")
+    stock_name: Optional[str] = Field(None, description="Stock name")
+    status: TaskStatusEnum = Field(..., description="Task status")
+    progress: int = Field(0, description="Progress percentage (0-100)", ge=0, le=100)
+    message: Optional[str] = Field(None, description="Status message")
+    report_type: str = Field("detailed", description="Report type")
+    created_at: str = Field(..., description="Creation time")
+    started_at: Optional[str] = Field(None, description="Execution start time")
+    completed_at: Optional[str] = Field(None, description="Completion time")
+    error: Optional[str] = Field(None, description="Error message (only present when failed)")
+    original_query: Optional[str] = Field(None, description="User original input")
     selection_source: Optional[str] = Field(
         None,
-        description="选择来源",
+        description="Selection source",
         pattern=SELECTION_SOURCE_PATTERN,
     )
-    analysis_phase: AnalysisPhase = Field("auto", description="请求的分析阶段")
-    skills: Optional[List[str]] = Field(None, description="本次任务使用的策略 skill ID 列表")
+    analysis_phase: AnalysisPhase = Field("auto", description="Requested analysis phase")
+    skills: Optional[List[str]] = Field(None, description="Strategy skill ID list used for this task")
     
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "task_id": "abc123def456",
             "stock_code": "600519",
-            "stock_name": "贵州茅台",
+            "stock_name": "Analysis task has been added to the queue",
             "status": "processing",
             "progress": 50,
-            "message": "正在分析中...",
+            "message": "Under analysis...",
             "report_type": "detailed",
             "created_at": "2026-02-05T10:30:00",
             "started_at": "2026-02-05T10:30:01",
             "completed_at": None,
             "error": None,
-            "original_query": "茅台",
+            "original_query": "Analysis task has been added to the queue",
             "selection_source": "autocomplete",
             "analysis_phase": "auto",
             "skills": ["bull_trend"]
@@ -371,12 +371,12 @@ class TaskInfo(BaseModel):
 
 
 class TaskListResponse(BaseModel):
-    """任务列表响应模型"""
+    """Task list response model."""
     
-    total: int = Field(..., description="任务总数")
-    pending: int = Field(..., description="等待中的任务数")
-    processing: int = Field(..., description="处理中的任务数")
-    tasks: List[TaskInfo] = Field(..., description="任务列表")
+    total: int = Field(..., description="Total task count")
+    pending: int = Field(..., description="Number of pending tasks")
+    processing: int = Field(..., description="Number of processing tasks")
+    tasks: List[TaskInfo] = Field(..., description="Task list")
     
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -389,17 +389,17 @@ class TaskListResponse(BaseModel):
 
 
 class DuplicateTaskErrorResponse(BaseModel):
-    """重复任务错误响应模型"""
+    """Duplicate task error response model."""
     
-    error: str = Field("duplicate_task", description="错误类型")
-    message: str = Field(..., description="错误信息")
-    stock_code: str = Field(..., description="股票代码")
-    existing_task_id: str = Field(..., description="已存在的任务 ID")
+    error: str = Field("duplicate_task", description="Error type")
+    message: str = Field(..., description="Error message")
+    stock_code: str = Field(..., description="Stock code")
+    existing_task_id: str = Field(..., description="Existing task ID")
     
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "error": "duplicate_task",
-            "message": "股票 600519 正在分析中",
+            "message": "stock 600519 Under analysis",
             "stock_code": "600519",
             "existing_task_id": "abc123def456"
         }

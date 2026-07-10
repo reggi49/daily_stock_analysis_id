@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-A股自选股智能分析系统 - 新闻情报存储单元测试
+A-Share Stock Analysis System - News Intelligence Storage Unit Tests
 ===================================
 
-职责：
-1. 验证新闻情报的保存与去重逻辑
-2. 验证无 URL 情况下的兜底去重键
+Responsibilities:
+1. Verify news intelligence save and deduplication logic
+2. Verify fallback dedup key when URL is missing
 """
 
 import os
@@ -25,26 +25,26 @@ from src.search_service import SearchResponse, SearchResult
 
 
 class NewsIntelStorageTestCase(unittest.TestCase):
-    """新闻情报存储测试"""
+    """News-intelligence storage tests"""
 
     def setUp(self) -> None:
-        """为每个用例初始化独立数据库"""
+        """Initialize an isolated database per test case"""
         self._temp_dir = tempfile.TemporaryDirectory()
         self._db_path = os.path.join(self._temp_dir.name, "test_news_intel.db")
         os.environ["DATABASE_PATH"] = self._db_path
 
-        # 重置配置与数据库单例，确保使用临时库
+        # Reset the config and DB singletons to ensure a temp DB is used
         Config._instance = None
         DatabaseManager.reset_instance()
         self.db = DatabaseManager.get_instance()
 
     def tearDown(self) -> None:
-        """清理资源"""
+        """Clean up resources"""
         DatabaseManager.reset_instance()
         self._temp_dir.cleanup()
 
     def _build_response(self, results) -> SearchResponse:
-        """构造 SearchResponse 快捷函数"""
+        """Helper to build a SearchResponse"""
         return SearchResponse(
             query="贵州茅台 最新消息",
             results=results,
@@ -53,7 +53,7 @@ class NewsIntelStorageTestCase(unittest.TestCase):
         )
 
     def test_save_news_intel_with_url_dedup(self) -> None:
-        """相同 URL 去重，仅保留一条记录"""
+        """Same URL is deduplicated, keeping only one record"""
         result = SearchResult(
             title="茅台发布新产品",
             snippet="公司发布新品...",
@@ -104,7 +104,7 @@ class NewsIntelStorageTestCase(unittest.TestCase):
         self.assertEqual(row.requester_user_name, "测试用户")
 
     def test_save_news_intel_without_url_fallback_key(self) -> None:
-        """无 URL 时使用兜底键去重"""
+        """When no URL, dedup using the fallback key"""
         result = SearchResult(
             title="茅台业绩预告",
             snippet="业绩大幅增长...",
@@ -139,7 +139,7 @@ class NewsIntelStorageTestCase(unittest.TestCase):
             self.assertTrue(row.url.startswith("no-url:"))
 
     def test_get_recent_news(self) -> None:
-        """可按时间范围查询最新新闻"""
+        """Can query the latest news by time range"""
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         result = SearchResult(
             title="茅台股价震荡",

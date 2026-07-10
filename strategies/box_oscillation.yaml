@@ -1,69 +1,69 @@
-# Box Range Trading Strategy / 箱体震荡战法
+# Box Range Trading Strategy / Box Oscillation
 # Buy at box support, sell at box resistance, profit from range-bound oscillation.
 
 name: box_oscillation
-display_name: 箱体震荡
-description: 识别价格箱体区间，在箱底买入、箱顶减仓，适用于横盘震荡行情。
+display_name: Box Oscillation
+description: Identify price box ranges; buy at the box bottom and reduce at the box top. Suitable for sideways, range-bound markets.
 category: framework
 core_rules: [1, 2, 3]
 required_tools:
   - get_daily_history
   - analyze_trend
   - get_realtime_quote
-aliases: [箱体, 箱体震荡]
+aliases: [Box, Box Oscillation]
 default_priority: 50
 market_regimes: [sideways]
 
 instructions: |
-  **箱体震荡战法（Box Range Trading Strategy）**
+  **Box Range Trading Strategy**
 
-  核心逻辑：箱体内部价格在阻力位与支撑位之间反复震荡，
-  "贴着支撑买、接近阻力卖"，通过波段操作获取区间收益。
+  Core logic: prices within the box oscillate repeatedly between resistance and support,
+  "buy near support, sell near resistance", earning range returns through swing trading.
 
-  ## 分析步骤
+  ## Analysis Steps
 
-  ### 1. 箱体识别
-  使用 `get_daily_history` 获取近 60~120 日数据：
+  ### 1. Box Identification
+  Use `get_daily_history` to get the last 60~120 days of data:
 
-  - **箱体顶部（阻力位）**：近期多次触碰但未有效突破的高点连线。
-    通常为 20~60 日内3次以上的高点聚集区域。
-  - **箱体底部（支撑位）**：近期多次下探但未有效跌破的低点连线。
-  - 箱体有效性：顶部和底部各至少触碰 2~3 次方可确认。
-  - 使用 `analyze_trend` 的 support_levels / resistance_levels 辅助定位。
+  - **Box top (resistance)**: a line connecting recent highs that have been touched multiple times but not effectively broken.
+    Usually a cluster of highs touched 3+ times within 20~60 days.
+  - **Box bottom (support)**: a line connecting recent lows that have been tested multiple times but not effectively broken.
+  - Box validity: both top and bottom must be touched at least 2~3 times to be confirmed.
+  - Use `analyze_trend`'s support_levels / resistance_levels to assist positioning.
 
-  ### 2. 当前位置判断
-  使用 `get_realtime_quote` 获取现价，与箱体边界对比：
+  ### 2. Current Position Assessment
+  Use `get_realtime_quote` to get the current price and compare with box boundaries:
 
-  - **箱底区域**（距支撑 ≤5%）：买入/加仓信号，止损设箱底下方 3%。
-  - **箱中区域**（箱体中间 1/3）：观望，不主动操作。
-  - **箱顶区域**（距阻力 ≤5%）：减仓/止盈信号，无需追高。
+  - **Box bottom zone** (within ≤5% of support): buy/add signal, stop-loss 3% below box bottom.
+  - **Box middle zone** (middle 1/3 of box): watch, no active action.
+  - **Box top zone** (within ≤5% of resistance): reduce/take-profit signal, no chasing.
 
-  ### 3. 量能辅助判断
-  - **箱底放量企稳**：支撑有效的强信号，可较重仓。
-  - **箱顶缩量滞涨**：阻力有效的卖出信号。
-  - **箱体突破（放量超过均量2倍以上）**：
-    - 向上有效突破 → 转为多头趋势策略，新目标 = 箱体高度延伸。
-    - 向下有效跌破 → 离场等待，原支撑转阻力。
+  ### 3. Volume-assisted Judgment
+  - **Volume surge + stabilization at box bottom**: strong signal of valid support, can take a heavier position.
+  - **Volume contraction + stagnation at box top**: sell signal of valid resistance.
+  - **Box breakout (volume > 2x average)**:
+    - Valid upward breakout → switch to bull trend strategy, new target = box height extension.
+    - Valid downward breakdown → exit and wait, former support becomes resistance.
 
-  ### 4. 箱体宽度与预期收益
-  - 计算箱体宽度：(顶部 - 底部) / 底部 × 100%。
-  - 宽度 < 5%：操作空间过小，不建议参与。
-  - 宽度 5%~15%：标准箱体，波段操作可行。
-  - 宽度 > 15%：大箱体，可做更大波段。
+  ### 4. Box Width and Expected Return
+  - Calculate box width: (top - bottom) / bottom × 100%.
+  - Width < 5%: too little room to operate, not recommended.
+  - Width 5%~15%: standard box, swing trading feasible.
+  - Width > 15%: large box, can do larger swings.
 
-  ### 5. 假突破识别
-  - 单日盘中触及阻力/支撑后快速回撤，收盘回到箱内 → 假突破，维持箱体操作。
-  - 连续两日收盘突破箱体边界，且量能放大 → 真突破，修改策略。
+  ### 5. False Breakout Identification
+  - Single-day intraday touch of resistance/support then quick pullback, close back inside box → false breakout, keep box strategy.
+  - Two consecutive closes breaking box boundary with expanding volume → true breakout, revise strategy.
 
-  ### 6. 输出要求
-  - 明确给出箱体顶部价位和底部价位。
-  - 当前价格所处区间（箱底/箱中/箱顶）。
-  - 若价格已突破，说明突破方向及新目标。
-  - 建议仓位与止损位。
+  ### 6. Output Requirements
+  - Clearly give the box top and bottom price levels.
+  - Current price position (box bottom / middle / top).
+  - If price has broken out, state direction and new target.
+  - Suggested position and stop-loss level.
 
-  评分调整建议：
-  - 箱底企稳 + 缩量：`sentiment_score +10`
-  - 箱底放量攻顶：`sentiment_score +12`
-  - 箱体向上有效突破：`sentiment_score +15，转趋势策略`
-  - 处于箱顶区域：`sentiment_score -5（不追高）`
-  - 箱底有效跌破：`sentiment_score -15，离场`
+  Score adjustment suggestions:
+  - Stabilization at box bottom + volume contraction: `sentiment_score +10`
+  - Volume surge at box bottom pushing toward top: `sentiment_score +12`
+  - Valid upward box breakout: `sentiment_score +15, switch to trend strategy`
+  - In box top zone: `sentiment_score -5 (no chasing)`
+  - Valid breakdown of box bottom: `sentiment_score -15, exit`

@@ -1125,7 +1125,7 @@ const PortfolioPage: React.FC = () => {
               <option value="tw">市场：台股（tw）</option>
             </select>
             <button type="submit" className="btn-secondary text-sm" disabled={accountCreating}>
-              {accountCreating ? '创建中...' : '创建账户'}
+              {accountCreating ? 'Creating...' : '创建账户'}
             </button>
           </form>
         </Card>
@@ -1414,7 +1414,7 @@ const PortfolioPage: React.FC = () => {
                 <option value="out">流出</option>
               </select>
             </div>
-            <input className={PORTFOLIO_INPUT_CLASS} type="number" min="0" step="0.0001" placeholder="金额"
+            <input className={PORTFOLIO_INPUT_CLASS} type="number" min="0" step="0.0001" placeholder="amount"
               value={cashForm.amount} onChange={(e) => setCashForm((prev) => ({ ...prev, amount: e.target.value }))} required />
             <input className={PORTFOLIO_INPUT_CLASS} placeholder={`币种（可选，默认 ${writableAccount?.baseCurrency || '账户基准币'}）`} value={cashForm.currency}
               onChange={(e) => setCashForm((prev) => ({ ...prev, currency: e.target.value }))} />
@@ -1425,7 +1425,7 @@ const PortfolioPage: React.FC = () => {
         <Card padding="md">
           <h3 className="text-sm font-semibold text-foreground mb-3">手工录入：公司行为</h3>
           <form className="space-y-2" onSubmit={handleCorporateSubmit}>
-            <input className={PORTFOLIO_INPUT_CLASS} placeholder="股票代码" value={corpForm.symbol}
+            <input className={PORTFOLIO_INPUT_CLASS} placeholder="Stock code" value={corpForm.symbol}
               onChange={(e) => setCorpForm((prev) => ({ ...prev, symbol: e.target.value }))} required />
             <div className="grid grid-cols-2 gap-2">
               <input className={PORTFOLIO_INPUT_CLASS} type="date" value={corpForm.effectiveDate}
@@ -1485,7 +1485,7 @@ const PortfolioPage: React.FC = () => {
               </button>
               <button type="button" className="btn-secondary flex-1"
                 disabled={!csvFile || !writableAccountId || csvCommitting} onClick={() => void handleCommitCsv()}>
-                {csvCommitting ? '提交中...' : '提交导入'}
+                {csvCommitting ? 'Submitting...' : '提交导入'}
               </button>
             </div>
             {csvParseResult ? (
@@ -1517,7 +1517,7 @@ const PortfolioPage: React.FC = () => {
                 <option value="corporate">公司行为</option>
               </select>
               <button type="button" className="btn-secondary text-sm" onClick={() => void loadEvents()} disabled={eventLoading}>
-                {eventLoading ? '加载中...' : '刷新流水'}
+                {eventLoading ? 'Loading...' : '刷新流水'}
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -1646,8 +1646,8 @@ const PortfolioPage: React.FC = () => {
         isOpen={Boolean(pendingDelete)}
         title="删除错误流水"
         message={pendingDelete?.message || '确认删除这条流水吗？'}
-        confirmText={deleteLoading ? '删除中...' : '确认删除'}
-        cancelText="取消"
+        confirmText={deleteLoading ? 'Deleting...' : 'Delete account'}
+        cancelText="Cancel"
         isDanger
         onConfirm={() => void handleConfirmDelete()}
         onCancel={() => {

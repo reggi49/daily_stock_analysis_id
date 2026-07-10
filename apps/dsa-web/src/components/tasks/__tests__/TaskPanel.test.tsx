@@ -9,7 +9,7 @@ const baseTask: TaskInfo = {
   stockName: '贵州茅台',
   status: 'processing',
   progress: 40,
-  message: '正在抓取最新行情',
+  message: 'Fetching latest quote data',
   reportType: 'detailed',
   createdAt: '2026-03-21T08:00:00Z',
 };
@@ -35,8 +35,8 @@ describe('TaskPanel', () => {
       />,
     );
 
-    expect(screen.getByLabelText('请求阶段: 盘中')).toBeInTheDocument();
-    expect(screen.getByLabelText('请求阶段: 自动阶段')).toBeInTheDocument();
+    expect(screen.getByLabelText('Requested phase: Intraday')).toBeInTheDocument();
+    expect(screen.getByLabelText('Requested phase: Auto')).toBeInTheDocument();
   });
 
   it('renders active tasks with preserved dashboard panel styling', () => {
@@ -53,19 +53,19 @@ describe('TaskPanel', () => {
             stockCode: 'AAPL',
             stockName: 'Apple',
             status: 'pending',
-            message: '等待分析队列',
+            message: 'Waiting in analysis queue',
           },
         ]}
       />,
     );
 
-    expect(screen.getByText('分析任务')).toBeInTheDocument();
+    expect(screen.getByText('Analysis Tasks')).toBeInTheDocument();
     expect(screen.getByText('1 进行中')).toBeInTheDocument();
     expect(screen.getByText('1 等待中')).toBeInTheDocument();
     expect(screen.getByText('贵州茅台')).toBeInTheDocument();
     expect(screen.getByText('AAPL')).toBeInTheDocument();
-    expect(screen.getByLabelText('任务状态：分析中')).toBeInTheDocument();
-    expect(screen.getByText('运行诊断')).toBeInTheDocument();
+    expect(screen.getByLabelText('Task status: analyzing')).toBeInTheDocument();
+    expect(screen.getByText('Run Diagnostics')).toBeInTheDocument();
     expect(screen.getAllByText('trace-task-1')).toHaveLength(2);
     expect(screen.queryByText(/请求阶段:/)).not.toBeInTheDocument();
     expect(container.querySelector('.home-panel-card')).toBeTruthy();
@@ -79,7 +79,7 @@ describe('TaskPanel', () => {
           {
             ...baseTask,
             stockCode: '601869.SH',
-            stockName: '长飞光纤',
+            stockName: 'YOFC',
             progress: 32,
             message: '长飞光纤: 请求阶段: 自动阶段',
             analysisPhase: 'auto',
@@ -93,13 +93,13 @@ describe('TaskPanel', () => {
     const item = screen.getByTestId('task-panel-item');
     expect(item).toHaveClass('grid');
     expect(item).not.toHaveClass('flex');
-    expect(screen.getByText('长飞光纤')).toHaveClass('truncate');
+    expect(screen.getByText('YOFC')).toHaveClass('truncate');
     expect(screen.getByText('601869.SH')).toHaveClass('shrink-0');
     expect(screen.getByText('32%')).toBeInTheDocument();
 
     const diagnosticsSummary = screen.getByTestId('task-panel-diagnostics-summary');
     expect(diagnosticsSummary).toHaveClass('grid-cols-[auto_minmax(0,1fr)_auto]');
-    expect(screen.getByText('运行诊断')).toHaveClass('whitespace-nowrap');
+    expect(screen.getByText('Run Diagnostics')).toHaveClass('whitespace-nowrap');
     expect(screen.getByText('c5b9665a64...')).toHaveClass('truncate');
     expect(screen.getByRole('button', { name: '查看 长飞光纤 运行流' })).toBeInTheDocument();
   });
@@ -125,15 +125,15 @@ describe('TaskPanel', () => {
           {
             ...baseTask,
             status: 'cancel_requested',
-            message: '正在请求取消',
+            message: 'Requesting cancellation',
           },
         ]}
       />,
     );
 
     expect(screen.getByText('贵州茅台')).toBeInTheDocument();
-    expect(screen.getByLabelText('任务状态：请求取消')).toBeInTheDocument();
-    expect(screen.queryByText('失败')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Task status: cancel requested')).toBeInTheDocument();
+    expect(screen.queryByText('failed')).not.toBeInTheDocument();
   });
 
   it('does not keep cancelled terminal tasks in the active task panel', () => {

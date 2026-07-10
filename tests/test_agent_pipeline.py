@@ -1986,7 +1986,7 @@ class TestAnalyzeWithAgentStockName(unittest.TestCase):
             self.assertNotIn("chip_unavailable_reason", dp)
 
     def test_analyze_with_agent_history_context_includes_diagnostic_snapshot(self):
-        """Agent 分析入库存档时应保留 diagnostics 快照，避免历史诊断返回 unknown。"""
+        """Agent analysis should preserve the diagnostics snapshot when storing to the DB, to avoid historical diagnostics returning unknown."""
         with patch('src.core.pipeline.get_config') as mock_config, \
              patch('src.core.pipeline.get_db'), \
              patch('src.core.pipeline.DataFetcherManager'), \
@@ -2935,7 +2935,7 @@ class TestSkillActivation(unittest.TestCase):
             from src.enums import ReportType
             pipeline = StockAnalysisPipeline(config=mock_cfg)
 
-            # Dashboard with "80分" instead of 80
+            # # Dashboard with "80分" instead of 80
             agent_result = AgentResult(
                 success=True,
                 content="{}",

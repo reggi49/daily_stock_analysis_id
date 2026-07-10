@@ -1,28 +1,28 @@
 #!/bin/bash
 # ===================================
-# A股/港股/美股 智能分析系统 - 测试脚本
+# A-share/HK-share/US-share intelligent analysis system - test script
 # ===================================
 #
-# 使用方法：
-#   ./scripts/test.sh [测试场景]
+# Usage:
+#   ./scripts/test.sh [test scenario]
 #
-# 测试场景：
-#   market      - 仅大盘复盘
-#   a-stock     - A股个股分析（茅台、平安银行）
-#   etf         - etf分析(卫星etf 563230)
-#   hk-stock    - 港股分析（腾讯、阿里）
-#   us-stock    - 美股分析（苹果、特斯拉）
-#   mixed       - 混合市场分析
-#   single      - 单股模式测试
-#   dry-run     - 仅获取数据不分析
-#   full        - 完整流程测试
-#   quick       - 快速测试（单只股票）
-#   all         - 运行所有测试
+# Test scenarios:
+#   market      - market review only
+#   a-stock     - A-share stock analysis (Moutai, Ping An Bank)
+#   etf         - ETF analysis (satellite ETF 563230)
+#   hk-stock    - HK-share analysis (Tencent, Alibaba)
+#   us-stock    - US-share analysis (Apple, Tesla)
+#   mixed       - mixed market analysis
+#   single      - single-stock push mode test
+#   dry-run     - fetch data only, no analysis
+#   full        - full pipeline test
+#   quick       - quick test (single stock)
+#   all         - run all tests
 #
-# 示例：
-#   ./scripts/test.sh market      # 测试大盘复盘
-#   ./scripts/test.sh us-stock    # 测试美股分析
-#   ./scripts/test.sh quick       # 快速测试
+# Examples:
+#   ./scripts/test.sh market      # test market review
+#   ./scripts/test.sh us-stock    # test US-share analysis
+#   ./scripts/test.sh quick       # quick test
 #
 
 set -e
@@ -31,14 +31,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "$REPO_ROOT"
 
-# 颜色定义
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 打印带颜色的信息
+# Print colored messages
 info() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
@@ -63,110 +63,110 @@ header() {
     echo ""
 }
 
-# 检查Python环境
+# Check Python environment
 check_python() {
     if ! command -v python3 &> /dev/null; then
-        error "Python3 未安装"
+        error "Python3 not installed"
         exit 1
     fi
-    info "Python版本: $(python3 --version)"
+    info "Python version: $(python3 --version)"
 }
 
-# 检查依赖
+# Check dependencies
 check_deps() {
-    info "检查依赖..."
-    python3 -c "import yfinance" 2>/dev/null || { warn "yfinance 未安装，美股测试可能失败"; }
-    python3 -c "import akshare" 2>/dev/null || { warn "akshare 未安装，A股/港股测试可能失败"; }
-    success "依赖检查完成"
+    info "Checking dependencies..."
+    python3 -c "import yfinance" 2>/dev/null || { warn "yfinance not installed, US-share tests may fail"; }
+    python3 -c "import akshare" 2>/dev/null || { warn "akshare not installed, A-share/HK-share tests may fail"; }
+    success "Dependency check complete"
 }
 
-# ==================== 测试场景 ====================
+# ==================== Test scenarios ====================
 
-# 测试1: 大盘复盘
+# Test 1: Market review
 test_market() {
-    header "测试场景: 大盘复盘"
-    info "运行大盘复盘分析..."
+    header "Test scenario: Market review"
+    info "Running market review analysis..."
     python3 main.py --market-review "$@"
-    success "大盘复盘测试完成"
+    success "Market review test complete"
 }
 
-# 测试2: A股分析
+# Test 2: A-share analysis
 test_a_stock() {
-    header "测试场景: A股分析"
-    info "分析A股: 600519(茅台), 000001(平安银行)"
+    header "Test scenario: A-share analysis"
+    info "Analyzing A-shares: 600519 (Moutai), 000001 (Ping An Bank)"
     python3 main.py --stocks 600519,000001  --no-market-review "$@"
-    success "A股分析测试完成"
+    success "A-share analysis test complete"
 }
 
-# 测试2.5: ETF分析
+# Test 2.5: ETF analysis
 test_etf() {
-    header "测试场景: ETF分析"
-    info "分析ETF: 563230(卫星ETF)"
+    header "Test scenario: ETF analysis"
+    info "Analyzing ETF: 563230 (Satellite ETF)"
     python3 main.py --stocks 563230,512400 --no-market-review "$@"
-    success "ETF分析测试完成"
+    success "ETF analysis test complete"
 }
 
-# 测试3: 港股分析
+# Test 3: HK-share analysis
 test_hk_stock() {
-    header "测试场景: 港股分析"
-    info "分析港股: hk00700(腾讯), hk09988(阿里)"
+    header "Test scenario: HK-share analysis"
+    info "Analyzing HK-shares: hk00700 (Tencent), hk09988 (Alibaba)"
     python3 main.py --stocks hk00700,hk09988 --no-market-review "$@"
-    success "港股分析测试完成"
+    success "HK-share analysis test complete"
 }
 
-# 测试4: 美股分析
+# Test 4: US-share analysis
 test_us_stock() {
-    header "测试场景: 美股分析"
-    info "分析美股: AAPL(苹果), TSLA(特斯拉)"
-    # 允许透传参数，默认不带 --no-notify
+    header "Test scenario: US-share analysis"
+    info "Analyzing US-shares: AAPL (Apple), TSLA (Tesla)"
+    # Allow passing through args; by default without --no-notify
     python3 main.py --stocks AAPL --no-market-review "$@"
-    success "美股分析测试完成"
+    success "US-share analysis test complete"
 }
 
-# 测试5: 混合市场
+# Test 5: Mixed market
 test_mixed() {
-    header "测试场景: 混合市场分析"
-    info "分析混合市场: 600519(A股), hk00700(港股), AAPL(美股)"
+    header "Test scenario: Mixed market analysis"
+    info "Analyzing mixed market: 600519 (A-share), hk00700 (HK-share), AAPL (US-share)"
     python3 main.py --stocks 600519,hk00700,AAPL --no-market-review
-    success "混合市场测试完成"
+    success "Mixed market test complete"
 }
 
-# 测试6: 单股推送模式
+# Test 6: Single-stock push mode
 test_single() {
-    header "测试场景: 单股推送模式"
-    info "测试单股推送模式..."
+    header "Test scenario: Single-stock push mode"
+    info "Testing single-stock push mode..."
     python3 main.py --stocks 600519 --single-notify --no-market-review
-    success "单股推送模式测试完成"
+    success "Single-stock push mode test complete"
 }
 
-# 测试7: dry-run模式
+# Test 7: dry-run mode
 test_dry_run() {
-    header "测试场景: Dry-Run 模式"
-    info "仅获取数据，不进行AI分析..."
+    header "Test scenario: Dry-Run mode"
+    info "Fetch data only, no AI analysis..."
     python3 main.py --stocks 600519,AAPL --dry-run --no-notify
-    success "Dry-Run 测试完成"
+    success "Dry-Run test complete"
 }
 
-# 测试8: 完整流程
+# Test 8: Full pipeline
 test_full() {
-    header "测试场景: 完整流程"
-    info "运行完整分析流程（个股+大盘）..."
+    header "Test scenario: Full pipeline"
+    info "Running full analysis pipeline (stocks + market)..."
     python3 main.py --stocks 600519 --no-notify
-    success "完整流程测试完成"
+    success "Full pipeline test complete"
 }
 
-# 测试9: 快速测试
+# Test 9: Quick test
 test_quick() {
-    header "测试场景: 快速测试"
-    info "单只股票快速测试..."
+    header "Test scenario: Quick test"
+    info "Single-stock quick test..."
     python3 main.py --stocks 600519 --no-market-review --no-notify "$@"
-    success "快速测试完成"
+    success "Quick test complete"
 }
 
-# 测试10: 代码识别测试
+# Test 10: Code recognition test
 test_code_recognition() {
-    header "测试场景: 代码识别"
-    info "测试股票代码识别逻辑..."
+    header "Test scenario: Code recognition"
+    info "Testing stock code recognition logic..."
 
     python3 << 'PYTEST'
 import sys
@@ -174,17 +174,17 @@ sys.path.insert(0, '.')
 from data_provider.akshare_fetcher import _is_hk_code, _is_us_code
 
 test_cases = [
-    # (代码, 预期HK, 预期US, 描述)
-    ("AAPL", False, True, "美股-苹果"),
-    ("TSLA", False, True, "美股-特斯拉"),
-    ("BRK.B", False, True, "美股-伯克希尔B"),
-    ("hk00700", True, False, "港股-腾讯"),
-    ("HK09988", True, False, "港股-阿里"),
-    ("600519", False, False, "A股-茅台"),
-    ("000001", False, False, "A股-平安"),
+    # (code, expected HK, expected US, description)
+    ("AAPL", False, True, "US-share - Apple"),
+    ("TSLA", False, True, "US-share - Tesla"),
+    ("BRK.B", False, True, "US-share - Berkshire B"),
+    ("hk00700", True, False, "HK-share - Tencent"),
+    ("HK09988", True, False, "HK-share - Alibaba"),
+    ("600519", False, False, "A-share - Moutai"),
+    ("000001", False, False, "A-share - Ping An"),
 ]
 
-print("\n股票代码识别测试:")
+print("\nStock code recognition test:")
 print("-" * 60)
 all_pass = True
 for code, exp_hk, exp_us, desc in test_cases:
@@ -197,17 +197,17 @@ for code, exp_hk, exp_us, desc in test_cases:
     print(f"{status} {code:10} | HK:{is_hk:5} US:{is_us:5} | {desc}")
 
 print("-" * 60)
-print(f"{'✅ 所有测试通过!' if all_pass else '❌ 有测试失败!'}")
+print(f"{'✅ All tests passed!' if all_pass else '❌ Some tests failed!'}")
 sys.exit(0 if all_pass else 1)
 PYTEST
 
-    success "代码识别测试完成"
+    success "Code recognition test complete"
 }
 
-# 测试11: YFinance代码转换测试
+# Test 11: YFinance code conversion test
 test_yfinance_convert() {
-    header "测试场景: YFinance 代码转换"
-    info "测试YFinance代码转换逻辑..."
+    header "Test scenario: YFinance code conversion"
+    info "Testing YFinance code conversion logic..."
 
     python3 << 'PYTEST'
 import sys
@@ -217,62 +217,62 @@ from data_provider.yfinance_fetcher import YfinanceFetcher
 fetcher = YfinanceFetcher()
 
 test_cases = [
-    ("AAPL", "AAPL", "美股"),
-    ("tsla", "TSLA", "美股小写"),
-    ("BRK.B", "BRK.B", "美股特殊"),
-    ("hk00700", "0700.HK", "港股"),
-    ("HK09988", "9988.HK", "港股大写"),
-    ("600519", "600519.SS", "A股沪市"),
-    ("000001", "000001.SZ", "A股深市"),
-    ("300750", "300750.SZ", "A股创业板"),
+    ("AAPL", "AAPL", "US-share"),
+    ("tsla", "TSLA", "US-share lowercase"),
+    ("BRK.B", "BRK.B", "US-share special"),
+    ("hk00700", "0700.HK", "HK-share"),
+    ("HK09988", "9988.HK", "HK-share uppercase"),
+    ("600519", "600519.SS", "A-share Shanghai"),
+    ("000001", "000001.SZ", "A-share Shenzhen"),
+    ("300750", "300750.SZ", "A-share ChiNext"),
 ]
 
-print("\nYFinance 代码转换测试:")
+print("\nYFinance code conversion test:")
 print("-" * 60)
 all_pass = True
 for input_code, expected, desc in test_cases:
     result = fetcher._convert_stock_code(input_code)
     status = "✅" if result == expected else "❌"
     all_pass = all_pass and (result == expected)
-    print(f"{status} {input_code:10} -> {result:12} (期望: {expected:12}) | {desc}")
+    print(f"{status} {input_code:10} -> {result:12} (expected: {expected:12}) | {desc}")
 
 print("-" * 60)
-print(f"{'✅ 所有测试通过!' if all_pass else '❌ 有测试失败!'}")
+print(f"{'✅ All tests passed!' if all_pass else '❌ Some tests failed!'}")
 sys.exit(0 if all_pass else 1)
 PYTEST
 
-    success "YFinance 代码转换测试完成"
+    success "YFinance code conversion test complete"
 }
 
-# 测试12: 语法检查
+# Test 12: Syntax check
 test_syntax() {
-    header "测试场景: Python 语法检查"
-    info "检查所有Python文件语法..."
+    header "Test scenario: Python syntax check"
+    info "Checking syntax of all Python files..."
 
     python3 -m py_compile main.py src/config.py src/notification.py \
         data_provider/akshare_fetcher.py \
         data_provider/yfinance_fetcher.py \
         bot/commands/analyze.py
 
-    success "语法检查通过"
+    success "Syntax check passed"
 }
 
-# 测试13: Flake8 静态检查
+# Test 13: Flake8 static check
 test_flake8() {
-    header "测试场景: Flake8 静态检查"
-    info "运行 Flake8 检查严重错误..."
+    header "Test scenario: Flake8 static check"
+    info "Running Flake8 to check for critical errors..."
 
     if command -v flake8 &> /dev/null; then
         flake8 main.py src/config.py src/notification.py --select=F821,E999 --max-line-length=120
-        success "Flake8 检查通过"
+        success "Flake8 check passed"
     else
-        warn "Flake8 未安装，跳过检查"
+        warn "Flake8 not installed, skipping check"
     fi
 }
 
-# 运行所有测试
+# Run all tests
 test_all() {
-    header "运行所有测试"
+    header "Running all tests"
 
     test_syntax
     test_code_recognition
@@ -280,19 +280,19 @@ test_all() {
     test_flake8
 
     echo ""
-    info "以下测试需要网络和API配置，可能会失败:"
+    info "The following tests require network and API config and may fail:"
     echo ""
 
-    test_dry_run || warn "Dry-Run 测试失败（可能是网络问题）"
-    test_quick || warn "快速测试失败（可能是API问题）"
+    test_dry_run || warn "Dry-Run test failed (possible network issue)"
+    test_quick || warn "Quick test failed (possible API issue)"
 
-    success "所有测试完成!"
+    success "All tests complete!"
 }
 
-# ==================== 主程序 ====================
+# ==================== Main program ====================
 
 main() {
-    header "A股/港股/美股 智能分析系统 - 测试"
+    header "A-share/HK-share/US-share intelligent analysis system - test"
 
     check_python
     check_deps
@@ -359,30 +359,30 @@ main() {
             test_all "$@"
             ;;
         help|--help|-h|*)
-            echo "使用方法: $0 [测试场景]"
+            echo "Usage: $0 [test scenario]"
             echo ""
-            echo "测试场景:"
-            echo "  market      - 仅大盘复盘"
-            echo "  a-stock     - A股个股分析"
-            echo "  etf         - ETF分析"
-            echo "  hk-stock    - 港股分析"
-            echo "  us-stock    - 美股分析"
-            echo "  mixed       - 混合市场分析"
-            echo "  single      - 单股推送模式"
-            echo "  dry-run     - 仅获取数据"
-            echo "  full        - 完整流程"
-            echo "  quick       - 快速测试（推荐）"
-            echo "  code        - 代码识别测试"
-            echo "  yfinance    - YFinance转换测试"
-            echo "  syntax      - 语法检查"
-            echo "  flake8      - 静态检查"
-            echo "  all         - 运行所有测试"
+            echo "Test scenarios:"
+            echo "  market      - market review only"
+            echo "  a-stock     - A-share stock analysis"
+            echo "  etf         - ETF analysis"
+            echo "  hk-stock    - HK-share analysis"
+            echo "  us-stock    - US-share analysis"
+            echo "  mixed       - mixed market analysis"
+            echo "  single      - single-stock push mode"
+            echo "  dry-run     - fetch data only"
+            echo "  full        - full pipeline"
+            echo "  quick       - quick test (recommended)"
+            echo "  code        - code recognition test"
+            echo "  yfinance    - YFinance conversion test"
+            echo "  syntax      - syntax check"
+            echo "  flake8      - static check"
+            echo "  all         - run all tests"
             echo ""
-            echo "示例:"
-            echo "  $0 quick     # 快速测试"
-            echo "  $0 us-stock  # 测试美股"
-            echo "  $0 code      # 测试代码识别"
-            echo "  $0 all       # 运行所有测试"
+            echo "Examples:"
+            echo "  $0 quick     # quick test"
+            echo "  $0 us-stock  # test US-share"
+            echo "  $0 code      # test code recognition"
+            echo "  $0 all       # run all tests"
             ;;
     esac
 }

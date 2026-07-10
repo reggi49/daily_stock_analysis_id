@@ -1,87 +1,87 @@
 # AGENTS.md
 
-本文件用于约束本仓库的默认开发流程，目标是减少重复沟通、减少返工，并让改动和当前项目结构保持一致。
+This file governs the default development workflow for this repository. Its goal is to reduce redundant communication, minimize rework, and keep changes aligned with the current project structure.
 
-如果本文件与仓库中的脚本、工作流、代码现状不一致，以实际可执行内容为准，并在相关改动中顺手修正文档，避免规则继续漂移。
+If this file conflicts with the scripts, workflows, or actual code in the repository, treat the executable content as the source of truth, and fix the documentation in related changes to prevent rule drift.
 
-## 1. 硬规则
+## 1. Hard Rules
 
-- 遵循现有目录边界：
-  - 后端逻辑优先放在 `src/`、`data_provider/`、`api/`、`bot/`
-  - Web 前端改动在 `apps/dsa-web/`
-  - 桌面端改动在 `apps/dsa-desktop/`
-  - 部署与流水线改动在 `scripts/`、`.github/workflows/`、`docker/`
-- 未经明确确认，不执行 `git commit`、`git tag`、`git push`。
-- commit message 使用英文，不添加 `Co-Authored-By`。
-- 不写死密钥、账号、路径、模型名、端口或环境差异逻辑。
-- 优先复用现有模块、配置入口、脚本和测试，不新增平行实现。
-- 默认稳定性优先于“顺手优化”；非当前任务直接需要的重构、抽象和基础设施迁移一律克制。
-- 新增配置项时，必须同步更新 `.env.example` 和相关文档。
-- 涉及用户可见能力、CLI/API 行为、部署方式、通知方式、报告结构变化时，必须同步更新相关文档与 `docs/CHANGELOG.md`。
-- 修改报告格式、报告渲染效果或 Web UI 界面时，PR 描述必须附受影响报告 / 页面截图；涉及前后差异时优先附前后对比，无法截图时说明原因与替代可视证据。
-- Issue / PR 过程截图、审查截图、一次性验收截图和临时可视证据不得作为仓库文件合入；应放在 PR 描述、PR 评论、GitHub 附件、Actions artifact 或外部可访问证据链接中。产品长期文档确需保留的示意图除外，但文件名和文档语义必须脱离具体 issue / PR 编号。
-- `docs/CHANGELOG.md` 的 `[Unreleased]` 段使用**扁平格式**：每条独立一行，格式为 `- [类型] 描述`，类型取值：`新功能`/`改进`/`修复`/`文档`/`测试`/`chore`；**禁止在 `[Unreleased]` 内新增 `### 类目标题`**，以减少并发 PR 的 merge 冲突。发版时由 maintainer 汇总整理成带标题的正式格式。
-- `README.md` 只用于项目定位、核心能力总览、快速开始、主要入口、赞助/合作等首页级信息；非必要不更新 README，避免持续膨胀。
-- 更细的模块行为、页面交互、专题配置、排障说明、字段契约、实现语义和边界条件，优先更新对应 `docs/*.md` 或专题文档，不写入 README。
-- 变更中英双语文档之一时，需评估另一份是否需要同步；若未同步，交付说明里要写明原因。
-- 注释、docstring、日志文案以清晰准确为准，不强制要求英文，但应与文件语境保持一致。
+- Follow existing directory boundaries:
+  - Backend logic goes in `src/`, `data_provider/`, `api/`, `bot/`
+  - Web frontend changes go in `apps/dsa-web/`
+  - Desktop changes go in `apps/dsa-desktop/`
+  - Deployment and pipeline changes go in `scripts/`, `.github/workflows/`, `docker/`
+- Do not run `git commit`, `git tag`, or `git push` without explicit confirmation.
+- Commit messages must be in English; do not add `Co-Authored-By`.
+- Do not hardcode secrets, credentials, paths, model names, ports, or environment-specific logic.
+- Prefer reusing existing modules, configuration entry points, scripts, and tests over adding parallel implementations.
+- Stability takes priority over "quick improvements" by default; refrain from refactoring, abstraction, or infrastructure migration not directly required by the current task.
+- When adding new configuration items, you must also update `.env.example` and related documentation.
+- When changes affect user-facing capabilities, CLI/API behavior, deployment methods, notification methods, or report structure, you must also update related documentation and `docs/CHANGELOG.md`.
+- When modifying report format, report rendering, or the Web UI, the PR description must include screenshots of affected reports/pages. Before/after comparisons are preferred when differences exist. If screenshots are not possible, explain the reason and provide alternative visual evidence.
+- Issue/PR process screenshots, review screenshots, one-time acceptance screenshots, and temporary visual evidence must not be committed as repository files. They should be placed in PR descriptions, PR comments, GitHub attachments, Actions artifacts, or externally accessible evidence links. Exceptions exist for diagrams that must be retained in long-term product documentation, but file names and document semantics must be detached from specific issue/PR numbers.
+- The `[Unreleased]` section in `docs/CHANGELOG.md` uses a **flat format**: each entry on its own line, formatted as `- [type] description`, where type is one of: `New`/`Improvement`/`Fix`/`Docs`/`Test`/`chore`. **Do not add `### Category Headings` inside `[Unreleased]`** to reduce merge conflicts across concurrent PRs. The maintainer will consolidate entries into a titled format at release time.
+- `README.md` is only for project positioning, core capability overview, quick start, main entry points, sponsorship/collaboration, and other homepage-level information. Avoid updating README unless necessary to prevent continuous bloat.
+- For finer-grained module behavior, page interactions, specialized configuration, troubleshooting instructions, field contracts, implementation semantics, and edge cases, prefer updating the corresponding `docs/*.md` or specialized documentation instead of writing to README.
+- When updating one language of the bilingual (Chinese/English) documentation, assess whether the other language needs to be updated as well. If not synchronized, document the reason in the delivery notes.
+- Comments, docstrings, and log messages should prioritize clarity and accuracy. English is not strictly required, but should be consistent with the file context.
 
-## 1.1 PR 标题规范（非阻断建议）
+## 1.1 PR Title Convention (Non-blocking Recommendation)
 
-- 推荐使用 `<类型>: <修改内容>` 作为 PR 标题，例如 `fix: 修复大盘分析历史记录丢失`，优先类型为 `fix`/`feat`/`refactor`/`docs`/`chore`/`test`/`ci`。
-- 标题应描述实际变更内容，建议不添加 `[codex]`、`codex`、`autocode`、`copilot` 或其他工具/agent 来源前缀。
-- 该规范仅用于协作可读性与一致性提示，不应单独作为 review process blocker。
+- Use `<type>: <change description>` as the PR title format, e.g., `fix: fix market analysis history loss`. Preferred types are `fix`/`feat`/`refactor`/`docs`/`chore`/`test`/`ci`.
+- The title should describe the actual change. Avoid adding `[codex]`, `codex`, `autocode`, `copilot`, or other tool/agent source prefixes.
+- This convention is only for collaboration readability and consistency guidance; it should not be used as a standalone review process blocker.
 
-## 1.2 贡献质量底线
+## 1.2 Contribution Quality Baseline
 
-- 本仓库不接受以堆叠代码量、扩大 diff 面、补丁式响应 review 来替代真实设计收敛的 PR。
-- 贡献质量以是否解决明确问题、是否最小化影响面、是否保持现有契约一致、是否覆盖真实风险路径为准；不以新增行数、文件数量、功能宣传或“看起来完整”为准。
-- 请不要把本仓库当作低成本试验场、简历展示场或 contribution farming 场所。任何 PR 都必须证明作者理解当前系统契约，并完成基本自审、集成和验证。
-- 使用 AI 辅助开发本身不是问题；问题是提交 AI 生成后未经人工语义审查、未验证、未收敛的代码。此类 PR 会按低质量提交处理。
-- review 反馈后，不接受只在被指出的位置追加局部 patch。作者必须重新检查同一业务语义涉及的所有入口、配置、测试、文档、workflow 和用户可见路径。
-- 如果一个 PR 在多轮 review 后仍持续出现同类契约漂移、重复 fallback、测试绕过真实风险层、PR body 与实际 diff 不一致等问题，维护者可以要求关闭重做，而不是继续逐点 review。
+- This repository does not accept PRs that substitute real design convergence with code volume stacking, diff surface expansion, or patch-style review responses.
+- Contribution quality is measured by: whether it solves a clear problem, minimizes impact surface, maintains consistency with existing contracts, and covers real risk paths. It is not measured by new line count, file count, feature promotion, or "looks complete."
+- Do not use this repository as a low-cost experimentation ground, resume showcase, or contribution farming venue. Every PR must demonstrate that the author understands the current system contracts and has completed basic self-review, integration, and verification.
+- Using AI-assisted development is not inherently problematic. The problem is submitting AI-generated code without human semantic review, verification, or convergence. Such PRs will be treated as low-quality submissions.
+- After review feedback, do not simply append local patches at the locations called out and claim "all fixed." The author must re-examine all entry points, configurations, tests, documentation, workflows, and user-facing paths affected by the same business semantic.
+- If a PR continues to exhibit the same type of contract drift, repeated fallbacks, tests bypassing real risk layers, or PR body inconsistencies with the actual diff after multiple review rounds, maintainers may request the PR be closed and redone rather than continuing point-by-point review.
 
-## 2. AI 协作资产治理
+## 2. AI Collaboration Asset Governance
 
-- `AGENTS.md` 是仓库内 AI 协作规则的唯一真源。
-- `CLAUDE.md` 必须是指向 `AGENTS.md` 的软链接，用于兼容 Claude 生态。
-- `.github/copilot-instructions.md` 与 `.github/instructions/*.instructions.md` 是 GitHub Copilot / Coding Agent 的镜像或分层补充；若与本文件冲突，以 `AGENTS.md` 为准。
-- 仓库协作 skill 存放在 `.claude/skills/`，分析产物存放在 `.claude/reviews/`；前者可以入库，后者默认视为本地产物。
-- 根目录 `SKILL.md` 与 `docs/openclaw-skill-integration.md` 属于产品或外部集成说明，不是仓库协作规则真源。
-- 若未来新增 `.agents/skills/` 或其他 agent 专用目录，必须先明确单一真源，再通过脚本或镜像同步；禁止手工长期维护多份同义内容。
-- 修改 AI 协作治理资产时，执行：
+- `AGENTS.md` is the single source of truth for AI collaboration rules in this repository.
+- `CLAUDE.md` must be a symlink to `AGENTS.md` for compatibility with the Claude ecosystem.
+- `.github/copilot-instructions.md` and `.github/instructions/*.instructions.md` are mirrors or layered supplements for GitHub Copilot / Coding Agents. If they conflict with this file, `AGENTS.md` takes precedence.
+- Repository collaboration skills are stored in `.claude/skills/`; analysis artifacts are stored in `.claude/reviews/`. The former may be committed; the latter are treated as local artifacts by default.
+- The root `SKILL.md` and `docs/openclaw-skill-integration.md` are product or external integration documentation, not the source of truth for repository collaboration rules.
+- If `.agents/skills/` or other agent-specific directories are added in the future, a single source of truth must be established first, then synchronized via scripts or mirrors. Long-term manual maintenance of multiple synonymous content sources is prohibited.
+- When modifying AI collaboration governance assets, run:
 
 ```bash
 python scripts/check_ai_assets.py
 ```
 
-## 3. 仓库速览
+## 3. Repository Overview
 
-- 项目定位：股票智能分析系统，覆盖 A 股、港股、美股。
-- 主流程：抓取数据 -> 技术分析/新闻检索 -> LLM 分析 -> 生成报告 -> 通知推送。
-- 关键入口：
-  - `main.py`：分析任务主入口
-  - `server.py`：FastAPI 服务入口
-  - `apps/dsa-web/`：Web 前端
-  - `apps/dsa-desktop/`：Electron 桌面端
-  - `.github/workflows/`：CI、发布、每日任务
-- 核心职责：
-  - `src/core/`：主流程编排
-  - `src/services/`：业务服务层
-  - `src/repositories/`：数据访问层
-  - `src/reports/`：报告生成
-  - `src/schemas/`：Schema / 数据结构
-  - `data_provider/`：多数据源适配与 fallback
-  - `api/`：FastAPI API
-  - `bot/`：机器人接入
-  - `scripts/`：本地脚本
-  - `.github/scripts/`：GitHub 自动化脚本
-  - `tests/`：pytest 测试
-  - `docs/`：文档与说明
+- Project positioning: Intelligent stock analysis system covering A-shares, Hong Kong stocks, and US stocks.
+- Main flow: Data fetching -> Technical analysis/News retrieval -> LLM analysis -> Report generation -> Notification delivery.
+- Key entry points:
+  - `main.py`: Main analysis task entry point
+  - `server.py`: FastAPI server entry point
+  - `apps/dsa-web/`: Web frontend
+  - `apps/dsa-desktop/`: Electron desktop app
+  - `.github/workflows/`: CI, releases, daily tasks
+- Core responsibilities:
+  - `src/core/`: Main flow orchestration
+  - `src/services/`: Business service layer
+  - `src/repositories/`: Data access layer
+  - `src/reports/`: Report generation
+  - `src/schemas/`: Schema / data structures
+  - `data_provider/`: Multi-data-source adaptation and fallback
+  - `api/`: FastAPI API
+  - `bot/`: Bot integration
+  - `scripts/`: Local scripts
+  - `.github/scripts/`: GitHub automation scripts
+  - `tests/`: pytest tests
+  - `docs/`: Documentation and guides
 
-## 4. 常用命令
+## 4. Common Commands
 
-### 运行应用
+### Running the Application
 
 ```bash
 python main.py
@@ -95,7 +95,7 @@ python main.py --serve-only
 uvicorn server:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 后端验证
+### Backend Verification
 
 ```bash
 pip install -r requirements.txt
@@ -118,7 +118,7 @@ npm install
 npm run build
 ```
 
-### PR / CI 证据
+### PR / CI Evidence
 
 ```bash
 gh pr view <pr_number>
@@ -126,166 +126,166 @@ gh pr checks <pr_number>
 gh run view <run_id> --log-failed
 ```
 
-## 5. 默认工作流
+## 5. Default Workflow
 
-1. 先判断任务类型：`fix / feat / refactor / docs / chore / test / review`
-2. 先读现有实现、配置、测试、脚本、工作流和文档，再动手修改。
-3. 识别改动边界：后端 / API / Web / Desktop / Workflow / Docs / AI 协作资产。
-4. 先判断是否命中高风险区域：配置语义、API / Schema、数据源 fallback、报告结构、认证、调度、发布流程、桌面端启动链路。
-5. 只做和当前任务直接相关的最小改动，不顺手夹带无关重构。
-6. 如果发现文档、脚本、工作流描述不一致，优先信任实际代码与工作流，再决定是否顺手修正文档。
-7. 改完后按下面的验证矩阵执行检查。
-8. 最终交付默认要说明：
-   - 改了什么
-   - 为什么这么改
-   - 验证情况
-   - 未验证项
-   - 风险点
-   - 回滚方式
+1. Determine the task type: `fix / feat / refactor / docs / chore / test / review`
+2. Read the existing implementation, configuration, tests, scripts, workflows, and documentation before making changes.
+3. Identify the change boundary: Backend / API / Web / Desktop / Workflow / Docs / AI collaboration assets.
+4. Assess whether the change hits high-risk areas: configuration semantics, API/Schema, data source fallback, report structure, authentication, scheduling, release process, desktop startup chain.
+5. Make only the minimal changes directly related to the current task; do not bundle unrelated refactoring.
+6. If documentation, scripts, or workflow descriptions are inconsistent, trust the actual code and workflows first, then decide whether to fix the documentation.
+7. After changes, run the verification matrix below.
+8. The final delivery should default to explaining:
+   - What changed
+   - Why this change was made
+   - Verification status
+   - Unverified items
+   - Risk points
+   - Rollback method
 
-## 6. 验证矩阵
+## 6. Verification Matrix
 
-### CI 覆盖原则
+### CI Coverage Principles
 
-当前仓库 CI 主要包含：
+The repository CI currently includes:
 
-| 检查项 | 来源 | 说明 | 是否阻断 |
+| Check Item | Source | Description | Blocking? |
 | --- | --- | --- | --- |
-| `ai-governance` | `.github/workflows/ci.yml` | 校验 `AGENTS.md` / `CLAUDE.md` / `.github` 指令 / `.claude/skills` 关系 | 是 |
-| `backend-gate` | `.github/workflows/ci.yml` | 执行 `./scripts/ci_gate.sh` | 是 |
-| `docker-build` | `.github/workflows/ci.yml` | Docker 构建与关键模块导入 smoke | 是 |
-| `web-gate` | `.github/workflows/ci.yml` | 前端改动时执行 `npm run lint` + `npm run build` | 是（触发时） |
-| `network-smoke` | `.github/workflows/network-smoke.yml` | `pytest -m network` + `scripts/test.sh quick` | 否，观测项 |
-| `pr-review` | `.github/workflows/pr-review.yml` | PR 静态检查 + AI 审查 + 自动标签 | 否，辅助项 |
+| `ai-governance` | `.github/workflows/ci.yml` | Validates `AGENTS.md` / `CLAUDE.md` / `.github` instructions / `.claude/skills` relationships | Yes |
+| `backend-gate` | `.github/workflows/ci.yml` | Runs `./scripts/ci_gate.sh` | Yes |
+| `docker-build` | `.github/workflows/ci.yml` | Docker build and critical module import smoke test | Yes |
+| `web-gate` | `.github/workflows/ci.yml` | Runs `npm run lint` + `npm run build` when frontend files change | Yes (when triggered) |
+| `network-smoke` | `.github/workflows/network-smoke.yml` | `pytest -m network` + `scripts/test.sh quick` | No, observational |
+| `pr-review` | `.github/workflows/pr-review.yml` | PR static checks + AI review + auto-labeling | No, supplementary |
 
-若 PR 上已有对应 CI 结果，可直接引用 CI 结论；若 CI 未覆盖改动面，或本地与 CI 环境差异较大，需要补充说明本地验证与缺口。
+If the PR already has corresponding CI results, you may reference the CI conclusions directly. If CI does not cover the changed areas, or there are significant differences between local and CI environments, supplementary explanation of local verification and gaps is required.
 
-### 按改动面执行
+### By Change Area
 
-- Python 后端改动：
-  - 适用范围：`main.py`、`src/`、`data_provider/`、`api/`、`bot/`、`tests/`
-  - 优先执行：`./scripts/ci_gate.sh`
-  - 最低要求：`python -m py_compile <changed_python_files>`
-  - 若影响 API、任务编排、报告生成、通知发送、数据源 fallback、认证、调度，交付说明中要写明是否覆盖了对应路径。
+- Python backend changes:
+  - Scope: `main.py`, `src/`, `data_provider/`, `api/`, `bot/`, `tests/`
+  - Preferred: `./scripts/ci_gate.sh`
+  - Minimum: `python -m py_compile <changed_python_files>`
+  - If it affects API, task orchestration, report generation, notification delivery, data source fallback, authentication, or scheduling, the delivery notes must state whether the corresponding paths were covered.
 
-- Web 前端改动：
-  - 适用范围：`apps/dsa-web/`
-  - 默认执行：`cd apps/dsa-web && npm ci && npm run lint && npm run build`
-  - 若涉及 API 联调、路由、状态管理、Markdown/图表渲染或认证状态，交付说明中要明确说明联动面和未覆盖风险。
+- Web frontend changes:
+  - Scope: `apps/dsa-web/`
+  - Default: `cd apps/dsa-web && npm ci && npm run lint && npm run build`
+  - If it involves API integration, routing, state management, Markdown/chart rendering, or authentication state, the delivery notes must explicitly describe the integration surface and uncovered risks.
 
-- 桌面端改动：
-  - 适用范围：`apps/dsa-desktop/`、`scripts/run-desktop.ps1`、`scripts/build-desktop*.ps1`、`scripts/build-*.sh`、`docs/desktop-package.md`
-  - 默认执行：先构建 Web，再构建桌面端
-  - 如受平台限制未能完整验证，需要明确说明是否验证了 Web 构建产物、Electron 构建以及 Release 工作流影响。
+- Desktop changes:
+  - Scope: `apps/dsa-desktop/`, `scripts/run-desktop.ps1`, `scripts/build-desktop*.ps1`, `scripts/build-*.sh`, `docs/desktop-package.md`
+  - Default: Build Web first, then build Desktop
+  - If platform limitations prevent full verification, explicitly state whether Web build artifacts, Electron builds, and Release workflow impacts were verified.
 
-- API / Schema / 认证联动改动：
-  - 适用范围：`api/**`、`src/schemas/**`、`src/services/**`、`apps/dsa-web/**`、`apps/dsa-desktop/**`
-  - 至少覆盖对应后端验证 + 受影响客户端构建验证。
-  - 若涉及登录、Cookie、会话、轮询状态、字段增删或枚举变化，必须明确写出兼容性影响。
+- API / Schema / Authentication linked changes:
+  - Scope: `api/**`, `src/schemas/**`, `src/services/**`, `apps/dsa-web/**`, `apps/dsa-desktop/**`
+  - At minimum, cover the corresponding backend verification + affected client build verification.
+  - If it involves login, cookies, sessions, polling state, field additions/removals, or enum changes, you must explicitly describe the compatibility impact.
 
-- 文档与治理文件改动：
-  - 适用范围：`README.md`、`docs/**`、`AGENTS.md`、`.github/copilot-instructions.md`、`.github/instructions/**`、`.claude/skills/**`
-  - 不强制代码测试。
-  - 需确认命令、配置项、文件名、工作流名称与实际仓库一致。
-  - 改动 AI 协作治理资产时，执行 `python scripts/check_ai_assets.py`。
+- Documentation and governance file changes:
+  - Scope: `README.md`, `docs/**`, `AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/**`, `.claude/skills/**`
+  - Code testing is not mandatory.
+  - Verify that commands, configuration items, file names, and workflow names are consistent with the actual repository.
+  - When modifying AI collaboration governance assets, run `python scripts/check_ai_assets.py`.
 
-- 工作流 / 脚本 / Docker 改动：
-  - 适用范围：`.github/**`、`scripts/**`、`docker/**`
-  - 运行最接近改动面的本地验证。
-  - 交付时说明影响了哪条流水线、发布路径或部署路径。
-  - 若未执行 Docker / GitHub Actions 相关验证，明确说明原因与潜在风险。
+- Workflow / Script / Docker changes:
+  - Scope: `.github/**`, `scripts/**`, `docker/**`
+  - Run the local verification closest to the change area.
+  - When delivering, state which pipeline, release path, or deployment path is affected.
+  - If Docker / GitHub Actions related verification was not performed, explicitly state the reason and potential risks.
 
-- 网络或三方依赖相关改动：
-  - 先跑离线或确定性检查。
-  - 优先确认 timeout、retry、fallback、异常文案、降级路径是否仍然成立。
-  - 若未执行在线验证，必须明确写出原因。
+- Network or third-party dependency changes:
+  - Run offline or deterministic checks first.
+  - Prioritize verifying that timeout, retry, fallback, error messages, and degradation paths still hold.
+  - If online verification was not performed, you must explicitly state the reason.
 
-## 7. 稳定性护栏
+## 7. Stability Guardrails
 
-- 配置与运行入口：
-  - 修改 `.env` 语义、默认值、CLI 参数、服务启动方式、调度语义时，要同时评估本地运行、Docker、GitHub Actions、API、Web、Desktop 的影响。
-  - 新配置优先做到“不配置也可运行，配置后增强能力”，避免叠加开关和互斥模式。
+- Configuration and runtime entry points:
+  - When modifying `.env` semantics, defaults, CLI parameters, service startup methods, or scheduling semantics, simultaneously evaluate the impact on local runs, Docker, GitHub Actions, API, Web, and Desktop.
+  - New configurations should default to "runnable without configuration, enhanced with configuration," avoiding layered switches and mutually exclusive modes.
 
-- 数据源与 fallback：
-  - 修改 `data_provider/` 时，要关注数据源优先级、失败降级、字段标准化、缓存与超时策略。
-  - 单一数据源失败不应拖垮整个分析流程，除非需求明确要求 fail-fast。
+- Data sources and fallback:
+  - When modifying `data_provider/`, pay attention to data source priority, failure degradation, field standardization, caching, and timeout strategies.
+  - A single data source failure should not bring down the entire analysis flow, unless the requirement explicitly demands fail-fast.
 
-- API / Web / Desktop 兼容：
-  - 改 API / Schema / 认证 / 报告载荷时，要同时检查后端、Web、Desktop 的兼容性。
-  - 默认优先追加字段、保留旧字段或提供兼容层，避免无提示破坏现有客户端。
+- API / Web / Desktop compatibility:
+  - When modifying API / Schema / authentication / report payloads, simultaneously check backend, Web, and Desktop compatibility.
+  - Default to appending fields, preserving old fields, or providing a compatibility layer to avoid breaking existing clients without notice.
 
-- 报告 / Prompt / 通知：
-  - 修改报告结构、Prompt、提取器、通知模板、机器人链路时，要检查上游输入与下游消费方是否仍兼容。
-  - 单一通知渠道失败不应拖垮整个分析主流程，除非需求明确要求 fail-fast。
-  - 修改 `src/services/image_stock_extractor.py` 中 `EXTRACT_PROMPT` 时，要在 PR 描述中附完整最新 prompt。
+- Reports / Prompts / Notifications:
+  - When modifying report structure, prompts, extractors, notification templates, or bot pipelines, check whether upstream inputs and downstream consumers remain compatible.
+  - A single notification channel failure should not bring down the entire analysis main flow, unless the requirement explicitly demands fail-fast.
+  - When modifying `EXTRACT_PROMPT` in `src/services/image_stock_extractor.py`, include the full updated prompt in the PR description.
 
-- 工作流 / 发布 / 打包：
-  - 修改自动 tag、Release、Docker 发布、日常分析或桌面端打包流程时，要评估触发条件、产物路径、权限边界和回滚方式。
-  - 自动 tag 默认保持 opt-in：只有 commit title 含 `#patch`、`#minor`、`#major` 才触发版本号更新，除非需求明确要求改变发布策略。
+- Workflow / Release / Packaging:
+  - When modifying auto-tagging, Release, Docker publishing, daily analysis, or desktop packaging flows, evaluate trigger conditions, artifact paths, permission boundaries, and rollback methods.
+  - Auto-tagging defaults to opt-in: version number updates are only triggered when the commit title contains `#patch`, `#minor`, or `#major`, unless the requirement explicitly changes the release strategy.
 
-## 8. Issue / PR / Skill 工作流
+## 8. Issue / PR / Skill Workflow
 
-- 仓库内已有以下 skill，可优先复用：
+- The repository already has the following skills that can be prioritized for reuse:
   - `.claude/skills/analyze-issue/SKILL.md`
   - `.claude/skills/analyze-pr/SKILL.md`
   - `.claude/skills/fix-issue/SKILL.md`
-- 如果任务明确是 issue 分析、PR 审查、issue 修复，优先按对应 skill 执行，并将产物保存到 `.claude/reviews/`。
-- skill 中的命令、模板、验证顺序和交付结构必须与 `AGENTS.md` 保持一致。
-- 每次进行 PR 创建 / 更新、PR 审查或 issue 分析前，必须先同步最新代码基线：先检查工作区状态并执行 `git fetch --all --prune`；若工作区干净且当前分支可 fast-forward，则执行 `git pull --ff-only`。如存在本地改动、冲突状态、未跟踪风险文件或无法 fast-forward，不得强行切分支、stash、reset 或覆盖本地状态；PR 审查 / issue 分析可改用已 fetch 的远端 refs/PR head 做分析，并在分析文档中明确记录未更新本地工作树的原因、当前本地 HEAD 与使用的远端基线；PR 创建 / 更新应先说明当前分支与目标基线差异，必要时请求用户确认 rebase、merge 或继续基于当前分支推进。
-- skill 默认优先读取 CI / 工作流证据，再决定是否补本地验证。
-- 除上述 PR 创建 / 更新、PR 审查 / issue 分析的安全 fast-forward 同步外，skill 不得默认执行 `git pull`、`git push`、`git tag`、`gh pr create` 等会改变远端或当前分支状态的操作；这些操作必须要求用户确认。
-- PR 审查默认顺序：
-  1. 必要性
-  2. 关联性
-  3. 标题建议（`<类型>: <修改内容>`，且不含工具/agent 前缀；不作为硬性阻断项）
-  4. 描述完整性（对照 `.github/PULL_REQUEST_TEMPLATE.md`）
-  5. 验证证据
-  6. 实现正确性
-  7. 合入判定
-- 对 `fix` 类 PR，必须说明：原问题、根因、修复点、回归风险。
-- 合入阻断条件：
-  - 正确性或安全性问题
-  - 阻断型 CI 未通过
-  - PR 描述与实际改动内容实质性矛盾
-  - 缺少回滚方案
-  - 反复出现未收敛的契约漂移、补丁堆叠或验证证据失真
+- If the task is clearly issue analysis, PR review, or issue fixing, prioritize executing the corresponding skill and save artifacts to `.claude/reviews/`.
+- Commands, templates, verification order, and delivery structure in skills must be consistent with `AGENTS.md`.
+- Before any PR creation/update, PR review, or issue analysis, you must sync to the latest code baseline: check workspace status and run `git fetch --all --prune`; if the workspace is clean and the current branch can be fast-forwarded, run `git pull --ff-only`. If there are local changes, conflicts, untracked risk files, or the branch cannot be fast-forwarded, do not force branch switching, stashing, resetting, or overwriting local state. PR review / issue analysis may use the already-fetched remote refs/PR head for analysis, and the analysis document must clearly record the reason for not updating the local working tree, the current local HEAD, and the remote baseline used. PR creation/update should first describe the difference between the current branch and the target baseline, and request user confirmation for rebase, merge, or continuing on the current branch when necessary.
+- Skills default to reading CI / workflow evidence first, then deciding whether to supplement with local verification.
+- Aside from the safe fast-forward sync for PR creation/update, PR review / issue analysis described above, skills must not default to running `git pull`, `git push`, `git tag`, `gh pr create`, or other operations that change remote or current branch state. These operations must require user confirmation.
+- PR review default order:
+  1. Necessity
+  2. Relevance
+  3. Title suggestion (`<type>: <change description>`, without tool/agent prefixes; not a hard blocking item)
+  4. Description completeness (against `.github/PULL_REQUEST_TEMPLATE.md`)
+  5. Verification evidence
+  6. Implementation correctness
+  7. Merge decision
+- For `fix` type PRs, you must explain: original problem, root cause, fix point, and regression risk.
+- Merge blocking conditions:
+  - Correctness or security issues
+  - Blocking CI failures
+  - PR description materially contradicts the actual changes
+  - Missing rollback plan
+  - Recurring un-converged contract drift, patch stacking, or verification evidence distortion
 
-## 8.1 Review 反馈处理与补丁堆叠禁止
+## 8.1 Review Feedback Handling and Patch Stacking Prohibition
 
-当你处理 review 反馈时，禁止只在 reviewer 点名的位置追加局部 patch 后声称“已全部修复”。你必须先重新理解 reviewer 指出的业务契约，再检查同一语义涉及的所有入口、配置、测试、文档、workflow 和用户可见路径。
+When handling review feedback, appending local patches only at the locations called out by the reviewer and claiming "all fixed" is prohibited. You must first re-understand the business contracts pointed out by the reviewer, then check all entry points, configurations, tests, documentation, workflows, and user-facing paths affected by the same semantic.
 
-收到 review 反馈后，必须按以下顺序处理：
+After receiving review feedback, you must follow this order:
 
-1. 逐条列出 reviewer 指出的原问题。
-2. 说明根因，不能只描述“改了哪几行”。
-3. 找出同一语义影响的所有相关路径，例如 runtime、API/Web、CLI、diagnostics、workflow、docs、tests。
-4. 修复完整契约，而不是只修复当前失败测试或当前评论行。
-5. 补充能覆盖 reviewer 反例的回归测试、最终入口验证，或明确说明无法验证的原因。
-6. 同步更新 PR body，保证 scope、验证结果、兼容性、风险和回滚方案与当前 head 一致。
+1. List each original issue raised by the reviewer.
+2. Explain the root cause, not just describe "which lines were changed."
+3. Identify all related paths affected by the same semantic, e.g., runtime, API/Web, CLI, diagnostics, workflow, docs, tests.
+4. Fix the complete contract, not just the currently failing test or the currently commented line.
+5. Add regression tests covering the reviewer's counter-examples, final entry verification, or explicitly explain why verification is not possible.
+6. Simultaneously update the PR body to ensure scope, verification results, compatibility, risks, and rollback plan are consistent with the current HEAD.
 
-如果你无法完成上述收敛，不要继续堆叠补丁，不要声称 ready for merge。应主动说明当前 PR 需要拆分、关闭重做，或请求维护者确认新的最小范围。
+If you cannot achieve the above convergence, do not continue stacking patches and do not claim ready for merge. You should proactively explain that the current PR needs to be split, closed and redone, or request maintainer confirmation of a new minimal scope.
 
-以下行为会被视为低质量 PR：
+The following behaviors will be treated as low-quality PRs:
 
-- 用 broad fallback、静默降级、`return False/None/[]` 掩盖不清晰的契约。
-- 测试 mock 掉真实风险层，只证明局部实现通过。
-- CI 通过后声称问题已关闭，但没有覆盖 reviewer 指出的反例。
-- PR body 与实际 diff、验证结果或兼容风险不一致。
-- review 后继续追加零散 patch，而不是重新收敛完整语义。
-- 同一业务语义在 runtime、Web/API、docs、workflow、tests 中表现不一致。
+- Using broad fallback, silent degradation, or `return False/None/[]` to obscure unclear contracts.
+- Mocking out real risk layers in tests, only proving partial implementation passes.
+- Claiming the issue is closed after CI passes, without covering the reviewer's counter-examples.
+- PR body is inconsistent with the actual diff, verification results, or compatibility risks.
+- Continuing to append scattered patches after review instead of re-converging complete semantics.
+- The same business semantic appears inconsistently across runtime, Web/API, docs, workflow, and tests.
 
-CI 通过只能说明自动检查通过，不能替代人工语义收敛，也不能单独证明 reviewer 指出的反例已经关闭。
+CI passing only indicates automated checks passed; it cannot substitute for human semantic convergence, nor can it alone prove that the reviewer's counter-examples have been closed.
 
-## 9. 交付与发布
+## 9. Delivery and Release
 
-- 默认交付结构：
-  - `改了什么`
-  - `为什么这么改`
-  - `验证情况`
-  - `未验证项`
-  - `风险点`
-  - `回滚方式`
-- 如果是 `docs` 任务，可直接写：`Docs only, tests not run`，但仍需说明是否核对了命令和文件名。
-- 自动 tag 默认不触发，只有 commit title 包含 `#patch`、`#minor`、`#major` 才会触发版本号更新。
-- 手动打 tag 必须使用 annotated tag。
-- 用户可见变更优先通过 PR 合入，并补齐 label 与验证说明。
+- Default delivery structure:
+  - `What changed`
+  - `Why this change was made`
+  - `Verification status`
+  - `Unverified items`
+  - `Risk points`
+  - `Rollback method`
+- For `docs` tasks, you may write: `Docs only, tests not run`, but you still need to state whether commands and file names were verified.
+- Auto-tagging does not trigger by default; version number updates are only triggered when the commit title contains `#patch`, `#minor`, or `#major`.
+- Manual tagging must use annotated tags.
+- User-visible changes should be merged via PR by default, with labels and verification notes completed.

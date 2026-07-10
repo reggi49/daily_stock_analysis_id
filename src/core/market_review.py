@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-股票智能分析系统 - 大盘复盘模块（支持 A 股 / 港股 / 美股 / 日本 / 韩国）
+Daily Stock Analysis System - Market Review Module (supports A-share / HK / US / JP / KR)
 ===================================
 
-职责：
-1. 根据 MARKET_REVIEW_REGION 配置选择市场区域（cn / hk / us / jp / kr / both）
-2. 执行大盘复盘分析并生成复盘报告
-3. 保存和发送复盘报告
+Responsibilities:
+1. Select market region based on MARKET_REVIEW_REGION configuration (cn / hk / us / jp / kr / both)
+2. Execute market review analysis and generate review report
+3. Save and send review report
 """
 
 import logging
@@ -73,7 +73,7 @@ def _refresh_market_review_history_diagnostics(*, query_id: str) -> None:
                 diagnostics=diagnostic_snapshot,
             )
     except Exception as exc:
-        logger.warning("回写大盘复盘运行诊断失败（fail-open）: %s", exc)
+        logger.warning("Failed to write back market review diagnostics (fail-open): %s", exc)
 
 
 def _record_market_review_notification_run(
@@ -133,14 +133,14 @@ def _get_market_review_text(language: str) -> dict[str, str]:
             "separator": "> 다음 시장 시황 리뷰",
         }
     return {
-        "root_title": "# 🎯 大盘复盘",
-        "push_title": "🎯 大盘复盘",
-        "cn_title": "# A股大盘复盘",
-        "us_title": "# 美股大盘复盘",
-        "hk_title": "# 港股大盘复盘",
-        "jp_title": "# 日股大盘复盘",
-        "kr_title": "# 韩股大盘复盘",
-        "separator": "> 以下为下一市场大盘复盘",
+        "root_title": "# 🎯 Market Review",
+        "push_title": "🎯 Market Review",
+        "cn_title": "# A-Share Market Review",
+        "us_title": "# US Market Review",
+        "hk_title": "# HK Market Review",
+        "jp_title": "# Japan Market Review",
+        "kr_title": "# Korea Market Review",
+        "separator": "> 以下为下一市场Market Review",
     }
 
 
@@ -186,23 +186,23 @@ def run_market_review(
     trigger_source: str = "cli",
 ) -> Optional[str] | Optional[MarketReviewRunResult]:
     """
-    执行大盘复盘分析
+    Execute market review analysis
 
     Args:
-        notifier: 通知服务
-        analyzer: AI分析器（可选）
-        search_service: 搜索服务（可选）
-        config: 本次复盘使用的配置（可选，未传时读取全局配置）
-        send_notification: 是否发送通知
-        merge_notification: 是否合并推送（跳过本次推送，由 main 层合并个股+大盘后统一发送，Issue #190）
-        override_region: 覆盖 config 的 market_review_region（Issue #373 交易日过滤后有效子集）
-        query_id: 历史记录关联 ID；API 后台任务会传入 task_id，CLI/Bot 为空时自动生成
-        save_report_file: 是否保存 Markdown 文件；上下文生成路径可关闭以避免多区域临时复盘互相覆盖
-        persist_history: 是否写入 analysis_history；预热路径可关闭以避免覆盖用户可见的同日大盘复盘记录
-        trigger_source: 触发来源，用于日志排障（cli/schedule/api/bot/service 等）
+        notifier: Notification service
+        analyzer: AIAnalyzer (optional)
+        search_service: Search service (optional)
+        config: Configuration for this review run (optional, reads global config when not provided)
+        send_notification: Whether to send notifications
+        merge_notification: Whether to merge notifications (skips this push, main layer merges individual stock + market review for unified send, Issue #190)
+        override_region: Override config market_review_region (effective subset after Issue #373 trading-day filter)
+        query_id: 历史记录关联 ID；API The following is the next market task_id，CLI/Bot The following is the next market
+        save_report_file: Whether to save Markdown file; can be disabled for context-generation paths to avoid multi-region temp review overlap
+        persist_history: Whether to write to analysis_history; warmup paths can be disabled to avoid overwriting user-visible same-day market review records
+        trigger_source: Trigger source, used for log diagnostics (cli/schedule/api/bot/service etc.)
 
     Returns:
-        复盘报告文本
+        Review report text
     """
     runtime_config = config or get_config()
     history_query_id = query_id or f"market_review_{uuid.uuid4().hex}"
@@ -223,7 +223,7 @@ def run_market_review(
 
     try:
         if len(run_markets) > 1:
-            # 多市场顺序执行，合并报告
+            # Multi-market sequential execution, merged report
             parts = []
             market_light_snapshots: Dict[str, Dict[str, Any]] = {}
             market_review_payloads: Dict[str, Dict[str, Any]] = {}
@@ -315,7 +315,7 @@ def run_market_review(
                 review_report=review_report,
             )
             if save_report_file:
-                # 保存报告到文件
+                # Save report to file
                 date_str = datetime.now().strftime('%Y%m%d')
                 report_filename = f"market_review_{date_str}.md"
                 filepath = notifier.save_report_to_file(
@@ -342,7 +342,7 @@ def run_market_review(
                     market_review_payload=market_review_payload,
                 )
             
-            # 推送通知（合并模式下跳过，由 main 层统一发送）
+            # Push notification (skipped in merge mode, sent by main layer)
             if merge_notification and send_notification:
                 logger.info(
                     "[MarketReview] component=market_review action=skip_standalone_notification "
@@ -359,7 +359,7 @@ def run_market_review(
                     attempts=0,
                 )
             elif send_notification and notifier.is_available():
-                # 添加标题
+                # Add title
                 report_content = _render_market_review_payload_markdown(
                     market_review_payload,
                     wrapper_title=review_text["push_title"],
@@ -699,16 +699,16 @@ def _find_market_markdown_segment_span(markdown: str, title: str) -> Optional[tu
 
 def _markdown_contains_sector_markers(text: str) -> bool:
     markers = (
-        "#### 领涨板块",
-        "#### 领跌板块",
-        "#### 行业板块领涨",
-        "#### 行业板块领跌",
+        "#### Leading sectors",
+        "#### Leading the decline in sectors",
+        "#### Industry sectors led gains",
+        "#### Industry sectors led the decline",
         "#### Leading Sectors",
         "#### Lagging Sectors",
         "#### Leading Industry Sectors",
         "#### Lagging Industry Sectors",
-        "| 排名 | 板块 |",
-        "| 排名 | 行业板块 |",
+        "| 排名 | plate |",
+        "| 排名 | Industry sector |",
         "| Rank | Sector |",
     )
     return any(marker in text for marker in markers)
@@ -729,7 +729,7 @@ def _render_sector_payload_block(payload: Dict[str, Any]) -> str:
         if language == "en":
             lines.extend(["#### Leading Sectors", "| Rank | Sector | Change |", "|------|--------|--------|"])
         else:
-            lines.extend(["#### 领涨板块 Top 5", "| 排名 | 板块 | 涨跌幅 |", "|------|------|--------|"])
+            lines.extend(["#### Leading sectors Top 5", "| 排名 | plate | 涨跌幅 |", "|------|------|--------|"])
         for rank, sector in enumerate(top[:5], 1):
             if not isinstance(sector, dict):
                 continue
@@ -741,7 +741,7 @@ def _render_sector_payload_block(payload: Dict[str, Any]) -> str:
         if language == "en":
             lines.extend(["#### Lagging Sectors", "| Rank | Sector | Change |", "|------|--------|--------|"])
         else:
-            lines.extend(["#### 领跌板块 Top 5", "| 排名 | 板块 | 涨跌幅 |", "|------|------|--------|"])
+            lines.extend(["#### Leading the decline in sectors Top 5", "| 排名 | plate | 涨跌幅 |", "|------|------|--------|"])
         for rank, sector in enumerate(bottom[:5], 1):
             if not isinstance(sector, dict):
                 continue
@@ -790,9 +790,9 @@ def _persist_market_review_history(
             operation_advice = "리뷰 보기"
             trend_prediction = "시황 리뷰"
         else:
-            stock_name = "大盘复盘"
-            operation_advice = "查看复盘"
-            trend_prediction = "大盘复盘"
+            stock_name = "Market Review"
+            operation_advice = "View Review"
+            trend_prediction = "Market Review"
 
         result = AnalysisResult(
             code=MARKET_REVIEW_HISTORY_CODE,
@@ -851,9 +851,9 @@ def _persist_market_review_history(
         )
         _refresh_market_review_history_diagnostics(query_id=history_query_id)
         if saved_history_id:
-            logger.info("大盘复盘历史记录已保存: query_id=%s", history_query_id)
+            logger.info("Market review history saved: query_id=%s", history_query_id)
         else:
-            logger.warning("大盘复盘历史记录保存失败: query_id=%s", history_query_id)
+            logger.warning("Market review history save failed: query_id=%s", history_query_id)
         return saved_history_id
     except Exception as exc:
         record_history_run(
@@ -861,7 +861,7 @@ def _persist_market_review_history(
             metadata_saved=False,
             error_message=exc,
         )
-        logger.warning("大盘复盘历史记录保存异常，报告文件与推送流程继续: %s", exc, exc_info=True)
+        logger.warning("Market review history save exception, report file and push flow continue: %s", exc, exc_info=True)
         return 0
 
 
@@ -895,7 +895,7 @@ def _build_market_review_context_overview(
     label = (
         "Market review" if report_language == "en"
         else "시황 리뷰" if report_language == "ko"
-        else "大盘复盘"
+        else "Market Review"
     )
     return {
         "pack_version": "market_review/1.0",
@@ -937,4 +937,4 @@ def _summarize_market_review(review_report: str, report_language: str) -> str:
         return "Market review report generated."
     if report_language == "ko":
         return "시황 리뷰 리포트가 생성되었습니다."
-    return "大盘复盘报告已生成。"
+    return "Market Review报告已生成。"

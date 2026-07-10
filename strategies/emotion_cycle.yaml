@@ -1,9 +1,9 @@
-# Sentiment Cycle Strategy / 情绪周期
+# Sentiment Cycle Strategy / Sentiment Cycle
 # Uses market sentiment, turnover rate and volume pattern to time entries against crowd behavior.
 
 name: emotion_cycle
-display_name: 情绪周期
-description: 基于市场情绪、换手率与量价结构，识别情绪低点（恐慌底）与情绪高点（狂热顶），逆情绪布局。
+display_name: Sentiment Cycle
+description: Based on market sentiment, turnover rate, and volume-price structure; identifies sentiment lows (panic bottom) and sentiment highs (euphoria top) to position against the crowd.
 category: framework
 core_rules: [1, 2, 3, 5]
 required_tools:
@@ -11,69 +11,69 @@ required_tools:
   - get_realtime_quote
   - analyze_trend
   - search_stock_news
-aliases: [情绪, 情绪周期]
+aliases: [Sentiment, Sentiment Cycle]
 default_priority: 100
 market_regimes: [sector_hot]
 
 instructions: |
-  **情绪周期策略（Sentiment Cycle Strategy）**
+  **Sentiment Cycle Strategy**
 
-  核心哲学：市场参与者的情绪在"恐慌→悲观→怀疑→希望→乐观→兴奋→贪婪→狂热"
-  之间循环。聪明钱在恐慌底部布局，在狂热顶部离场。
+  Core philosophy: market participants' sentiment cycles through "panic → pessimism → doubt → hope → optimism → excitement → greed → euphoria".
+  Smart money positions at the panic bottom and exits at the euphoria top.
 
-  ## 情绪阶段量化指标
+  ## Quantified Sentiment Stage Indicators
 
-  ### 第一步：换手率分析（情绪热度核心指标）
-  使用 `get_daily_history` 和 `get_realtime_quote`：
+  ### Step 1: Turnover rate analysis (core sentiment heat indicator)
+  Use `get_daily_history` and `get_realtime_quote`:
 
-  - **换手率 < 0.5%/日**：市场冷淡，无人关注，潜在底部区域（贪婪时买入别人的恐慌）。
-  - **换手率 0.5%~2%**：正常交投，情绪平稳。
-  - **换手率 2%~5%**：活跃，市场开始关注，不宜追高。
-  - **换手率 > 5%**：高热度，游资/散户涌入，警惕情绪顶。
-  - **换手率 > 10%（日均）**：极度过热，通常为短期顶部。
+  - **Turnover < 0.5%/day**: market cold, no attention, potential bottom zone (buy others' panic when greedy).
+  - **Turnover 0.5%~2%**: normal trading, stable sentiment.
+  - **Turnover 2%~5%**: active, market starts paying attention, avoid chasing highs.
+  - **Turnover > 5%**: high heat, hot money/retail flooding in, watch for sentiment top.
+  - **Turnover > 10% (daily avg)**: extreme overheating, usually a short-term top.
 
-  ### 第二步：连续换手率走势
-  使用 `get_daily_history` 计算近 20 日换手率走势：
-  - 由高向低（持续降温）+ 成交量萎缩 → 情绪退潮，耐心等待。
-  - 由低向高（加速升温）+ 成交量陡增 → 情绪启动，可介入。
-  - 突然单日暴量（换手率超过前期5倍）→ 往往是主力出货，需警惕。
+  ### Step 2: Turnover rate trend
+  Use `get_daily_history` to compute the last 20 days of turnover trend:
+  - High→low (continuous cooling) + shrinking volume → sentiment ebbing, wait patiently.
+  - Low→high (accelerating warming) + volume spike → sentiment starting, can enter.
+  - Sudden single-day volume explosion (turnover > 5x prior) → often main force distributing, be cautious.
 
-  ### 第三步：新闻情绪面分析
-  使用 `search_stock_news` 搜索近期新闻，分析情绪倾向：
-  - 新闻集中出现"利好兑现、业绩超预期、涨停板、机构推荐"等 → 情绪可能过热。
-  - 新闻集中出现"业绩下滑、利空、跌破支撑" → 悲观情绪可能造就底部。
-  - 散户论坛/社交媒体情绪极端负面 → 反向指标，可能接近底部。
+  ### Step 3: News sentiment analysis
+  Use `search_stock_news` to search recent news and analyze sentiment tilt:
+  - News concentrated on "catalyst realized, earnings beat, Limit Up, institutional recommendation" etc. → sentiment may be overheated.
+  - News concentrated on "earnings decline, negatives, break below support" → pessimistic sentiment may form a bottom.
+  - Extremely negative retail forum/social media sentiment → contrarian indicator, may be near a bottom.
 
-  ### 第四步：均线收缩与波动率
-  使用 `analyze_trend`：
-  - MA5/MA10/MA20 三线粘合（均线收缩）→ 蓄势，方向待定，情绪冷淡。
-  - 波动率降至低位（ATR 萎缩）→ 情绪极度低迷，蓄势爆发前兆。
+  ### Step 4: MA contraction and volatility
+  Use `analyze_trend`:
+  - MA5/MA10/MA20 glued together (MA contraction) → coiling, direction pending, cold sentiment.
+  - Volatility drops to lows (ATR shrinking) → extremely depressed sentiment, a precursor to a breakout.
 
-  ## 情绪底部特征（买入区）
-  满足以下3项以上：
-  ✅ 近20日換手率处于近一年低位
-  ✅ 成交量持续萎缩，低于近60日均量50%以上
-  ✅ 近期新闻以低调、中性或负面为主
-  ✅ 股价在MA20附近或以下，但未出现恐慌性暴跌
-  ✅ 机构持仓稳定或小幅增加（如有数据）
+  ## Sentiment Bottom Features (buy zone)
+  Meet 3 or more of the following:
+  ✅ Turnover over last 20 days at a 1-year low
+  ✅ Volume continuously shrinking, below 50%+ of the 60-day average volume
+  ✅ Recent news mostly low-key, neutral, or negative
+  ✅ Price near or below MA20, but no panic crash
+  ✅ Institutional holdings stable or slightly increasing (if data available)
 
-  ## 情绪顶部特征（减仓区）
-  满足以下3项以上：
-  ⚠️ 近5日换手率 > 近20日均值的2倍
-  ⚠️ 成交量脉冲式放大（单日）
-  ⚠️ 新闻以利好兑现、机构目标价大幅上调、散户追捧为主
-  ⚠️ 股价偏离MA5超过8%（高乖离率）
-  ⚠️ MACD 出现顶背离
+  ## Sentiment Top Features (reduce zone)
+  Meet 3 or more of the following:
+  ⚠️ Turnover over last 5 days > 2x the 20-day average
+  ⚠️ Volume pulses up (single day)
+  ⚠️ News dominated by realized catalysts, sharply raised institutional targets, retail frenzy
+  ⚠️ Price deviates from MA5 by > 8% (high deviation)
+  ⚠️ MACD shows top divergence
 
-  ## 输出要求
-  - 当前情绪阶段判断：冷淡底部 / 平稳 / 升温介入 / 过热警惕 / 狂热顶部。
-  - 当前换手率与近一年换手率均值对比。
-  - 是否满足情绪底部或顶部特征（列出满足条项）。
-  - 给出逆情绪操作建议（大众恐慌我贪婪，大众贪婪我谨慎）。
+  ## Output requirements
+  - Current sentiment stage: cold bottom / stable / warming entry / overheating caution / euphoria top.
+  - Current turnover vs the 1-year average turnover.
+  - Whether sentiment bottom or top features are met (list satisfied items).
+  - Give a contrarian operating suggestion (be greedy when others panic, be cautious when others are greedy).
 
-  评分调整建议：
-  - 情绪底部特征满足3项以上：`sentiment_score +14`
-  - 情绪底部特征满足全部5项：`sentiment_score +20`
-  - 情绪顶部特征满足3项以上：`sentiment_score -12`
-  - 情绪顶部特征满足全部5项：`sentiment_score -20`
-  - 情绪平稳区间：不调整基础分
+  Score adjustment suggestions:
+  - Sentiment bottom features met (3+): `sentiment_score +14`
+  - Sentiment bottom features met (all 5): `sentiment_score +20`
+  - Sentiment top features met (3+): `sentiment_score -12`
+  - Sentiment top features met (all 5): `sentiment_score -20`
+  - Stable sentiment zone: no base score adjustment

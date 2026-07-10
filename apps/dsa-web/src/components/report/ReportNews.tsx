@@ -9,15 +9,15 @@ import type { NewsIntelItem, ReportLanguage } from '../../types/analysis';
 import { getReportText, normalizeReportLanguage } from '../../utils/reportLanguage';
 
 interface ReportNewsProps {
-  recordId?: number;  // 分析历史记录主键 ID
+  recordId?: number;  // AnalysisHistory primary key ID
   limit?: number;
   language?: ReportLanguage;
 }
 
 const NEWS_SOURCE_TEXT = {
   zh: {
-    sourceLabel: '相关资讯/后续检索',
-    sourceHint: '来源：报告页补充资讯；是否用于分析以输入数据块为准。',
+    sourceLabel: 'Related news / follow-up retrieval',
+    sourceHint: 'Source: supplemental report-page news; analysis input is shown in Input Blocks.',
   },
   en: {
     sourceLabel: 'Related news / follow-up retrieval',
@@ -30,7 +30,7 @@ const NEWS_SOURCE_TEXT = {
 } as const;
 
 /**
- * 资讯区组件 - 终端风格
+ * News feed panel - terminal style
  */
 export const ReportNews: React.FC<ReportNewsProps> = ({ recordId, limit = 8, language = 'zh' }) => {
   const reportLanguage = normalizeReportLanguage(language);

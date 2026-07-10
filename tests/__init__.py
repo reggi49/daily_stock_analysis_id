@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-A股自选股智能分析系统 - 测试包
+A-Share Stock Analysis System - Test Package
 ===================================
 
-职责：
-1. 提供单元测试包结构
-2. 统一测试模块入口
+Responsibilities:
+1. Provide unit test package structure
+2. Unified test module entry point
 """

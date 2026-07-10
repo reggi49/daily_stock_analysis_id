@@ -1,55 +1,55 @@
-# AlphaSift 选股集成说明
+# AlphaSift Stock Screening Integration
 
-数据源失败、fallback 链路和 Tushare / TickFlow / AkShare 等已接入源的推荐配置图示见 [数据源稳定性与故障处理图示](data-source-stability.md)。
+Data source failure, fallback chains, and recommended configuration diagrams for connected sources like Tushare / TickFlow / AkShare can be found in [Data Source Stability and Failure Handling Diagrams](data-source-stability.md).
 
-AlphaSift 作为独立仓库维护的选股引擎接入 DSA。DSA 默认不启用它，也不把 AlphaSift 的策略逻辑复制进主仓库；后端依赖会随 `requirements.txt` 安装，启用后只通过 `alphasift.dsa_adapter` 稳定适配层调用 AlphaSift。
+AlphaSift is a stock screening engine maintained in a separate repository, integrated into DSA. DSA does not enable it by default and does not copy AlphaSift's strategy logic into the main repository; the backend dependency is installed via `requirements.txt`, and after enabling, it only calls AlphaSift through the stable `alphasift.dsa_adapter` adaptation layer.
 
-## 当前方案
+## Current Approach
 
-- 默认关闭：`ALPHASIFT_ENABLED=false`。
-- 启用入口：设置页或选股页点击开启，或在 `.env` 中配置 `ALPHASIFT_ENABLED=true`。
-- 依赖来源：`requirements.txt` 固定到已验证的 AlphaSift 适配层 commit：`git+https://github.com/ZhuLinsen/alphasift.git@9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf#egg=alphasift`（对应提交 `https://github.com/ZhuLinsen/alphasift/commit/9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf`，覆盖 PR `https://github.com/ZhuLinsen/alphasift/pull/16`、`https://github.com/ZhuLinsen/alphasift/pull/19`、`https://github.com/ZhuLinsen/alphasift/pull/22`、`https://github.com/ZhuLinsen/alphasift/pull/23`、`https://github.com/ZhuLinsen/alphasift/pull/24`、`https://github.com/ZhuLinsen/alphasift/pull/25`、`https://github.com/ZhuLinsen/alphasift/pull/26`、`https://github.com/ZhuLinsen/alphasift/pull/28`、`https://github.com/ZhuLinsen/alphasift/pull/29`、`https://github.com/ZhuLinsen/alphasift/pull/30`、`https://github.com/ZhuLinsen/alphasift/pull/31`、`https://github.com/ZhuLinsen/alphasift/pull/32`、`https://github.com/ZhuLinsen/alphasift/pull/33`、`https://github.com/ZhuLinsen/alphasift/pull/35`、`https://github.com/ZhuLinsen/alphasift/pull/36` 与 `https://github.com/ZhuLinsen/alphasift/pull/37`）。该来源覆盖 `alphasift.dsa_adapter` 契约、`screen/list_strategies/get_status` 调用、Tencent 日 K、Sina snapshot、source health、stale daily fallback、候选级 quote context、wrapper 数据源 caller-side timeout、东财直连限速与抖动、日线数据源健康度/降级诊断、硬过滤瀑布诊断、策略评估摘要、题材匹配得分、策略目录元数据、`blue_chip_income` / `low_volatility_quality` 策略，以及 LLM ranking 的 `LLM_MAX_TOKENS` 输出上限、timeout 后不重复 JSON-mode 重试和更稳健的 JSON 解析边界。
-- 修复安装来源：`ALPHASIFT_INSTALL_SPEC` 仍保留，默认等于同一个受信任 commit。它不再是策略列表或选股接口的运行时安装主路径，只用于显式调用 `/api/v1/alphasift/install` 时做修复安装和来源校验；未显式配置时才按代码常量 `DEFAULT_ALPHASIFT_INSTALL_SPEC` 回退。
-- 迁移边界（显式 `.env` 优先）：
-  - 若 `.env` 中显式保留旧 pin（如 `...de54ea0da367be85770d9589a5bf7ded4f62d386`），DSA 会把该值当作用户覆盖，不会在运行期自动替换为新 pin；
-  - 升级后若要启用新 commit，请手动清理该行/改写后并重建依赖；
-  - `ALPHASIFT_INSTALL_SPEC` 与 `/api/v1/alphasift/install` allow-list 强绑定，单改 `.env` 而不同时回退 `requirements.txt` 与 `src/config.py` 常量会被 `alphasift_install_spec_not_allowed` 拒绝。
-- 回退方式：
-  - 路径 A（业务快速回退，约 5 分钟）：设置 `ALPHASIFT_ENABLED=false` 并重启，恢复原始分析链路；
-  - 路径 B（适配层版本回退）：同步回退 `requirements.txt`、`src/config.py`（`DEFAULT_ALPHASIFT_INSTALL_SPEC`）与 `.env.example` 示例值，重新安装依赖后重建后端镜像/桌面产物。
-- 缺失依赖边界：如果运行环境缺少 `alphasift.dsa_adapter`，`status` 返回 `available=false + diagnostics.reason=missing_module`；`strategies` 和 `screen` 返回 `424` 并提示执行 `pip install -r requirements.txt` 或重建 Docker/桌面后端产物，不会在业务请求中自动 `pip install`。
-- 运行异常边界：若适配层可导入但 `get_status()` 报错或返回 `available=false`，DSA 返回 `424 + diagnostics`，保留故障诊断，防止用重装掩盖真实运行时错误。
-- 策略归属：策略列表、策略参数、全市场快照、初筛、因子评分和 LLM 重排由 AlphaSift 负责；DSA 负责开关、API 壳、数据 provider、展示和错误提示。
+- Disabled by default: `ALPHASIFT_ENABLED=false`.
+- Enable entry point: Toggle on from the settings page or screening page, or set `ALPHASIFT_ENABLED=true` in `.env`.
+- Dependency source: `requirements.txt` pins to a verified AlphaSift adapter layer commit: `git+https://github.com/ZhuLinsen/alphasift.git@9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf#egg=alphasift` (corresponding to commit `https://github.com/ZhuLinsen/alphasift/commit/9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf`, covering PRs `https://github.com/ZhuLinsen/alphasift/pull/16` through `https://github.com/ZhuLinsen/alphasift/pull/37`). This source covers `alphasift.dsa_adapter` contract, `screen/list_strategies/get_status` calls, Tencent daily K, Sina snapshot, source health, stale daily fallback, candidate-level quote context, wrapper data source caller-side timeout, East Money direct connection rate limiting and jitter, daily line data source health/degradation diagnostics, hard filter waterfall diagnostics, strategy evaluation summaries, theme matching scores, strategy catalog metadata, `blue_chip_income` / `low_volatility_quality` strategies, and LLM ranking `LLM_MAX_TOKENS` output cap, no JSON-mode retry after timeout, and more robust JSON parsing boundaries.
+- Fix installation source: `ALPHASIFT_INSTALL_SPEC` is retained and defaults to the same trusted commit. It is no longer the runtime installation primary path for the strategy list or screening interface; it is only used for fix-installation and source validation when explicitly calling `/api/v1/alphasift/install`; when not explicitly configured, it falls back to the code constant `DEFAULT_ALPHASIFT_INSTALL_SPEC`.
+- Migration boundary (explicit `.env` priority):
+  - If `.env` explicitly retains an old pin (e.g., `...de54ea0da367be85770d9589a5bf7ded4f62d386`), DSA treats this value as a user override and will not automatically replace it with the new pin at runtime;
+  - After upgrading, if you want to enable the new commit, manually clean up that line/rewrite it and rebuild dependencies;
+  - `ALPHASIFT_INSTALL_SPEC` is tightly bound to the `/api/v1/alphasift/install` allow-list; changing `.env` alone without simultaneously reverting `requirements.txt` and `src/config.py` constants will be rejected by `alphasift_install_spec_not_allowed`.
+- Rollback methods:
+  - Path A (business quick rollback, ~5 minutes): Set `ALPHASIFT_ENABLED=false` and restart to restore the original analysis pipeline;
+  - Path B (adapter layer version rollback): Simultaneously revert `requirements.txt`, `src/config.py` (`DEFAULT_ALPHASIFT_INSTALL_SPEC`), and `.env.example` example values, then rebuild backend image/desktop artifacts after reinstalling dependencies.
+- Missing dependency boundary: If `alphasift.dsa_adapter` is missing from the runtime environment, `status` returns `available=false + diagnostics.reason=missing_module`; `strategies` and `screen` return `424` with a prompt to run `pip install -r requirements.txt` or rebuild Docker/desktop backend artifacts, without auto `pip install` in business requests.
+- Runtime exception boundary: If the adapter layer can be imported but `get_status()` throws an error or returns `available=false`, DSA returns `424 + diagnostics`, preserving fault diagnostics and preventing reinstallation from masking real runtime errors.
+- Strategy ownership: Strategy list, strategy parameters, full market snapshot, initial screening, factor scoring, and LLM reranking are AlphaSift's responsibility; DSA handles the toggle, API shell, data provider, display, and error messaging.
 
-## 外部契约来源与迁移边界
+## External Contract Source and Migration Boundary
 
-- 外部契约依据：本次 AlphaSift 运行契约（含 `schema_version=2` 的热点缓存与题材详情字段）对应 GitHub 提交 `https://github.com/ZhuLinsen/alphasift/commit/9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf`。
-  该 commit 在 DSA 中通过以下链路生效：`requirements.txt` 安装 pin、`src/config.py` 默认 `DEFAULT_ALPHASIFT_INSTALL_SPEC`、`.env.example` 默认示例值。
-- 升级路径：
-  - 部署侧只需按部署方式 `git pull` + `pip install -r requirements.txt` + 重启服务；
-  - 接入新行为前请确认 `ALPHASIFT_INSTALL_SPEC` 未显式覆盖为旧值；
-  - 已手动配置 `ALPHASIFT_INSTALL_SPEC` 时，DSA 仅在调用 `install` 时校验来源，不做运行期静默迁移，不会替换原值。
-- 回滚边界（两条路径）：
-  - 路径 A（业务临时回退，5 分钟内可执行）：将 `ALPHASIFT_ENABLED=false` 并重启服务/进程。核心分析、日报报表与原有 LLM 调用链路不受该开关影响；此路径不影响依赖版本。
-  - 路径 B（适配层版本回滚）：恢复到上一个版本的 `requirements.txt` 与 `src/config.py`（`DEFAULT_ALPHASIFT_INSTALL_SPEC`）到旧值，并同步回退 `.env.example` 的默认示例，重建后端镜像/桌面后端产物（等价于完整 revert 本次 PR）后重启。仅改 `.env` 回退 `ALPHASIFT_INSTALL_SPEC` 会被当前 allow-list 拒绝，必须与 `requirements.txt` 与代码 allow-list 一起回退。
-  - 安装入口说明：`/api/v1/alphasift/install` 仅允许当前代码 `ALLOWED_ALPHASIFT_INSTALL_SPECS`（目前为单值集合）中的来源。若确有需要临时接入其他来源，先在环境中手动安装并确认适配层可导入，再重启服务。
-- 兼容说明：`ALPHASIFT_INSTALL_SPEC` 只影响 `install` 调用时的来源校验；`requirements.txt` 与 `src/config.py` 的常量是实际运行时源码约束。`status` 返回 `install_spec_is_default` 可快速判断当前配置是否与 DSA 代码默认源一致。
+- External contract basis: This AlphaSift runtime contract (including hot-cache and theme detail fields with `schema_version=2`) corresponds to GitHub commit `https://github.com/ZhuLinsen/alphasift/commit/9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf`.
+  This commit takes effect in DSA through: `requirements.txt` install pin, `src/config.py` default `DEFAULT_ALPHASIFT_INSTALL_SPEC`, `.env.example` default example value.
+- Upgrade path:
+  - Deployment side only needs `git pull` + `pip install -r requirements.txt` + restart service per deployment method;
+  - Before integrating new behavior, confirm `ALPHASIFT_INSTALL_SPEC` has not been explicitly overridden to an old value;
+  - When `ALPHASIFT_INSTALL_SPEC` has been manually configured, DSA only validates the source when calling `install`, without runtime silent migration, and will not replace the original value.
+- Rollback boundary (two paths):
+  - Path A (temporary business rollback, executable within 5 minutes): Set `ALPHASIFT_ENABLED=false` and restart the service/process. Core analysis, daily reports, and original LLM call chains are not affected by this toggle; this path does not affect dependency versions.
+  - Path B (adapter layer version rollback): Restore `requirements.txt` and `src/config.py` (`DEFAULT_ALPHASIFT_INSTALL_SPEC`) to old values, simultaneously revert `.env.example` defaults, rebuild backend image/desktop backend artifacts (equivalent to fully reverting this PR) and restart. Changing `.env` alone to revert `ALPHASIFT_INSTALL_SPEC` will be rejected by the current allow-list; it must be reverted together with `requirements.txt` and code allow-list.
+  - Installation entry note: `/api/v1/alphasift/install` only allows sources in the current code's `ALLOWED_ALPHASIFT_INSTALL_SPECS` (currently a single-value set). If temporarily connecting another source is needed, manually install and confirm the adapter layer can be imported in the environment first, then restart the service.
+- Compatibility note: `ALPHASIFT_INSTALL_SPEC` only affects source validation during `install` calls; `requirements.txt` and `src/config.py` constants are the actual runtime source constraints. `status` returning `install_spec_is_default` allows quick determination of whether the current configuration matches the DSA code default source.
 
-- DSA 增强：AlphaSift 通过 DSA provider context 在 LLM 重排前只补充 Top 候选的轻量实时行情和基本面上下文，不在初筛阶段抓新闻；DSA API 返回阶段会对最终 Top 候选补新闻和辅助摘要，并通过 `dsa_enrichment` 记录复用或补全情况。
-- 日 K 线补特征：DSA 调用 AlphaSift 时会优先复用 DSA 历史行情加载链路（数据库缓存、Tushare、Efinance、Akshare、Pytdx、Baostock、Yfinance 等 fallback），仅在 DSA 链路无可用数据时回退到 AlphaSift 原始日线数据源，减少单一上游超时拖垮选股。
-- LLM 环境：DSA 调用 AlphaSift 时会桥接 DSA 已解析的 `LITELLM_MODEL`、`LITELLM_FALLBACK_MODELS`、`LLM_CHANNELS`、`LLM_<NAME>_*`、`LITELLM_CONFIG`、渠道额外请求头和各模型密钥；AlphaSift 独立运行时仍使用自己的 `.env`/环境变量。`LLM_TIMEOUT_SEC` 与 `LLM_MAX_TOKENS` 可被 AlphaSift 选股 LLM 重排读取，分别限制单次请求耗时和输出 token 上限。
-- 快照源：DSA 调用 AlphaSift 时，未显式配置 `SNAPSHOT_SOURCE_PRIORITY` 会按 token-aware 顺序注入：有 `TUSHARE_TOKEN` 时为 `tushare,sina,efinance,akshare_em,em_datacenter`，无 token 时为 `sina,efinance,akshare_em,em_datacenter`；同时注入 `DAILY_SOURCE=auto`、`DAILY_FETCH_RETRIES=3`、`DAILY_FETCH_MAX_WORKERS=1` 和默认候选上下文 `news,fund_flow,announcement,quote`。显式配置的源顺序、日线源和候选上下文 provider 会原样保留。
-- 外部数据源超时护栏：AlphaSift 对 efinance、AkShare、Baostock、Tushare、yfinance 等第三方 wrapper 源增加 caller-side timeout；`ALPHASIFT_SNAPSHOT_CALL_TIMEOUT_SEC` 默认 60 秒，`ALPHASIFT_DAILY_CALL_TIMEOUT_SEC` 默认 20 秒，`ALPHASIFT_SOURCE_CALL_TIMEOUT_SEC` 可作为全局兜底，设为 `0`/`off`/`disabled` 可关闭。超时后会记录 source health 与 `last_error`，并继续尝试后续数据源或 last-good / daily history fallback，减少一次 wrapper 卡死拖垮整次选股。
-- 最新 AlphaSift 能力：锁定 commit `9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf` 包含选股 pipeline 性能优化、Tencent 日 K、Sina snapshot、source health、stale daily fallback、candidate quote context、wrapper 数据源 caller-side timeout、东财直连共享重试会话/限速/随机抖动、LLM ranking timeout/max tokens 边界、last-good snapshot fallback、日线历史缓存、行业/概念 provider cache、热点/行业热度因子、hotspot 热点题材榜单、本地 scorecard/post-analysis 元信息、日线数据源健康度排序与告警、硬过滤瀑布诊断、策略评估摘要、多窗口价格路径评估、题材匹配得分、策略目录元数据、`blue_chip_income` 与 `low_volatility_quality` 策略。DSA 调用时会注入隔离缓存默认路径 `data/alphasift`、`data/alphasift/snapshot.last_good.json`、`data/alphasift/daily_history`、`data/alphasift/industry_provider_cache`；Web 选股页提供“热点题材”手动刷新入口，请求 `/api/v1/alphasift/hotspots` 时会显式使用 `akshare` provider 优先拉取具体概念/题材异动（例如钼、铅锌、铜、诊断服务等实时板块异动），行业板块仅作为兜底；默认打开页面时优先读取上一次成功且不少于 3 条的热点题材缓存，点击刷新才实时拉取并覆盖缓存，实时拉取失败时会尽量回退旧缓存；如果 AlphaSift 合约层只返回少量或缺少涨跌幅等关键字段的热点，DSA 会用东方财富板块异动直连榜单替代。点击题材会请求 `/api/v1/alphasift/hotspots/{topic}` 展示发酵路线与概念股；题材详情另有 DSA 侧 30 分钟磁盘缓存，路径为 `data/alphasift/hotspot_details` 或自定义 `ALPHASIFT_DATA_DIR/hotspot_details`，重复点开同一题材会优先返回缓存，实时详情失败时可回退过期缓存；手动刷新热点榜单并保留当前题材时会对详情请求传入 `refresh=true` 绕过详情缓存；不会默认触发 AlphaSift 的 DSA deep-analysis 回调，避免无提示扩大递归调用面。
-- 热点刷新容错：`/api/v1/alphasift/hotspots` 未显式传入 provider 且未配置 `INDUSTRY_PROVIDER` 时，默认使用 DSA EastMoney 兜底 provider（响应中 provider 为 `akshare`），避免落到 AlphaSift 的空 provider 路径；东方财富热点直连源遇到连接中断、超时或 `Connection aborted` 会做短 backoff 重试；手动刷新失败且没有可用热点缓存时返回稳定空态 payload、`source_errors=["eastmoney_hotspot_unavailable"]` 和用户可读 `message`，原始异常仅保留在服务端日志或诊断链路中。桌面端更新会保留 `data/alphasift/hotspots.json`、`data/alphasift/hotspot.history.jsonl`、`data/alphasift/hotspot_details` 与 `data/alphasift/snapshot.last_good.json`，避免更新后丢失 last-good 缓存。
-- 热点数据源补充：DSA provider 使用直连 HTTP 思路，东财板块兜底源使用 `push2.eastmoney.com/api/qt/clist/get` 并保留涨跌幅、领涨股、上涨/下跌家数等字段；题材详情会在一次 provider 生命周期内缓存并合并东方财富成分股、同花顺页面解析和板块异动龙头兜底，优先返回多只概念股，发酵路线按日期聚合展示，避免把同一盘中观察拆成多条同时间节点；事件催化不再使用 DSA 内置静态文案，只展示 AlphaSift 合约时间线、同花顺摘要、已配置新闻搜索源或东财板块异动结构拿到的真实信息；新闻搜索命中的消息会优先通过已配置 LLM 压缩成一句题材催化摘要，LLM 不可用时回退本地短摘要，避免在时间线中展示完整报道。
-- 风险提示：前端设置页和选股页展示第三方来源与投资风险说明；不会弹窗打断用户。
+- DSA Enhancement: Through the DSA provider context, AlphaSift only supplements lightweight real-time market data and fundamental context for top candidates before LLM reranking, without fetching news during the initial screening phase; during the DSA API return phase, news and auxiliary summaries are added for final top candidates, with reuse or completion recorded via `dsa_enrichment`.
+- Daily K-line feature supplementation: When DSA calls AlphaSift, it prioritizes reusing the DSA historical market data loading pipeline (database cache, Tushare, Efinance, Akshare, Pytdx, Baostock, Yfinance and other fallbacks), only falling back to AlphaSift's original daily line data source when the DSA pipeline has no available data, reducing single upstream timeouts from dragging down the entire stock screening.
+- LLM environment: When DSA calls AlphaSift, it bridges DSA's parsed `LITELLM_MODEL`, `LITELLM_FALLBACK_MODELS`, `LLM_CHANNELS`, `LLM_<NAME>_*`, `LITELLM_CONFIG`, channel extra headers, and model keys; AlphaSift uses its own `.env`/environment variables when running independently. `LLM_TIMEOUT_SEC` and `LLM_MAX_TOKENS` can be read by AlphaSift's stock screening LLM reranking, limiting single request duration and output token cap respectively.
+- Snapshot source: When DSA calls AlphaSift, if `SNAPSHOT_SOURCE_PRIORITY` is not explicitly configured, it is injected in token-aware order: with `TUSHARE_TOKEN` it is `tushare,sina,efinance,akshare_em,em_datacenter`, without a token it is `sina,efinance,akshare_em,em_datacenter`; simultaneously `DAILY_SOURCE=auto`, `DAILY_FETCH_RETRIES=3`, `DAILY_FETCH_MAX_WORKERS=1`, and default candidate context `news,fund_flow,announcement,quote` are injected. Explicitly configured source order, daily line source, and candidate context providers are preserved as-is.
+- External data source timeout guardrails: AlphaSift adds caller-side timeout for third-party wrapper sources like efinance, AkShare, Baostock, Tushare, yfinance; `ALPHASIFT_SNAPSHOT_CALL_TIMEOUT_SEC` defaults to 60 seconds, `ALPHASIFT_DAILY_CALL_TIMEOUT_SEC` defaults to 20 seconds, `ALPHASIFT_SOURCE_CALL_TIMEOUT_SEC` serves as a global fallback and can be disabled by setting `0`/`off`/`disabled`. After timeout, source health and `last_error` are logged, and subsequent data sources or last-good/daily history fallbacks continue to be attempted, reducing a single wrapper hanging from dragging down the entire stock screening.
+- Latest AlphaSift capabilities: Pinned commit `9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf` includes stock screening pipeline performance optimization, Tencent daily K, Sina snapshot, source health, stale daily fallback, candidate quote context, wrapper data source caller-side timeout, East Money direct shared retry session/rate limiting/random jitter, LLM ranking timeout/max tokens boundary, last-good snapshot fallback, daily history cache, industry/concept provider cache, hotspot/industry heat factors, hotspot topic rankings, local scorecard/post-analysis metadata, daily line data source health ranking and alerts, hard filter waterfall diagnostics, strategy evaluation summaries, multi-window price path evaluation, theme matching scores, strategy catalog metadata, `blue_chip_income` and `low_volatility_quality` strategies. When DSA calls, it injects isolated cache default paths `data/alphasift`, `data/alphasift/snapshot.last_good.json`, `data/alphasift/daily_history`, `data/alphasift/industry_provider_cache`; the Web screening page provides a "Hot Topics" manual refresh entry point, explicitly using the `akshare` provider to prioritize fetching specific concept/theme anomalies (e.g., molybdenum, lead-zinc, copper, diagnostic services real-time sector anomalies) when requesting `/api/v1/alphasift/hotspots`, with industry sectors only as fallback; by default when opening the page, it prioritizes reading the last successful hot topics cache with at least 3 entries, only fetching in real-time and overwriting cache when clicking refresh, with fallback to old cache when real-time fetch fails; if the AlphaSift contract layer returns only a few hotspots or those missing key fields like price change percentage, DSA substitutes with the East Money sector anomaly direct ranking. Clicking a topic requests `/api/v1/alphasift/hotspots/{topic}` to display fermentation routes and concept stocks; topic details have a separate DSA-side 30-minute disk cache at `data/alphasift/hotspot_details` or custom `ALPHASIFT_DATA_DIR/hotspot_details`, with repeated clicks on the same topic prioritizing cache return, real-time detail failures falling back to expired cache; manually refreshing the hot topics list while keeping the current topic passes `refresh=true` to detail requests to bypass the detail cache; will not by default trigger AlphaSift's DSA deep-analysis callback, avoiding expanding the recursive call surface without notice.
+- Hot topics refresh error tolerance: When `/api/v1/alphasift/hotspots` is called without an explicit provider and `INDUSTRY_PROVIDER` is not configured, it defaults to the DSA East Money fallback provider (response provider is `akshare`), avoiding falling into AlphaSift's empty provider path; East Money hotspot direct sources encountering connection interruption, timeout, or `Connection aborted` perform short backoff retries; when manual refresh fails and no hotspot cache is available, it returns a stable empty state payload, `source_errors=["eastmoney_hotspot_unavailable"]`, and user-readable `message`, with the original exception only retained in server logs or diagnostic pipelines. Desktop updates preserve `data/alphasift/hotspots.json`, `data/alphasift/hotspot.history.jsonl`, `data/alphasift/hotspot_details`, and `data/alphasift/snapshot.last_good.json`, avoiding last-good cache loss after updates.
+- Hot topics data source supplement: DSA provider uses direct HTTP approach, East Money sector fallback source uses `push2.eastmoney.com/api/qt/clist/get` and retains fields like price change percentage, leading stocks, rising/falling counts; topic details are cached and merged within a single provider lifecycle, combining East Money constituent stocks, Tonghuashun page parsing, and sector anomaly leading stock fallback, prioritizing multiple concept stock returns, with fermentation routes aggregated by date to avoid splitting the same intraday observation into multiple entries at the same time point; event catalysts no longer use DSA built-in static text, only displaying real information from the AlphaSift contract timeline, Tonghuashun summaries, configured news search sources, or East Money sector anomaly structure; news search hits are prioritized for compression into a one-sentence theme catalyst summary via the configured LLM, falling back to local short summaries when the LLM is unavailable, avoiding displaying full reports in the timeline.
+- Risk disclaimer: The frontend settings page and screening page display third-party source and investment risk notices; will not interrupt users with pop-ups.
 
-## AlphaSift 适配层要求
+## AlphaSift Adapter Layer Requirements
 
-AlphaSift 需要提供 `alphasift.dsa_adapter` 模块，并保持以下稳定函数：
+AlphaSift needs to provide the `alphasift.dsa_adapter` module and maintain the following stable functions:
 
-- `/api/v1/alphasift/hotspots` 支持 `include_details=true`：列表响应会尽量附带 Top 题材的 `details` 映射，Web 端默认启用，用于批量复用发酵路线和概念股缓存，减少切换不同题材时的二次等待。
+- `/api/v1/alphasift/hotspots` supports `include_details=true`: list responses will try to include the `details` mapping for top topics, enabled by default on the Web side, for batch reuse of fermentation routes and concept stock caches, reducing secondary waits when switching between different topics.
 
 ```python
 def get_status() -> dict: ...
@@ -64,7 +64,7 @@ def screen(
 ) -> dict: ...
 ```
 
-`get_status()` 建议返回：
+`get_status()` should return:
 
 ```json
 {
@@ -76,9 +76,9 @@ def screen(
 }
 ```
 
-`list_strategies()` 至少返回 `id`，建议同时返回 `name`、`description`、`category`、`tags`、`market_scope`。
+`list_strategies()` should at minimum return `id`; it is recommended to also return `name`, `description`, `category`, `tags`, `market_scope`.
 
-`screen()` 返回值建议包含：
+`screen()` return value should include:
 
 ```json
 {
@@ -95,9 +95,9 @@ def screen(
 }
 ```
 
-候选项建议包含 `code`、`name`、`score`、`reason`、`risk_level`、`risk_flags`、`price`、`change_pct`、`amount`、`industry`、`factor_scores`，以及 LLM 字段：`llm_score`、`llm_confidence`、`llm_thesis`、`llm_catalysts`、`llm_risks`、`llm_watch_items` 等。
+Candidates should include `code`, `name`, `score`, `reason`, `risk_level`, `risk_flags`, `price`, `change_pct`, `amount`, `industry`, `factor_scores`, and LLM fields: `llm_score`, `llm_confidence`, `llm_thesis`, `llm_catalysts`, `llm_risks`, `llm_watch_items`, etc.
 
-DSA 会在支持 `context` 的适配层中传入：
+DSA will pass the following in adapters that support `context`:
 
 ```python
 context = {
@@ -122,91 +122,91 @@ context = {
 }
 ```
 
-AlphaSift 会在 L1 初筛后、LLM 重排前调用 `context["dsa"]` 中的 provider，为有限 Top 候选补充 DSA 行情和基本面轻量上下文，并把 `dsa_context` 随候选返回。新闻搜索、完整摘要和缺失字段补全由 DSA API 在最终 Top 候选阶段执行；若候选已经携带完整新闻上下文，DSA API 返回阶段会复用这些字段，避免重复请求。
+AlphaSift will call the providers in `context["dsa"]` after L1 initial screening and before LLM reranking, supplementing DSA market data and fundamental lightweight context for limited top candidates, and returning `dsa_context` with the candidates. News search, full summaries, and missing field completion are performed by the DSA API during the final top candidate phase; if candidates already carry complete news context, the DSA API return phase reuses these fields to avoid duplicate requests.
 
-AlphaSift 侧已在 `ZhuLinsen/alphasift@9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf` 提供 DSA provider context 支持、DSA adapter contract，并支持复用 DSA 的 `LLM_TIMEOUT_SEC`；同一 pin 还会读取 `LLM_MAX_TOKENS` 限制 LLM 重排输出，且 timeout 后不再盲目重试无 JSON mode 请求。`dsa_adapter` 稳定契约仍只返回 DSA 已消费的策略基础字段和选股结果字段；上游新增的 strategy facets、overview、本地只读 API 和策略卡片能力暂不进入 DSA API 契约。
+AlphaSift side has provided DSA provider context support and DSA adapter contract at `ZhuLinsen/alphasift@9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf`, and supports reusing DSA's `LLM_TIMEOUT_SEC`; the same pin also reads `LLM_MAX_TOKENS` to limit LLM reranking output, and does not blindly retry JSON mode-less requests after timeout. The `dsa_adapter` stable contract still only returns DSA-consumed strategy base fields and stock screening result fields; upstream strategy facets, overview, local read-only APIs, and strategy card capabilities do not enter the DSA API contract for now.
 
-## DSA 后端行为
+## DSA Backend Behavior
 
-- `/api/v1/alphasift/status`：返回开关、可用性、默认安装来源标识、适配层元信息和 AlphaSift 进程内 snapshot/daily source health；不会暴露完整安装来源。
-- `/api/v1/alphasift/install`：显式修复安装入口。桌面模式（`DSA_DESKTOP_MODE=true`）不要求管理员会话，非桌面部署必须启用 `ADMIN_AUTH_ENABLED=true` 并携带有效管理员会话，否则返回 `401/403`。接口只允许默认受信任安装来源，并会强制重装锁定 commit，避免旧版 `alphasift` 包残留。
-- `/api/v1/alphasift/strategies`：读取 AlphaSift 策略列表；如果 `ALPHASIFT_ENABLED=true` 但适配层缺失或状态异常，返回 `424 + diagnostics`，不触发运行时安装。
-- `/api/v1/alphasift/screen`：调用适配层 `screen(..., use_llm=True)`，并在调用期间临时注入 DSA 已解析的 LLM 运行环境，同时向适配层传入结构化 LLM/DSA provider 配置；AlphaSift 在 LLM 前只消费轻量 DSA provider context，并优先通过 DSA 日线链路补齐 AlphaSift 因子特征，DSA 返回阶段对最终 Top 候选补新闻并复用已增强字段。适配层缺失或运行时异常返回 `424 + diagnostics` 并保留原始错误边界。
-- `/api/v1/alphasift/screen/tasks`：Web/桌面选股页使用的后台任务入口，提交后立即返回 `task_id`，实际选股在共享任务队列中继续执行，避免浏览器长请求被外部快照、行情、新闻或 LLM 延迟拖到超时。
-- `/api/v1/alphasift/screen/tasks/{task_id}`：查询后台选股任务状态。进行中返回 `pending/processing + progress/message`，完成后在 `result` 中返回与 `/screen` 相同的候选结构，失败时返回 `failed + error`；仅接受 `report_type=alphasift_screen` 的任务 ID，普通分析任务不会被误读为选股结果。
+- `/api/v1/alphasift/status`: Returns toggle, availability, default install source identifier, adapter layer metadata, and AlphaSift in-process snapshot/daily source health; does not expose full install source.
+- `/api/v1/alphasift/install`: Explicit fix-installation entry point. Desktop mode (`DSA_DESKTOP_MODE=true`) does not require an admin session; non-desktop deployments must have `ADMIN_AUTH_ENABLED=true` with a valid admin session, otherwise returns `401/403`. The endpoint only allows the default trusted install source and will force reinstall the pinned commit, avoiding old `alphasift` package residue.
+- `/api/v1/alphasift/strategies`: Reads the AlphaSift strategy list; if `ALPHASIFT_ENABLED=true` but the adapter layer is missing or in an abnormal state, returns `424 + diagnostics` without triggering runtime installation.
+- `/api/v1/alphasift/screen`: Calls the adapter layer `screen(..., use_llm=True)` and temporarily injects DSA's parsed LLM runtime environment during the call, while passing structured LLM/DSA provider configuration to the adapter layer; AlphaSift consumes only lightweight DSA provider context before LLM and prioritizes supplementing AlphaSift factor features through the DSA daily line pipeline, with the DSA return phase adding news for final top candidates and reusing enhanced fields. Missing adapter layer or runtime exceptions return `424 + diagnostics` with original error boundaries preserved.
+- `/api/v1/alphasift/screen/tasks`: Background task entry point used by the Web/desktop screening page; returns `task_id` immediately after submission, with actual screening continuing in a shared task queue, preventing browser long requests from timing out due to external snapshots, market data, news, or LLM delays.
+- `/api/v1/alphasift/screen/tasks/{task_id}`: Queries background screening task status. In progress returns `pending/processing + progress/message`, on completion returns the same candidate structure as `/screen` in `result`, on failure returns `failed + error`; only accepts task IDs with `report_type=alphasift_screen`, with normal analysis tasks not being misread as screening results.
 
-## 配置兼容边界（LLM / LiteLLM / Base URL）
+## Configuration Compatibility Boundary (LLM / LiteLLM / Base URL)
 
-- 兼容语义与版本证据（可追溯）：
-  - 运行依赖约束：`requirements.txt` 中将 LiteLLM 固定到 `litellm>=1.80.10,!=1.82.7,!=1.82.8,<2.0.0`，并通过 `git+https://github.com/ZhuLinsen/alphasift.git@9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf` 安装 AlphaSift 适配层。
-  - 文档依据：
+- Compatible semantics and version evidence (traceable):
+  - Runtime dependency constraint: `requirements.txt` pins LiteLLM to `litellm>=1.80.10,!=1.82.7,!=1.82.8,<2.0.0` and installs the AlphaSift adapter layer via `git+https://github.com/ZhuLinsen/alphasift.git@9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf`.
+  - Documentation basis:
     - LiteLLM Providers: https://docs.litellm.ai/docs/providers
     - LiteLLM OpenAI-compatible: https://docs.litellm.ai/docs/providers/openai_compatible
-    - LiteLLM model_list/proxy 配置（含 `api_base`、`api_key`、`extra_headers`）: https://docs.litellm.ai/docs/proxy/configs
-    - OpenAI 请求语义与授权头: https://platform.openai.com/docs/api-reference/making-requests、https://platform.openai.com/docs/api-reference/authentication
+    - LiteLLM model_list/proxy configuration (including `api_base`, `api_key`, `extra_headers`): https://docs.litellm.ai/docs/proxy/configs
+    - OpenAI request semantics and authorization headers: https://platform.openai.com/docs/api-reference/making-requests, https://platform.openai.com/docs/api-reference/authentication
 
-- 结构化检测澄清：本 PR 触及 `.env.example`、`requirements.txt`、`src/config.py` 与本文档，是因为 AlphaSift 依赖 pin 更新和调用期 runtime bridge 需要把既有 DSA LLM 配置透传给外部适配层；本 PR 没有升级 LiteLLM 主版本、没有新增或改名 provider 协议、没有修改 `LITELLM_MODEL`/`LITELLM_FALLBACK_MODELS`/`LLM_CHANNELS`/`LLM_<NAME>_*` 的持久化解析语义。
-- LLM 运行时兼容边界：AlphaSift 不改变主配置链路，只在调用期注入已解析的 `LITELLM_MODEL`、`LITELLM_FALLBACK_MODELS`、`LLM_CHANNELS` 与 `LLM_<NAME>_*` 到进程环境；受管 provider 的 fallback 过滤行为保持现有策略，不做历史配置的静默迁移。`ALPHASIFT_ENABLED` 是当前场景唯一新增持久化分支。
-- 注意：本注入是**短时内存注入**，不会改写 `.env`、不会回写历史配置、不会静默迁移用户自定义 provider/model 路由；失败或未开启时，除了 AlphaSift 选股能力本身，其它 DSA 业务链路保持既有配置执行。
-- 注入来源与回滚原则：
-  - `LITELLM_MODEL` 与 `LITELLM_FALLBACK_MODELS`优先来自 DSA 已声明路由：`LITELLM_MODEL`、`LITELLM_FALLBACK_MODELS`、`llm_model_list`；未声明的自定义 provider/model 将保留用户原始配置，不被重写。
-  - `OPENAI_BASE_URL` 优先复用主配置的 `OPENAI_BASE_URL`，只有未配置时才会回退到声明为 openai 的 `LLM_CHANNEL` base_url；不会覆盖主配置中的私有网关或别名配置。
-  - `LLM_<NAME>_API_KEYS/BASE_URL/MODELS` 仅按声明渠道合并注入；未声明渠道不会新增注入字段。
-- 若已有自定义模型名、channel、Base URL 或额外头信息，开启/重试 AlphaSift 不会自动覆写 `.env`。如需回退可按原配置恢复：
-  - 回退到旧模型名：直接修改 `LITELLM_MODEL`、`LITELLM_FALLBACK_MODELS`，或清空自定义 `LLM_CHANNELS`。
-  - 恢复旧渠道：保留历史 `LLM_<NAME>_API_KEYS/BASE_URL` 并重启配置生效，不需执行额外迁移脚本。
-- 兼容校验依据（运维核验）：
-  - 依赖版本依据：当前服务端约束为 `litellm>=1.80.10,!=1.82.7,!=1.82.8,<2.0.0`（见 `requirements.txt`），AlphaSift 只复用该依赖的 provider/model 解析、`model_list` 与调用参数语义。
-  - 官方 provider/model 依据：LiteLLM Providers 文档（[https://docs.litellm.ai/docs/providers](https://docs.litellm.ai/docs/providers)）定义 provider 前缀；OpenAI-compatible 文档（[https://docs.litellm.ai/docs/providers/openai_compatible](https://docs.litellm.ai/docs/providers/openai_compatible)）说明 `openai/<model>`、`api_base`、`api_key` 的兼容语义。
-  - 官方 `model_list`/额外头依据：LiteLLM config 文档（[https://docs.litellm.ai/docs/proxy/configs](https://docs.litellm.ai/docs/proxy/configs)）说明 `litellm_params` 支持 `model`、`api_base`、`api_key` 与 `extra_headers`。DSA 只把已声明渠道转换为同类结构传给 AlphaSift，不新增模型路由映射，不做 provider 模式迁移。
-  - 兼容头部语义依据：OpenAI 调用约定（[https://platform.openai.com/docs/api-reference/making-requests](https://platform.openai.com/docs/api-reference/making-requests)）与鉴权约定（[https://platform.openai.com/docs/api-reference/authentication](https://platform.openai.com/docs/api-reference/authentication)）对应 `Authorization` 与自定义 header 传递行为，`extra_headers` 仅用于补充会话头，不改写模型路由。
-  - 回退路径为“设置页关闭 AlphaSift 或保留 `ALPHASIFT_ENABLED=false`”，并保持原有 `LITELLM_*` 与 `LLM_*` 配置，触发失败时可先核对 `status`/`screen` 的 `diagnostics` 后执行服务重启。
-- 旧配置保留证据：
-  - `src/services/alphasift_service.py` 的 `_alphasift_runtime_env()` 会在调用前保存同名 `os.environ` 值，并在调用后逐项恢复或删除本次临时新增键；该路径不调用 `dotenv_values()` 写回，也不修改 `.env` 文件。
-  - `src/services/alphasift_service.py` 的 `_build_alphasift_runtime_env()` 只从当前 `Config` 生成临时 env dict；未声明渠道不会生成 `LLM_<NAME>_*`，已有自定义 provider/model/base URL 不会被重命名或清理。
-  - `tests/test_alphasift_api.py` 覆盖 `test_screen_bridges_dsa_llm_config_into_alphasift_runtime`、`test_screen_bridges_legacy_openai_fields_into_alphasift_runtime_env`、`test_screen_injects_openai_compatible_model_headers_into_alphasift_litellm_calls`、`test_screen_disabled_preserves_existing_llm_env_state` 和 `test_screen_filters_undeclared_managed_fallbacks_for_dsa_routes`，用于证明注入、OpenAI-compatible header/base URL、关闭状态和未声明 fallback 均不改写用户原始配置。
-- 失败可见性：`status`/`screen` 接口返回明确错误码与 `message`，前端在设置页或选股页会将 `403/424/400/422` 等错误直接提示给用户，便于定位并回退到“关闭 AlphaSift + 保持原有 LLM 运行链路”。
+- Structured detection clarification: This PR touches `.env.example`, `requirements.txt`, `src/config.py`, and this document because the AlphaSift dependency pin update and call-period runtime bridge need to pass through existing DSA LLM configuration to the external adapter layer; this PR does not upgrade LiteLLM major version, does not add or rename provider protocols, and does not modify `LITELLM_MODEL`/`LITELLM_FALLBACK_MODELS`/`LLM_CHANNELS`/`LLM_<NAME>_*` persisted parsing semantics.
+- LLM runtime compatibility boundary: AlphaSift does not change the main configuration pipeline and only injects parsed `LITELLM_MODEL`, `LITELLM_FALLBACK_MODELS`, `LLM_CHANNELS`, and `LLM_<NAME>_*` into the process environment during the call period; managed provider fallback filtering behavior maintains existing strategy without silent migration of historical configuration. `ALPHASIFT_ENABLED` is the only new persistent branch in the current scenario.
+- Note: This injection is **short-lived memory injection**; it does not rewrite `.env`, does not write back historical configuration, and does not silently migrate user-defined provider/model routing; on failure or when disabled, besides AlphaSift stock screening capability itself, other DSA business pipelines maintain existing configuration execution.
+- Injection source and rollback principles:
+  - `LITELLM_MODEL` and `LITELLM_FALLBACK_MODELS` prioritize DSA-declared routing: `LITELLM_MODEL`, `LITELLM_FALLBACK_MODELS`, `llm_model_list`; undeclared custom provider/model retains user original configuration and is not rewritten.
+  - `OPENAI_BASE_URL` prioritizes reusing the main configuration's `OPENAI_BASE_URL`; only when not configured does it fall back to the declared openai `LLM_CHANNEL` base_url; will not override private gateway or alias configuration in the main configuration.
+  - `LLM_<NAME>_API_KEYS/BASE_URL/MODELS` are only merged and injected according to declared channels; undeclared channels do not get new injection fields.
+- If existing custom model names, channel, Base URL, or extra headers are present, enabling/retrying AlphaSift will not automatically overwrite `.env`. To roll back, restore per original configuration:
+  - Roll back to old model name: Directly modify `LITELLM_MODEL`, `LITELLM_FALLBACK_MODELS`, or clear custom `LLM_CHANNELS`.
+  - Restore old channels: Retain historical `LLM_<NAME>_API_KEYS/BASE_URL` and restart to take effect, without executing additional migration scripts.
+- Compatibility verification basis (operations verification):
+  - Dependency version basis: Current server constraint is `litellm>=1.80.10,!=1.82.7,!=1.82.8,<2.0.0` (see `requirements.txt`); AlphaSift only reuses this dependency's provider/model parsing, `model_list`, and call parameter semantics.
+  - Official provider/model basis: LiteLLM Providers documentation (https://docs.litellm.ai/docs/providers) defines provider prefixes; OpenAI-compatible documentation (https://docs.litellm.ai/docs/providers/openai_compatible) explains `openai/<model>`, `api_base`, `api_key` compatible semantics.
+  - Official `model_list`/extra headers basis: LiteLLM config documentation (https://docs.litellm.ai/docs/proxy/configs) explains `litellm_params` supports `model`, `api_base`, `api_key`, and `extra_headers`. DSA only converts declared channels to the same structure for AlphaSift without adding new model routing mappings or provider mode migration.
+  - Compatible header semantics basis: OpenAI call conventions (https://platform.openai.com/docs/api-reference/making-requests) and authentication conventions (https://platform.openai.com/docs/api-reference/authentication) correspond to `Authorization` and custom header passing behavior; `extra_headers` is only for supplementing session headers without modifying model routing.
+  - Rollback path is "disable AlphaSift from the settings page or keep `ALPHASIFT_ENABLED=false`" while maintaining existing `LITELLM_*` and `LLM_*` configuration; when triggering fails, check `status`/`screen` `diagnostics` first, then restart the service.
+- Old configuration preservation evidence:
+  - `src/services/alphasift_service.py`'s `_alphasift_runtime_env()` saves same-name `os.environ` values before calling and restores or deletes temporarily added keys item by item after calling; this path does not call `dotenv_values()` to write back and does not modify `.env` file.
+  - `src/services/alphasift_service.py`'s `_build_alphasift_runtime_env()` only generates a temporary env dict from the current `Config`; undeclared channels do not generate `LLM_<NAME>_*`, and existing custom provider/model/base URL will not be renamed or cleaned.
+  - `tests/test_alphasift_api.py` covers `test_screen_bridges_dsa_llm_config_into_alphasift_runtime`, `test_screen_bridges_legacy_openai_fields_into_alphasift_runtime_env`, `test_screen_injects_openai_compatible_model_headers_into_alphasift_litellm_calls`, `test_screen_disabled_preserves_existing_llm_env_state`, and `test_screen_filters_undeclared_managed_fallbacks_for_dsa_routes`, proving injection, OpenAI-compatible header/base URL, disabled state, and undeclared fallback all do not rewrite user original configuration.
+- Failure visibility: `status`/`screen` endpoints return clear error codes and `message`; the frontend displays `403/424/400/422` errors directly to the user on the settings or screening page, facilitating identification and rollback to "disable AlphaSift + maintain original LLM runtime pipeline."
 
-## 兼容验收索引（发布前核验）
+## Compatibility Acceptance Index (Pre-release Verification)
 
-- 依赖与源码约束核验：`requirements.txt` 中的 `litellm` 约束与 `src/config.py`/`requirements.txt` 一致。
-- Hotspot 契约兼容核验：`docs/alphasift-integration.md` 与 `api/v1/endpoints/alphasift.py`、`src/services/alphasift_service.py` 保持 `hotspots`/`hotspots/{topic}` 字段与 `tests/test_alphasift_api.py` 一致，调用前后默认使用 `snapshot.last_good` 缓存兜底。
-- 外部版本来源：本次集成依赖来源为 `https://github.com/ZhuLinsen/alphasift/commit/9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf`，需在复验时按该 commit pin 回放导入与接口契约。
-- 行为核验：`src/services/alphasift_service.py` 的 `_build_alphasift_runtime_env` 与 `_build_alphasift_context` 仅在调用期写入进程环境；`/api/v1/alphasift/screen`、`strategies`、`status` 在运行期不回写 `.env`。
-- 回退核验：关闭 `ALPHASIFT_ENABLED` 并重启配置链路后，系统恢复原始 `LITELLM_MODEL/FALLBACK_MODELS`、`LLM_CHANNELS` 与 `LLM_*` 运行语义，不执行迁移清理脚本。
-- 语义来源核验：LiteLLM 文档（https://docs.litellm.ai/docs/providers）、OpenAI-compatible 文档（https://docs.litellm.ai/docs/providers/openai_compatible）与 LiteLLM 配置文档（https://docs.litellm.ai/docs/proxy/configs）用于核对 provider/model/base_url/extra_headers 映射链路。
-- 状态诊断：`/api/v1/alphasift/status` 对 AlphaSift 包或 `alphasift.dsa_adapter` 未安装仍保持 `200` + `available=false` 的兼容语义；如果导入过程、`get_status()` 调用或返回结构出现非预期异常，后端会记录 warning，并在响应中追加不含安装来源明文的 `diagnostics` 字段，便于从接口状态和服务端日志定位问题。
+- Dependency and source code constraint verification: `litellm` constraint in `requirements.txt` matches `src/config.py`/`requirements.txt`.
+- Hotspot contract compatibility verification: `docs/alphasift-integration.md`, `api/v1/endpoints/alphasift.py`, and `src/services/alphasift_service.py` maintain `hotspots`/`hotspots/{topic}` field consistency with `tests/test_alphasift_api.py`, with `snapshot.last_good` cache fallback before and after calls.
+- External version source: This integration dependency source is `https://github.com/ZhuLinsen/alphasift/commit/9f522747caafd3c0b1ddb7e14d5cf44c8580b6cf`, requiring import and interface contract replay by this commit pin during verification.
+- Behavior verification: `src/services/alphasift_service.py`'s `_build_alphasift_runtime_env` and `_build_alphasift_context` only write to the process environment during the call period; `/api/v1/alphasift/screen`, `strategies`, `status` do not write back `.env` at runtime.
+- Rollback verification: After disabling `ALPHASIFT_ENABLED` and restarting the configuration pipeline, the system restores original `LITELLM_MODEL/FALLBACK_MODELS`, `LLM_CHANNELS`, and `LLM_*` runtime semantics without executing migration cleanup scripts.
+- Semantic source verification: LiteLLM documentation (https://docs.litellm.ai/docs/providers), OpenAI-compatible documentation (https://docs.litellm.ai/docs/providers/openai_compatible), and LiteLLM configuration documentation (https://docs.litellm.ai/docs/proxy/configs) are used to verify provider/model/base_url/extra_headers mapping chains.
+- Status diagnostics: `/api/v1/alphasift/status` maintains `200` + `available=false` compatible semantics for AlphaSift package or `alphasift.dsa_adapter` not installed; if import process, `get_status()` call, or return structure has unexpected exceptions, the backend logs warnings and appends a `diagnostics` field without install source plaintext to the response, facilitating issue location from endpoint status and server logs.
 
-错误策略：
+Error strategy:
 
-- 未开启返回 `403 alphasift_disabled`。
-- 修复安装接口来源不受信任返回 `403 alphasift_install_spec_not_allowed`。
-- AlphaSift 未安装、缺少适配层或适配层不可调用返回 `424`。
-- 市场或策略被适配层拒绝时返回 `400/422`。
-- 运行失败返回 `424 alphasift_screen_failed`。
+- Disabled returns `403 alphasift_disabled`.
+- Fix-installation endpoint with untrusted source returns `403 alphasift_install_spec_not_allowed`.
+- AlphaSift not installed, missing adapter layer, or adapter layer not callable returns `424`.
+- Market or strategy rejected by adapter layer returns `400/422`.
+- Runtime failure returns `424 alphasift_screen_failed`.
 
-## Web 行为
+## Web Behavior
 
-- 设置页提供 AlphaSift 开关，开启后写入 `ALPHASIFT_ENABLED=true` 并检查适配层是否可用；若缺失，会回滚开关并提示执行 `pip install -r requirements.txt` 或重建 Docker/桌面后端产物。
-- `ALPHASIFT_ENABLED` 是“开启选股”按钮背后的持久化状态，不作为普通数据源配置项重复展示。
-- 选股页未开启时展示开启按钮；开启后读取 AlphaSift 策略列表。
-- 当前只暴露 A 股 `cn` 市场。
-- 默认返回数量为 3，避免一次选股过慢或结果过多。
-- 选股页通过后台任务提交和状态轮询获取结果；任务 ID 会保存在当前浏览器 tab 的 `sessionStorage`，切换页面后返回选股页会继续恢复进度或最终结果。后端重启或任务被清理时，前端会提示任务不可恢复并允许重新运行。
-- 结果页展示运行 ID、样本数量、过滤后数量、LLM 是否重排、LLM 覆盖率和 DSA 增强计数；如果 AlphaSift 返回 warning/source error/LLM parse error 或 `llm_ranked=false`，页面会明确显示降级原因，避免把本地因子结果误展示成正常 LLM 判断；重复的快照源 fallback warning/source error 会在前端合并展示为一条“数据源降级”提示。
-- 展开候选时展示 AlphaSift 摘要、因子和 LLM 判断；若 DSA 已增强，还会展示 `DSA 增强摘要`、`DSA 新闻` 和 `DSA 增强提示`。
+- The settings page provides an AlphaSift toggle; when enabled, writes `ALPHASIFT_ENABLED=true` and checks adapter layer availability; if missing, rolls back the toggle and prompts to run `pip install -r requirements.txt` or rebuild Docker/desktop backend artifacts.
+- `ALPHASIFT_ENABLED` is the persistent state behind the "Enable Screening" button and is not displayed repeatedly as a regular data source configuration item.
+- The screening page shows the enable button when not enabled; when enabled, reads the AlphaSift strategy list.
+- Currently only exposes A-share `cn` market.
+- Default return count is 3 to avoid slow screening or excessive results.
+- The screening page obtains results through background task submission and status polling; the task ID is saved in the current browser tab's `sessionStorage`, allowing progress or final results to continue when returning to the screening page after switching pages. When the backend restarts or the task is cleaned up, the frontend prompts that the task is unrecoverable and allows re-running.
+- The result page displays run ID, sample count, post-filter count, whether LLM reranking was used, LLM coverage rate, and DSA enhancement count; if AlphaSift returns warnings/source errors/LLM parse errors or `llm_ranked=false`, the page clearly displays the degradation reason, avoiding misdisplaying local factor results as normal LLM judgments; duplicate snapshot source fallback warnings/source errors are merged on the frontend into a single "Data Source Degradation" notice.
+- When expanding candidates, AlphaSift summaries, factors, and LLM judgments are displayed; if DSA has enhanced, `DSA Enhanced Summary`, `DSA News`, and `DSA Enhancement Notes` are also displayed.
 
-## 桌面端说明
+## Desktop Notes
 
-源码运行的桌面端复用同一个 Python 后端环境，并设置 `DSA_DESKTOP_MODE=true`；通过设置页开启时如缺少适配层，会提示更新依赖或重建后端产物。
+Source-run desktop reuses the same Python backend environment and sets `DSA_DESKTOP_MODE=true`; when enabling from the settings page, if the adapter layer is missing, it prompts to update dependencies or rebuild backend artifacts.
 
-打包后的桌面端不依赖运行期 `pip install`：Windows/CI 使用 `scripts/build-backend.ps1`，macOS 使用 `scripts/build-backend-macos.sh`，两者均先执行 `pip install -r requirements.txt`，再校验并收集 `alphasift.dsa_adapter` 进 PyInstaller 产物。发布包默认仍关闭；用户在 Web 设置页开启后会先检查适配层，若打包产物异常缺失，应重建或更新桌面后端。
+Packaged desktop does not depend on runtime `pip install`: Windows/CI uses `scripts/build-backend.ps1`, macOS uses `scripts/build-backend-macos.sh`, both executing `pip install -r requirements.txt` first, then verifying and collecting `alphasift.dsa_adapter` into PyInstaller artifacts. Release packages default to disabled; users enable from the Web settings page, which first checks the adapter layer, and if the packaged artifact is abnormally missing, should rebuild or update the desktop backend.
 
-## Docker 说明
+## Docker Notes
 
-Docker 镜像与桌面发布包保持一致：`docker/Dockerfile` 会通过 `requirements.txt` 安装 AlphaSift 并校验 `alphasift.dsa_adapter` 可导入。容器运行时默认仍关闭 AlphaSift；用户通过 `ALPHASIFT_ENABLED=true` 或 Web 设置页开启后使用镜像内置依赖，若运行环境缺失适配层，应重新构建镜像。
+Docker images are consistent with desktop release packages: `docker/Dockerfile` installs AlphaSift via `requirements.txt` and verifies `alphasift.dsa_adapter` can be imported. The container runtime defaults to AlphaSift disabled; users enable it via `ALPHASIFT_ENABLED=true` or the Web settings page using the image's built-in dependencies, and if the adapter layer is missing from the runtime environment, should rebuild the image.
 
-## 验证记录
+## Verification Records
 
 - `python -m pytest tests/test_alphasift_api.py -q`
 - `python -m pytest tests/test_main_schedule_mode.py -q -k "start_api_server_fails_before_thread_when_port_is_busy"`
@@ -215,9 +215,9 @@ Docker 镜像与桌面发布包保持一致：`docker/Dockerfile` 会通过 `req
 - `cd apps/dsa-web && npm run lint`
 - `cd apps/dsa-web && npm run build`
 
-## 回滚
+## Rollback
 
-- 关闭功能：设置页关闭 AlphaSift，或配置 `ALPHASIFT_ENABLED=false`。
-- 版本回退：如需降级 alphasift 适配层，必须同时回退仓库 `requirements.txt` 与 `src/config.py` 中受信任的 pin，否则仅改 `.env` 的 `ALPHASIFT_INSTALL_SPEC` 会被 `alphasift_install_spec_not_allowed` 拒绝；确认后重建依赖与重启服务。
-- 特殊来源：如需使用默认来源之外的 AlphaSift 安装包，先在后端 Python 环境完成手动安装并确认 `alphasift.dsa_adapter` 可导入，随后再重启服务（安装前不要触发 `/api/v1/alphasift/install` 的 allow-list 校验路径）。
-- 回滚代码：移除 AlphaSift API 注册、Web 选股入口和相关配置项即可恢复到集成前流程；默认关闭状态下不会影响原有股票分析、报告生成和通知流程。
+- Disable feature: Disable AlphaSift from the settings page, or configure `ALPHASIFT_ENABLED=false`.
+- Version rollback: To downgrade the alphasift adapter layer, you must simultaneously revert the trusted pin in the repository's `requirements.txt` and `src/config.py`; otherwise changing only `.env`'s `ALPHASIFT_INSTALL_SPEC` will be rejected by `alphasift_install_spec_not_allowed`; after confirmation, rebuild dependencies and restart the service.
+- Special source: To use an AlphaSift installation package outside the default source, first manually install in the backend Python environment and confirm `alphasift.dsa_adapter` can be imported, then restart the service (do not trigger the `/api/v1/alphasift/install` allow-list validation path before installation).
+- Code rollback: Remove the AlphaSift API registration, Web screening entry, and related configuration items to restore to the pre-integration flow; in the default disabled state, original stock analysis, report generation, and notification flows are not affected.

@@ -709,7 +709,7 @@ const ChatPage: React.FC = () => {
       return getPipelineBudgetSkippedLabel(last);
     if (last.type === 'generating')
       return last.message || '正在生成最终分析...';
-    return '处理中...';
+    return 'Processing...';
   };
 
   const renderThinkingBlock = (msg: Message) => {
@@ -942,8 +942,8 @@ const ChatPage: React.FC = () => {
         isOpen={Boolean(deleteConfirmId)}
         title="删除对话"
         message="删除后，该对话将不可恢复，确认删除吗？"
-        confirmText="删除"
-        cancelText="取消"
+        confirmText="Delete"
+        cancelText="Cancel"
         isDanger
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirmId(null)}
@@ -1316,10 +1316,10 @@ const ChatPage: React.FC = () => {
                 </label>
                 <span className="text-xs text-muted-text">
                   {contextCompressionSaving
-                    ? '保存中...'
+                    ? 'Saving...'
                     : contextCompressionEnabled
-                      ? '已启用'
-                      : '未启用'}
+                      ? 'Enabled'
+                      : 'Disabled'}
                 </span>
               </div>
               {contextCompressionError ? (
@@ -1426,7 +1426,7 @@ const ChatPage: React.FC = () => {
                   onClick={() => void handleToggleWatchlist(activeStockCode)}
                   className="text-[11px]"
                 >
-                  {stockInWatchlist(activeStockCode) ? '从自选删除' : '加入自选'}
+                  {stockInWatchlist(activeStockCode) ? 'Remove from watchlist' : 'Add to watchlist'}
                 </Button>
                 {watchlistMessage && (
                   <span className="text-[11px] text-secondary-text animate-in fade-in">{watchlistMessage}</span>

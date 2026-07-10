@@ -1,53 +1,53 @@
-# 📖 完整配置与部署指南
+# Complete Configuration and Deployment Guide
 
-本文档包含 A股智能分析系统的完整配置说明，适合需要高级功能或特殊部署方式的用户。
+This document contains the complete configuration guide for the A-share AI Stock Analysis System, intended for users who need advanced features or special deployment methods.
 
-> 💡 快速上手请参考 [README.md](../README.md)，本文档为进阶配置。
+> For quick start, see [README.md](../README.md); this document covers advanced configuration.
 
-## 📁 项目结构
+## Project Structure
 
 ```
 daily_stock_analysis/
-├── main.py              # 主程序入口
-├── src/                 # 核心业务逻辑
-│   ├── analyzer.py      # AI 分析器
-│   ├── config.py        # 配置管理
-│   ├── notification.py  # 消息推送
+├── main.py              # Main entry point
+├── src/                 # Core business logic
+│   ├── analyzer.py      # AI analyzer
+│   ├── config.py        # Configuration management
+│   ├── notification.py  # Message push notifications
 │   └── ...
-├── data_provider/       # 多数据源适配器
-├── bot/                 # 机器人交互模块
-├── api/                 # FastAPI 后端服务
-├── apps/dsa-web/        # React 前端
-├── docker/              # Docker 配置
-├── docs/                # 项目文档
+├── data_provider/       # Multi-source data adapters
+├── bot/                 # Bot interaction module
+├── api/                 # FastAPI backend service
+├── apps/dsa-web/        # React frontend
+├── docker/              # Docker configuration
+├── docs/                # Project documentation
 └── .github/workflows/   # GitHub Actions
 ```
 
-## 📑 目录
+## Table of Contents
 
-- [项目结构](#项目结构)
-- [GitHub Actions 详细配置](#github-actions-详细配置)
-- [环境变量完整列表](#环境变量完整列表)
-- [Docker 部署](#docker-部署)
-- [本地运行详细配置](#本地运行详细配置)
-- [定时任务配置](#定时任务配置)
-- [通知渠道详细配置](#通知渠道详细配置)
-- [数据源配置](#数据源配置)
-- [高级功能](#高级功能)
-- [回测功能](#回测功能)
-- [本地 WebUI 管理界面](#本地-webui-管理界面)
+- [Project Structure](#project-structure)
+- [GitHub Actions Configuration](#github-actions-configuration)
+- [Complete Environment Variables List](#complete-environment-variables-list)
+- [Docker Deployment](#docker-deployment)
+- [Local Deployment](#local-deployment)
+- [Scheduled Task Configuration](#scheduled-task-configuration)
+- [Notification Channel Configuration](#notification-channel-configuration)
+- [Data Source Configuration](#data-source-configuration)
+- [Advanced Features](#advanced-features)
+- [Backtesting](#backtesting)
+- [Local WebUI Management Interface](#local-webui-management-interface)
 
 ---
 
-## GitHub Actions 详细配置
+## GitHub Actions Configuration
 
-### 1. Fork 本仓库
+### 1. Fork this Repository
 
-点击右上角 `Fork` 按钮
+Click the `Fork` button in the upper right corner.
 
-### 2. 配置 Secrets
+### 2. Configure Secrets
 
-进入你 Fork 的仓库 → `Settings` → `Secrets and variables` → `Actions` → `New repository secret`
+Go to your forked repo → `Settings` → `Secrets and variables` → `Actions` → `New repository secret`
 
 <div align="center">
   <img src="assets/secret_config.png" alt="GitHub Secrets 配置示意图" width="600">
@@ -198,29 +198,29 @@ daily_stock_analysis/
 
 > 💡 配置完以上 4 项即可开始使用！
 
-### 3. 启用 Actions
+### 3. Enable Actions
 
-1. 进入你 Fork 的仓库
-2. 点击顶部的 `Actions` 标签
-3. 如果看到提示，点击 `I understand my workflows, go ahead and enable them`
+1. Go to your forked repository
+2. Click the `Actions` tab at the top
+3. If prompted, click `I understand my workflows, go ahead and enable them`
 
-### 4. 手动测试
+### 4. Manual Test
 
-1. 进入 `Actions` 标签
-2. 左侧选择 `每日股票分析` workflow
-3. 点击右侧的 `Run workflow` 按钮
-4. 选择运行模式
-5. 点击绿色的 `Run workflow` 确认
+1. Go to the `Actions` tab
+2. Select `Daily Stock Analysis` workflow on the left
+3. Click the `Run workflow` button on the right
+4. Select run mode
+5. Click the green `Run workflow` to confirm
 
-### 5. 完成！
+### 5. Done!
 
-默认每个工作日 **18:00（北京时间）** 自动执行。
+Default schedule: Every weekday at **18:00 (Beijing Time)** automatic execution.
 
 ---
 
-## 环境变量完整列表
+## Complete Environment Variables List
 
-### AI 模型配置
+### AI Model Configuration
 
 > 完整说明见 [LLM 配置指南](LLM_CONFIG_GUIDE.md)（三层配置、渠道模式、Vision、Agent、排错）；常用服务商预设、Actions 变量对照和错误排障见 [LLM 服务商配置指南](llm-providers.md)。
 > 兼容性说明（Issue #1306/#1391，顺带确认 #1381）：本节相关改动只复用已有历史写入链路展示大盘复盘结果，不新增 API/API 参数、Web 阶段结果独立展示、日报四阶段结构化持久化或日报状态表，不修改 `provider` / `model` / `base_url` 运行时路由与默认模型行为；#1381 同样仅为后端 runtime 复用，不新增配置迁移/清理/回写分支。若 Issue #1381 的 API/Web/日报结构化验收未同步落地，本 PR 不应作为完整交付收口，需留待后续 PR 继续交付。回退路径为发布回滚（可直接 revert 当前提交，或按现有配置回退链路）。兼容验证主要沿用既有约束检查（`requirements.txt`：`litellm` 版本约束）与既有配置回归测试：`tests/test_system_config_service.py`、`tests/test_system_config_api.py`、`tests/test_llm_channel_config.py`、`tests/test_market_review_runtime.py`；官方源参考：[LiteLLM OpenAI-compatible](https://docs.litellm.ai/docs/providers/openai_compatible)、[OpenAI Chat Completion API](https://platform.openai.com/docs/api-reference/chat)。
@@ -467,18 +467,18 @@ daily_stock_analysis/
 
 ---
 
-## Docker 部署
+## Docker Deployment
 
-Dockerfile 使用多阶段构建，前端会在构建镜像时自动打包并内置到 `static/`。
-如需覆盖静态资源，可挂载本地 `static/` 到容器内 `/app/static`。
-运行中的 `server` 容器默认直接复用 `/app/static` 里的预构建产物，不要求容器内保留 `apps/dsa-web` 源码目录或运行时安装 `npm`；若 WebUI 无法打开，请优先确认 `/app/static/index.html` 是否存在。
+Dockerfile uses multi-stage builds; the frontend is automatically packaged and built into `static/` during image build.
+To override static assets, mount local `static/` to container `/app/static`.
+Running `server` containers default to reusing pre-built artifacts in `/app/static` without requiring `apps/dsa-web` source directory or runtime `npm` in the container; if WebUI cannot open, first confirm whether `/app/static/index.html` exists.
 
-当前官方镜像发布地址：
+Current official image release addresses:
 
-- GHCR：`ghcr.io/zhulinsen/daily_stock_analysis:<tag>`
-- Docker Hub：`<DOCKERHUB_USERNAME>/daily_stock_analysis:<tag>`（由发布者的 `DOCKERHUB_USERNAME` secret 决定，官方发布为 `zhulinsen/daily_stock_analysis`）
+- GHCR: `ghcr.io/zhulinsen/daily_stock_analysis:<tag>`
+- Docker Hub: `<DOCKERHUB_USERNAME>/daily_stock_analysis:<tag>` (determined by publisher's `DOCKERHUB_USERNAME` secret; official release is `zhulinsen/daily_stock_analysis`)
 
-### 快速启动
+### Quick Start
 
 ```bash
 # 1. 克隆仓库

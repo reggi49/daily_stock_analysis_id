@@ -14,14 +14,14 @@ export type DecisionActionLabelTextKey =
 export type DecisionActionLabelTranslator = (key: DecisionActionLabelTextKey) => string;
 
 export const DEFAULT_DECISION_ACTION_LABELS: DecisionActionLabelMap = {
-  buy: '买入',
-  add: '加仓',
-  hold: '持有',
-  reduce: '减仓',
-  sell: '卖出',
-  watch: '观望',
-  avoid: '回避',
-  alert: '预警',
+  buy: 'Buy',
+  add: 'Add',
+  hold: 'Hold',
+  reduce: 'Reduce',
+  sell: 'Sell',
+  watch: 'Watch',
+  avoid: 'Avoid',
+  alert: 'Alert',
 };
 
 const resolveActionLabels = (labels?: Partial<DecisionActionLabelMap>): DecisionActionLabelMap => ({
@@ -221,7 +221,7 @@ export const getDecisionActionLabel = (
   action?: DecisionAction | null,
   actionLabel?: string | null,
   legacyAdvice?: string | null,
-  emptyLabel: string | null = '建议',
+  emptyLabel: string | null = 'Suggested',
   labels?: Partial<DecisionActionLabelMap>,
 ): string | null => {
   const actionLabels = resolveActionLabels(labels);

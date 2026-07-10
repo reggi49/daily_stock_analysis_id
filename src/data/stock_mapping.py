@@ -3,7 +3,7 @@ from __future__ import annotations
 
 """
 ===================================
-股票代码与名称映射
+Stock Code and Name Mapping
 ===================================
 
 Shared stock code -> name mapping, used by analyzer, data_provider, and name_to_code_resolver.

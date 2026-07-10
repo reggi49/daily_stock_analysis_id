@@ -85,7 +85,7 @@ export interface ReportMeta {
 export type SentimentLabel =
   | '极度悲观'
   | '悲观'
-  | '中性'
+  | 'Neutral'
   | '乐观'
   | '极度乐观'
   | 'Very Bearish'
@@ -520,7 +520,7 @@ export const getSentimentLabel = (score: number, language: ReportLanguage = 'zh'
   }
   if (score <= 20) return '极度悲观';
   if (score <= 40) return '悲观';
-  if (score <= 60) return '中性';
+  if (score <= 60) return 'Neutral';
   if (score <= 80) return '乐观';
   return '极度乐观';
 };

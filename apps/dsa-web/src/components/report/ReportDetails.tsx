@@ -7,12 +7,12 @@ import { getReportText, normalizeReportLanguage } from '../../utils/reportLangua
 
 interface ReportDetailsProps {
   details?: ReportDetailsType;
-  recordId?: number;  // 分析历史记录主键 ID
+  recordId?: number;  // AnalysisHistory primary key ID
   language?: ReportLanguage;
 }
 
 /**
- * 透明度与追溯区组件 - 终端风格
+ * Transparency & traceability panel - terminal style
  */
 export const ReportDetails: React.FC<ReportDetailsProps> = ({
   details,
@@ -109,9 +109,9 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({
         </div>
       )}
 
-      {/* 折叠区域 */}
+      {/* Collapsible sections */}
       <div className="space-y-2">
-        {/* 原始分析结果 */}
+        {/* Raw Analysis Result */}
         {details?.rawResult && (
           <div>
             <button
@@ -137,7 +137,7 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({
           </div>
         )}
 
-        {/* 分析快照 */}
+        {/* Analysis Snapshot */}
         {details?.contextSnapshot && (
           <div>
             <button

@@ -272,10 +272,10 @@ function createDesktopRuntime(overrides: Record<string, unknown> = {}) {
 }
 
 const baseCategories = [
-  { category: 'system', title: 'System', description: '系统设置', displayOrder: 1, fields: [] },
-  { category: 'base', title: 'Base', description: '基础配置', displayOrder: 2, fields: [] },
-  { category: 'ai_model', title: 'AI', description: '模型配置', displayOrder: 3, fields: [] },
-  { category: 'notification', title: 'Notification', description: '通知配置', displayOrder: 4, fields: [] },
+  { category: 'system', title: 'System', description: 'System Settings', displayOrder: 1, fields: [] },
+  { category: 'base', title: 'Base', description: 'Basic config', displayOrder: 2, fields: [] },
+  { category: 'ai_model', title: 'AI', description: 'Model config', displayOrder: 3, fields: [] },
+  { category: 'notification', title: 'Notification', description: 'Notification config', displayOrder: 4, fields: [] },
   { category: 'agent', title: 'Agent', description: 'Agent 配置', displayOrder: 5, fields: [] },
 ];
 
@@ -483,29 +483,29 @@ describe('SettingsPage', () => {
       checks: [
         {
           key: 'stock_list',
-          title: '自选股',
+          title: 'Watchlist',
           category: 'base',
           required: true,
           status: 'configured',
-          message: '已配置自选股。',
+          message: 'Watchlist configured.',
           nextStep: null,
         },
         {
           key: 'llm_channels',
-          title: '模型渠道',
+          title: 'Model channels',
           category: 'ai_model',
           required: true,
           status: 'configured',
-          message: '已配置模型渠道。',
+          message: 'Model channels configured.',
           nextStep: null,
         },
         {
           key: 'notification',
-          title: '通知',
+          title: 'Notifications',
           category: 'notification',
           required: false,
           status: 'optional',
-          message: '通知可选。',
+          message: 'Notifications optional.',
           nextStep: null,
         },
       ],
@@ -570,9 +570,9 @@ describe('SettingsPage', () => {
   it('renders category navigation and auth settings modules', async () => {
     render(<SettingsPage />);
 
-    expect(await screen.findByRole('heading', { name: '系统设置' })).toBeInTheDocument();
-    expect(screen.getByText('认证与登录保护')).toBeInTheDocument();
-    expect(screen.getByText('修改密码')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'System Settings' })).toBeInTheDocument();
+    expect(screen.getByText('Auth and login protection')).toBeInTheDocument();
+    expect(screen.getByText('Change password')).toBeInTheDocument();
     expect(load).toHaveBeenCalled();
   });
 
@@ -582,13 +582,13 @@ describe('SettingsPage', () => {
     render(<SettingsPage />);
 
     expect(await screen.findByTestId('first-run-setup-card')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '首次启动配置检查' })).toBeInTheDocument();
-    expect(screen.getByText('自选股')).toBeInTheDocument();
-    expect(screen.getAllByText('已配置')).toHaveLength(2);
+    expect(screen.getByRole('heading', { name: 'First-run setup check' })).toBeInTheDocument();
+    expect(screen.getByText('Watchlist')).toBeInTheDocument();
+    expect(screen.getAllByText('Configured')).toHaveLength(2);
 
-    fireEvent.click(screen.getByRole('button', { name: '配置模型' }));
-    fireEvent.click(screen.getByRole('button', { name: '维护自选股' }));
-    fireEvent.click(screen.getByRole('button', { name: '配置通知' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Configure model' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Manage watchlist' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Configure notifications' }));
 
     expect(setActiveCategory).toHaveBeenNthCalledWith(1, 'ai_model');
     expect(setActiveCategory).toHaveBeenNthCalledWith(2, 'base');
@@ -601,11 +601,11 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(await screen.findByText('正在检查首次启动配置')).toBeInTheDocument();
-    expect(screen.getByText('正在读取配置状态，完成后会显示缺失项和试跑入口。')).toBeInTheDocument();
-    expect(screen.queryByText('基础配置已满足最小可用分析')).not.toBeInTheDocument();
-    expect(screen.queryByText('还有基础配置需要处理')).not.toBeInTheDocument();
-    expect(screen.queryByText('所有必需项已就绪，可运行一次简短分析验证链路。')).not.toBeInTheDocument();
+    expect(await screen.findByText('Checking first-run setup')).toBeInTheDocument();
+    expect(screen.getByText('Reading config status. Missing items and trial run will appear when ready.')).toBeInTheDocument();
+    expect(screen.queryByText('Basic config meets minimum viable analysis')).not.toBeInTheDocument();
+    expect(screen.queryByText('Basic configuration still needs attention')).not.toBeInTheDocument();
+    expect(screen.queryByText('All required items ready. Run a quick analysis to verify the pipeline.')).not.toBeInTheDocument();
   });
 
   it('keeps first-run setup summary neutral when setup status fails', async () => {
@@ -614,11 +614,11 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(await screen.findByText('暂无法判断配置状态')).toBeInTheDocument();
-    expect(screen.getByText('配置状态读取失败。可先检查或修改设置项，稍后刷新检查结果。')).toBeInTheDocument();
-    expect(screen.queryByText('基础配置已满足最小可用分析')).not.toBeInTheDocument();
-    expect(screen.queryByText('还有基础配置需要处理')).not.toBeInTheDocument();
-    expect(screen.queryByText('所有必需项已就绪，可运行一次简短分析验证链路。')).not.toBeInTheDocument();
+    expect(await screen.findByText('Unable to determine config status')).toBeInTheDocument();
+    expect(screen.getByText('Failed to read config status. Check or modify settings, then refresh.')).toBeInTheDocument();
+    expect(screen.queryByText('Basic config meets minimum viable analysis')).not.toBeInTheDocument();
+    expect(screen.queryByText('Basic configuration still needs attention')).not.toBeInTheDocument();
+    expect(screen.queryByText('All required items ready. Run a quick analysis to verify the pipeline.')).not.toBeInTheDocument();
   });
 
   it('keeps the latest first-run setup status when refresh responses resolve out of order', async () => {
@@ -632,11 +632,11 @@ describe('SettingsPage', () => {
       checks: [
         {
           key: 'initial-status',
-          title: '初始状态',
+          title: 'Initial status',
           category: 'base',
           required: true,
           status: 'configured',
-          message: '初始配置状态。',
+          message: 'Initial config status.',
           nextStep: null,
         },
       ],
@@ -649,12 +649,12 @@ describe('SettingsPage', () => {
       checks: [
         {
           key: 'stale-status',
-          title: '过期状态',
+          title: 'Stale status',
           category: 'ai_model',
           required: true,
           status: 'needs_action',
-          message: '过期的配置状态。',
-          nextStep: '这条旧响应不应覆盖最新状态。',
+          message: 'Stale config status.',
+          nextStep: 'This stale response should not override the latest status.',
         },
       ],
     };
@@ -666,11 +666,11 @@ describe('SettingsPage', () => {
       checks: [
         {
           key: 'latest-status',
-          title: '最新状态',
+          title: 'Latest status',
           category: 'base',
           required: true,
           status: 'configured',
-          message: '最新配置状态。',
+          message: 'Latest config status.',
           nextStep: null,
         },
       ],
@@ -684,9 +684,9 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(await screen.findByText('初始状态')).toBeInTheDocument();
+    expect(await screen.findByText('Initial status')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: '刷新检查' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh check' }));
     fireEvent.click(screen.getByRole('button', { name: 'merge stock list' }));
 
     await waitFor(() => expect(getSetupStatus).toHaveBeenCalledTimes(3));
@@ -696,17 +696,17 @@ describe('SettingsPage', () => {
       await latestRefresh.promise;
     });
 
-    expect(await screen.findByText('最新状态')).toBeInTheDocument();
-    expect(screen.queryByText('过期状态')).not.toBeInTheDocument();
+    expect(await screen.findByText('Latest status')).toBeInTheDocument();
+    expect(screen.queryByText('Stale status')).not.toBeInTheDocument();
 
     await act(async () => {
       staleRefresh.resolve(staleStatus);
       await staleRefresh.promise;
     });
 
-    await waitFor(() => expect(screen.getByText('最新状态')).toBeInTheDocument());
-    expect(screen.queryByText('过期状态')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '简短试跑' })).toBeEnabled();
+    await waitFor(() => expect(screen.getByText('Latest status')).toBeInTheDocument());
+    expect(screen.queryByText('Stale status')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Quick trial run' })).toBeEnabled();
   });
 
   it('runs a brief setup smoke analysis with the first watchlist stock', async () => {
@@ -714,8 +714,8 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    await screen.findByText('基础配置已满足最小可用分析');
-    fireEvent.click(screen.getByRole('button', { name: '简短试跑' }));
+    await screen.findByText('Basic config meets minimum viable analysis');
+    fireEvent.click(screen.getByRole('button', { name: 'Quick trial run' }));
 
     await waitFor(() => expect(analyzeAsync).toHaveBeenCalledWith({
       stockCode: 'SH600000',
@@ -751,16 +751,16 @@ describe('SettingsPage', () => {
           category: 'agent',
           required: true,
           status: 'needs_action',
-          message: 'Agent 工具调用需要 LiteLLM 模型配置；local CLI 主生成方式不会被自动继承。',
-          nextStep: '如需使用 Ask-Stock Agent，请配置 LiteLLM 模型。',
+          message: 'Agent tool calling requires LiteLLM model config; local CLI primary generation is not auto-inherited.',
+          nextStep: 'To use the Ask-Stock Agent, configure a LiteLLM model.',
         },
         {
           key: 'stock_list',
-          title: '自选股',
+          title: 'Watchlist',
           category: 'base',
           required: true,
           status: 'configured',
-          message: '已配置 1 只股票。',
+          message: '1 stock configured.',
           nextStep: null,
         },
       ],
@@ -768,10 +768,10 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    await screen.findByText('还缺少 1 项：Agent 渠道');
-    expect(screen.getByRole('button', { name: '简短试跑' })).toBeEnabled();
+    await screen.findByText('1 item missing: Agent channel');
+    expect(screen.getByRole('button', { name: 'Quick trial run' })).toBeEnabled();
 
-    fireEvent.click(screen.getByRole('button', { name: '简短试跑' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Quick trial run' }));
 
     await waitFor(() => expect(analyzeAsync).toHaveBeenCalledWith({
       stockCode: 'SH600000',
@@ -792,12 +792,12 @@ describe('SettingsPage', () => {
       checks: [
         {
           key: 'llm_channels',
-          title: '模型渠道',
+          title: 'Model channels',
           category: 'ai_model',
           required: true,
           status: 'needs_action',
-          message: '还没有配置模型渠道。',
-          nextStep: '请先配置模型渠道。',
+          message: 'Model channels not configured yet.',
+          nextStep: 'Please configure model channels first.',
         },
       ],
     });
@@ -805,21 +805,21 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(await screen.findByText('还有基础配置需要处理')).toBeInTheDocument();
-    expect(screen.getByText('还缺少 1 项：模型渠道')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '简短试跑' })).toBeDisabled();
+    expect(await screen.findByText('Basic configuration still needs attention')).toBeInTheDocument();
+    expect(screen.getByText('1 item missing: Model channels')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Quick trial run' })).toBeDisabled();
 
-    fireEvent.click(screen.getByRole('button', { name: '暂时隐藏' }));
-    expect(screen.getByText('首次启动配置检查已隐藏')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+    expect(screen.getByText('First-run setup check dismissed')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: '展开检查' }));
-    expect(screen.getByText('首次启动配置检查')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Expand check' }));
+    expect(screen.getByText('First-run setup check')).toBeInTheDocument();
   });
 
   it('renders web build info in system settings', async () => {
     render(<SettingsPage />);
 
-    expect(await screen.findByRole('heading', { name: '版本信息' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Version info' })).toBeInTheDocument();
     expect(screen.getByText('3.11.0')).toBeInTheDocument();
     expect(screen.getByText('build-20260329-021530Z')).toBeInTheDocument();
     expect(screen.getByText('2026-03-29T02:15:30.000Z')).toBeInTheDocument();
@@ -830,8 +830,8 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(await screen.findByRole('heading', { name: '版本信息' })).toBeInTheDocument();
-    expect(screen.getByText('桌面端版本')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Version info' })).toBeInTheDocument();
+    expect(screen.getByText('Desktop version')).toBeInTheDocument();
     expect(screen.getByText('3.12.0')).toBeInTheDocument();
   });
 
@@ -840,10 +840,10 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    const section = (await screen.findByRole('heading', { name: '版本信息' })).closest('section');
+    const section = (await screen.findByRole('heading', { name: 'Version info' })).closest('section');
     const versionGrid = section?.querySelector('div.grid.grid-cols-1.gap-3');
 
-    expect(screen.queryByText('桌面端版本')).not.toBeInTheDocument();
+    expect(screen.queryByText('Desktop version')).not.toBeInTheDocument();
     expect(versionGrid).toHaveClass('md:grid-cols-3');
     expect(versionGrid).not.toHaveClass('md:grid-cols-4');
   });
@@ -853,10 +853,10 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    const section = (await screen.findByRole('heading', { name: '版本信息' })).closest('section');
+    const section = (await screen.findByRole('heading', { name: 'Version info' })).closest('section');
     const versionGrid = section?.querySelector('div.grid.grid-cols-1.gap-3');
 
-    expect(screen.queryByText('桌面端版本')).not.toBeInTheDocument();
+    expect(screen.queryByText('Desktop version')).not.toBeInTheDocument();
     expect(versionGrid).toHaveClass('md:grid-cols-3');
   });
 
@@ -878,9 +878,9 @@ describe('SettingsPage', () => {
     await waitFor(() => {
       expect(desktopGetUpdateState).toHaveBeenCalledTimes(1);
     });
-    expect(screen.getByRole('button', { name: '检查更新' })).toBeInTheDocument();
-    expect(screen.queryByText('检查更新失败')).not.toBeInTheDocument();
-    expect(screen.queryByText('发现新版本')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Check for updates' })).toBeInTheDocument();
+    expect(screen.queryByText('Update check failed')).not.toBeInTheDocument();
+    expect(screen.queryByText('New version found')).not.toBeInTheDocument();
   });
 
   it('falls back to build identifier when package version is still placeholder', () => {
@@ -907,7 +907,7 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(await screen.findByRole('heading', { name: '版本信息' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Version info' })).toBeInTheDocument();
     expect(screen.getByText(/当前 package\.json 仍为占位版本 0\.0\.0/)).toBeInTheDocument();
     expect(screen.getAllByText('build-20260329-021530Z')).toHaveLength(2);
   });
@@ -920,7 +920,7 @@ describe('SettingsPage', () => {
     // Clear the initial load call from useEffect
     vi.clearAllMocks();
 
-    fireEvent.click(screen.getByRole('button', { name: '重置' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
     // Reset should call resetDraft and NOT call load
     expect(resetDraft).toHaveBeenCalledTimes(1);
@@ -996,7 +996,7 @@ describe('SettingsPage', () => {
     expect(screen.getByText('AGENT_ORCHESTRATOR_TIMEOUT_S')).toBeInTheDocument();
     expect(screen.getByText('AGENT_DEEP_RESEARCH_BUDGET')).toBeInTheDocument();
     expect(screen.getByText('AGENT_EVENT_MONITOR_ENABLED')).toBeInTheDocument();
-    expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('Agent 设置');
+    expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('Agent settings');
   });
 
   it('renders context compression profile labels and blank preset guidance in agent settings', () => {
@@ -1020,9 +1020,9 @@ describe('SettingsPage', () => {
               isRequired: false,
               isEditable: true,
               options: [
-                { label: '成本优先', value: 'cost' },
-                { label: '均衡推荐', value: 'balanced' },
-                { label: '长上下文原文优先', value: 'long_context_raw_first' },
+                { label: 'Cost first', value: 'cost' },
+                { label: 'Balanced (recommended)', value: 'balanced' },
+                { label: 'Long context raw first', value: 'long_context_raw_first' },
               ],
               validation: {
                 enum: ['cost', 'balanced', 'long_context_raw_first'],
@@ -1075,11 +1075,11 @@ describe('SettingsPage', () => {
     render(<SettingsPage />);
 
     expect(screen.getByText('AGENT_CONTEXT_COMPRESSION_PROFILE')).toBeInTheDocument();
-    expect(screen.getByText('成本优先')).toBeInTheDocument();
-    expect(screen.getByText('均衡推荐')).toBeInTheDocument();
-    expect(screen.getByText('长上下文原文优先')).toBeInTheDocument();
-    expect(screen.getByText(/估算历史 token 超过该值时触发摘要/)).toHaveTextContent('留空则跟随当前上下文压缩策略 profile 默认值');
-    expect(screen.getByText(/压缩时最近 N 个用户轮次及其后的回复保持原文/)).toHaveTextContent('留空则跟随当前上下文压缩策略 profile 默认值');
+    expect(screen.getByText('Cost first')).toBeInTheDocument();
+    expect(screen.getByText('Balanced (recommended)')).toBeInTheDocument();
+    expect(screen.getByText('Long context raw first')).toBeInTheDocument();
+    expect(screen.getByText(/估算历史 token 超过该值时触发摘要/)).toHaveTextContent('Leave blank to follow the current context compression strategy profile default');
+    expect(screen.getByText(/压缩时最近 N 个用户轮次及其后的回复保持原文/)).toHaveTextContent('Leave blank to follow the current context compression strategy profile default');
   });
 
   it('reset button semantic: discards local changes without network request', () => {
@@ -1097,7 +1097,7 @@ describe('SettingsPage', () => {
     vi.clearAllMocks();
 
     // Click reset button
-    fireEvent.click(screen.getByRole('button', { name: '重置' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
     // Verify semantic: reset should only discard local changes
     // It should NOT trigger a network load
@@ -1209,7 +1209,7 @@ describe('SettingsPage', () => {
 
     const { container } = render(<SettingsPage />);
 
-    const promptCacheSummary = screen.getByText('Provider Prompt Cache 高级设置').closest('summary');
+    const promptCacheSummary = screen.getByText('Provider Prompt Cache advanced settings').closest('summary');
     const promptCacheDetails = promptCacheSummary?.closest('details');
     const telemetryField = screen.getByTestId('settings-field-LLM_PROMPT_CACHE_TELEMETRY_ENABLED');
     const hintsField = screen.getByTestId('settings-field-LLM_PROMPT_CACHE_HINTS_ENABLED');
@@ -1348,7 +1348,7 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: '开启选股' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enable screening' }));
 
     await waitFor(() => expect(alphasiftEnable).toHaveBeenCalledTimes(1));
     expect(updateSystemConfig).not.toHaveBeenCalled();
@@ -1460,7 +1460,7 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getByRole('button', { name: '开启选股' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Enable screening' })).toBeInTheDocument();
     expect(screen.queryByTestId('settings-field-ALPHASIFT_ENABLED')).not.toBeInTheDocument();
     expect(screen.getByTestId('settings-field-ALPHASIFT_INSTALL_SPEC')).toBeInTheDocument();
   });
@@ -1498,7 +1498,7 @@ describe('SettingsPage', () => {
 
     const { rerender } = render(<SettingsPage />);
 
-    expect(await screen.findByRole('heading', { name: '首次启动配置检查' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'First-run setup check' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'AlphaSift 选股' })).not.toBeInTheDocument();
 
     useSystemConfigMock.mockReturnValue(buildSystemConfigState({
@@ -1510,7 +1510,7 @@ describe('SettingsPage', () => {
     }));
     rerender(<SettingsPage />);
 
-    expect(screen.queryByRole('heading', { name: '首次启动配置检查' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'First-run setup check' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'AlphaSift 选股' })).not.toBeInTheDocument();
 
     useSystemConfigMock.mockReturnValue(buildSystemConfigState({
@@ -1523,7 +1523,7 @@ describe('SettingsPage', () => {
     rerender(<SettingsPage />);
 
     expect(await screen.findByRole('heading', { name: 'AlphaSift 选股' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '首次启动配置检查' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'First-run setup check' })).not.toBeInTheDocument();
   });
 
   it('maps schedule settings to the scheduler card instead of generic raw fields', async () => {
@@ -2126,12 +2126,12 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(await screen.findByText('未启用')).toBeInTheDocument();
+    expect(await screen.findByText('Not enabled')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '保存配置 (1)' }));
 
     await waitFor(() => expect(getSchedulerStatus).toHaveBeenCalledTimes(2));
-    expect(await screen.findByText('已启用')).toBeInTheDocument();
+    expect(await screen.findByText('Enabled')).toBeInTheDocument();
   });
 
   it('refreshes AlphaSift state when the enable flow fails', async () => {
@@ -2166,7 +2166,7 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: '开启选股' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enable screening' }));
 
     await waitFor(() => expect(alphasiftEnable).toHaveBeenCalledTimes(1));
     expect(updateSystemConfig).not.toHaveBeenCalled();
@@ -2315,8 +2315,8 @@ describe('SettingsPage', () => {
 
     expect(screen.getByText('通知测试面板:WECHAT_WEBHOOK_URL')).toBeInTheDocument();
     expect(screen.getByText('WECHAT_WEBHOOK_URL')).toBeInTheDocument();
-    expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('通知测试');
-    expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('通知设置');
+    expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('Notification test');
+    expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('Notification settings');
   });
 
   it('uses browser and backend logs in settings panel diagnostic hints outside desktop runtime', () => {
@@ -2341,7 +2341,7 @@ describe('SettingsPage', () => {
   it('renders env backup actions outside desktop runtime', () => {
     render(<SettingsPage />);
 
-    expect(screen.getByRole('heading', { name: '配置备份' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Config backup' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '导出 .env' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '导入 .env' })).toBeInTheDocument();
     expect(screen.getByText(/Docker 部署中/)).toHaveTextContent('ENV_FILE');
@@ -2408,7 +2408,7 @@ describe('SettingsPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '导入 .env' }));
 
-    expect(await screen.findByText('导入会覆盖当前草稿')).toBeInTheDocument();
+    expect(await screen.findByText('Import will overwrite current draft')).toBeInTheDocument();
     expect(importEnv).not.toHaveBeenCalled();
   });
 
@@ -2512,7 +2512,7 @@ describe('SettingsPage', () => {
     const { container } = render(<SettingsPage />);
 
     await waitFor(() => expect(getSchedulerStatus).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText('未启用')).toBeInTheDocument();
+    expect(await screen.findByText('Not enabled')).toBeInTheDocument();
 
     vi.clearAllMocks();
 
@@ -2528,7 +2528,7 @@ describe('SettingsPage', () => {
     await waitFor(() => expect(importEnv).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getSchedulerStatus).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText('已启用')).toBeInTheDocument();
+    expect(await screen.findByText('Enabled')).toBeInTheDocument();
   });
 
   it('shows an error when env import succeeds but reload fails', async () => {
@@ -2551,7 +2551,7 @@ describe('SettingsPage', () => {
 
     await waitFor(() => expect(importEnv).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
-    expect(screen.getByText('配置已导入但刷新失败')).toBeInTheDocument();
+    expect(screen.getByText('Config imported but refresh failed')).toBeInTheDocument();
     expect(screen.getByText('备份已导入，但重新加载配置失败，请手动重载页面。')).toBeInTheDocument();
     expect(screen.queryByText('已导入 .env 备份并重新加载配置。')).not.toBeInTheDocument();
   });
@@ -2569,7 +2569,7 @@ describe('SettingsPage', () => {
     render(<SettingsPage />);
 
     expect(await screen.findByText(/发现新版本:当前 3\.12\.0，最新 3\.13\.0/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '前往下载' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Go to download' })).toBeInTheDocument();
   });
 
   it('checks desktop updates on demand and renders the latest-version state', async () => {
@@ -2577,7 +2577,7 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    fireEvent.click(await screen.findByRole('button', { name: '检查更新' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Check for updates' }));
 
     await waitFor(() => expect(desktopCheckForUpdates).toHaveBeenCalledTimes(1));
     expect(await screen.findByText('已是最新版本:当前桌面端已是最新版本。')).toBeInTheDocument();
@@ -2595,7 +2595,7 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    fireEvent.click(await screen.findByRole('button', { name: '前往下载' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Go to download' }));
 
     await waitFor(() => {
       expect(desktopOpenReleasePage).toHaveBeenCalledWith(
@@ -2620,7 +2620,7 @@ describe('SettingsPage', () => {
 
     expect(await screen.findByText('更新已下载:新版本 3.13.0 已下载，可重启应用完成安装。')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: '重启安装' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Restart to install' }));
 
     await waitFor(() => expect(desktopInstallDownloadedUpdate).toHaveBeenCalledTimes(1));
   });

@@ -1,47 +1,47 @@
-# 数据源稳定性与故障处理图示
+# Data Source Stability and Failure Handling Diagrams
 
-本文面向用户、部署者和维护者，说明 DSA 已接入的数据源如何参与分析、选股和大盘复盘，以及当数据源失败时系统会怎么降级。
+This document is for users, deployers, and maintainers, explaining how DSA's integrated data sources participate in analysis, stock screening, and market review, and how the system degrades when data sources fail.
 
-核心原则：先用项目已经接入并验证过的数据源，把失败路径讲清楚；新增外部数据源应放在第二阶段，避免先扩大维护面。
+Core principle: First use data sources already integrated and verified by the project, clearly explaining failure paths; new external data sources should be added in a later phase to avoid expanding the maintenance surface upfront.
 
-## 一句话答复用户
+## Quick Answer for Users
 
-如果遇到“数据源失败”，通常不是系统只能用一个源，而是免费源被限流、上游接口临时变更、网络抖动或当前市场/标的不支持。DSA 已经内置多数据源 fallback，会按场景自动尝试下一个源；如果你希望更稳定，建议至少配置一个 token 型稳定源：
+If you encounter "data source failure," it's usually not that the system can only use one source, but that the free source is rate-limited, the upstream API changed temporarily, network jitter occurred, or the current market/ticker is not supported. DSA has built-in multi-source fallback and will automatically try the next source based on the scenario; if you want more stability, it's recommended to configure at least one token-based stable source:
 
-- A 股个股与 AlphaSift：优先配置 `TUSHARE_TOKEN`，并保留 AkShare / Efinance / Tencent / Baostock / YFinance 兜底。
-- A 股大盘复盘：配置 `TICKFLOW_API_KEY` 后，指数和市场宽度会优先尝试 TickFlow，失败后回退现有免费源。
-- 港股 / 美股：配置 `LONGBRIDGE_*` 后优先使用 Longbridge，YFinance、Finnhub、AlphaVantage 继续兜底。
-- 热点题材：AlphaSift 热点默认走 DSA EastMoney provider，并使用本地 last-good cache 降低实时接口失败影响。
+- A-shares individual stocks and AlphaSift: Prioritize configuring `TUSHARE_TOKEN`, and keep AkShare / Efinance / Tencent / Baostock / YFinance as fallback.
+- A-shares market review: After configuring `TICKFLOW_API_KEY`, index and market breadth will prioritize TickFlow, falling back to existing free sources on failure.
+- HK stocks / US stocks: After configuring `LONGBRIDGE_*`, prioritize using Longbridge, with YFinance, Finnhub, AlphaVantage continuing as fallback.
+- Hot topics: AlphaSift hotspots default to the DSA East Money provider and use local last-good cache to reduce real-time API failure impact.
 
-## 已接入数据源矩阵
+## Integrated Data Source Matrix
 
-| 场景 | 已接入源 | 默认使用方式 | 失败处理 |
+| Scenario | Integrated Sources | Default Usage | Failure Handling |
 | --- | --- | --- | --- |
-| A 股日线 / 技术面 | Efinance、Tencent、AkShare、Tushare、Pytdx、Baostock、YFinance | `DataFetcherManager` 按优先级尝试；配置 `TUSHARE_TOKEN` 后 Tushare 自动进入候选源 | 单源失败后尝试下一个源；连续失败会短期熔断该源 |
-| A 股实时行情 | Tencent、AkShare Sina、Efinance、AkShare EM、Tushare | `REALTIME_SOURCE_PRIORITY` 控制顺序，默认偏向 Tencent / Sina 这类轻量源 | 失败源记录 `fallback_from`，成功源继续返回 |
-| A 股大盘复盘 | TickFlow、AkShare、Tushare、Efinance | 配置 `TICKFLOW_API_KEY` 后，主指数和市场宽度优先尝试 TickFlow | TickFlow 权限不足或失败时回退 AkShare / Tushare / Efinance 链路 |
-| AlphaSift 选股快照 | Tushare、Sina、Efinance、AkShare EM、EastMoney Datacenter | 有 `TUSHARE_TOKEN` 时自动把 `tushare` 放入快照优先级；否则使用免费源链路 | AlphaSift 维护 source health；DSA 状态接口透出 snapshot/daily health |
-| AlphaSift 日线补特征 | DSA `DataFetcherManager` | AlphaSift 调用 DSA provider context，优先复用 DSA 日线与缓存链路 | DSA 链路失败后才回到 AlphaSift 原始日线源 |
-| AlphaSift 热点题材 | DSA EastMoney provider、AlphaSift hotspot、last-good cache | 未指定 provider 时默认使用 DSA EastMoney provider | 实时失败时回退热点缓存；无缓存时返回稳定空态和可读错误 |
-| 港股 / 美股 | Longbridge、YFinance、AkShare、Tushare、Finnhub、AlphaVantage、Stooq | 配置 Longbridge 凭证后参与港美股日线/实时兜底；YFinance 保持基础兜底 | Longbridge 冷却或失败时回退 YFinance / 其他可用源 |
+| A-shares Daily/Technical | Efinance, Tencent, AkShare, Tushare, Pytdx, Baostock, YFinance | `DataFetcherManager` tries in priority order; Tushare automatically enters candidates when `TUSHARE_TOKEN` is configured | Tries next source after single source failure; consecutive failures trigger short-term circuit breaker |
+| A-shares Real-time Quotes | Tencent, AkShare Sina, Efinance, AkShare EM, Tushare | `REALTIME_SOURCE_PRIORITY` controls order, defaulting to lightweight sources like Tencent/Sina | Failed source records `fallback_from`, successful source continues returning |
+| A-shares Market Review | TickFlow, AkShare, Tushare, Efinance | After configuring `TICKFLOW_API_KEY`, primary index and market breadth prioritize TickFlow | Falls back to AkShare/Tushare/Efinance chain when TickFlow has insufficient permissions or fails |
+| AlphaSift Screening Snapshots | Tushare, Sina, Efinance, AkShare EM, East Money Datacenter | When `TUSHARE_TOKEN` exists, automatically puts `tushare` in snapshot priority; otherwise uses free source chain | AlphaSift maintains source health; DSA status endpoint surfaces snapshot/daily health |
+| AlphaSift Daily Feature Supplement | DSA `DataFetcherManager` | AlphaSift calls DSA provider context, prioritizing DSA daily line and cache chain | Falls back to AlphaSift original daily source only when DSA chain has no data |
+| AlphaSift Hot Topics | DSA East Money provider, AlphaSift hotspot, last-good cache | Defaults to DSA East Money provider when no provider specified | Falls back to hotspot cache on real-time failure; returns stable empty state with readable error when no cache |
+| HK stocks / US stocks | Longbridge, YFinance, AkShare, Tushare, Finnhub, AlphaVantage, Stooq | After configuring Longbridge credentials, participates in HK/US daily/real-time fallback; YFinance maintains basic fallback | Falls back to YFinance/other available sources when Longbridge is cooling or fails |
 
-## 总体链路图
+## Overall Pipeline Diagram
 
 ```mermaid
 flowchart TD
-    Q[用户触发分析/选股/大盘复盘] --> S{场景}
+    Q[User triggers analysis/screening/market review] --> S{Scenario}
 
-    S --> D[个股日线与技术面]
-    S --> R[实时行情]
-    S --> A[AlphaSift 选股/热点]
-    S --> M[大盘复盘]
+    S --> D[Individual Stock Daily & Technical]
+    S --> R[Real-time Quotes]
+    S --> A[AlphaSift Screening/Hot Topics]
+    S --> M[Market Review]
 
-    D --> C[本地 stock_daily 缓存]
-    C -->|命中且新鲜| COK[复用缓存]
-    C -->|缺失或过期| DM{市场}
-    DM -->|A 股| CN[Tushare if token -> Efinance/Tencent -> AkShare -> Pytdx -> Baostock -> YFinance]
-    DM -->|港股| HK[Longbridge if configured -> AkShare/Tushare -> YFinance]
-    DM -->|美股| US[Longbridge/YFinance -> Finnhub/AlphaVantage -> Stooq]
+    D --> C[Local stock_daily cache]
+    C -->|Hit and fresh| COK[Reuse cache]
+    C -->|Missing or expired| DM{Market}
+    DM -->|A-shares| CN[Tushare if token -> Efinance/Tencent -> AkShare -> Pytdx -> Baostock -> YFinance]
+    DM -->|HK stocks| HK[Longbridge if configured -> AkShare/Tushare -> YFinance]
+    DM -->|US stocks| US[Longbridge/YFinance -> Finnhub/AlphaVantage -> Stooq]
 
     R --> RP[REALTIME_SOURCE_PRIORITY]
     RP --> RS[Tencent -> AkShare Sina -> Efinance -> AkShare EM]
@@ -49,14 +49,14 @@ flowchart TD
 
     A --> AS[Snapshot: Tushare/Sina/Efinance/AkShare EM/EM Datacenter]
     A --> AD[Daily features: DSA DataFetcherManager]
-    A --> AH[Hotspots: DSA EastMoney provider]
+    A --> AH[Hotspots: DSA East Money provider]
     AH --> AC[hotspots.json / hotspot_details last-good cache]
 
     M --> TF{TICKFLOW_API_KEY configured?}
     TF -->|yes| TFM[TickFlow indices and market breadth]
     TF -->|no or failed| MF[AkShare/Tushare/Efinance fallback]
 
-    CN --> QL[质量标记: source/fallback/stale/fetch_failed]
+    CN --> QL[Quality markers: source/fallback/stale/fetch_failed]
     HK --> QL
     US --> QL
     RS --> QL
@@ -68,69 +68,69 @@ flowchart TD
     MF --> QL
 ```
 
-## 失败与降级图
+## Failure and Degradation Diagram
 
 ```mermaid
 flowchart LR
-    A[请求某个数据块] --> B{当前源成功且数据有效?}
-    B -->|是| OK[返回数据并记录 source]
-    B -->|否| E[记录失败原因]
-    E --> F{还有下一个可用源?}
-    F -->|有| N[切换到下一源]
+    A[Request a data block] --> B{Current source successful and data valid?}
+    B -->|yes| OK[Return data and record source]
+    B -->|no| E[Record failure reason]
+    E --> F{Another available source?}
+    F -->|yes| N[Switch to next source]
     N --> B
-    F -->|没有| C{有 last-good cache?}
-    C -->|有| STALE[返回 stale/fallback 数据并提示降级]
-    C -->|没有| FAIL[返回 fetch_failed/稳定空态]
+    F -->|no| C{Last-good cache available?}
+    C -->|yes| STALE[Return stale/fallback data with degradation notice]
+    C -->|no| FAIL[Return fetch_failed/stable empty state]
 
-    E --> H{同源连续失败达到阈值?}
-    H -->|是| CB[短期熔断该源]
-    H -->|否| KEEP[保留在候选链中]
-    CB --> SKIP[后续请求先跳过该源]
-    SKIP --> RECOVER[冷却后半开探测恢复]
+    E --> H{Consecutive failures from same source reached threshold?}
+    H -->|yes| CB[Short-term circuit breaker for this source]
+    H -->|no| KEEP[Keep in candidate chain]
+    CB --> SKIP[Skip this source for subsequent requests]
+    SKIP --> RECOVER[Half-open probe after cooldown]
 ```
 
-当前日线源熔断策略为连续失败 3 次后短期冷却约 5 分钟。它的目的不是永久禁用数据源，而是避免一个短时间不可用的源拖慢整批分析。
+The current daily line source circuit breaker strategy is short-term cooldown of approximately 5 minutes after 3 consecutive failures. Its purpose is not to permanently disable a data source, but to prevent a temporarily unavailable source from slowing down an entire batch of analysis.
 
-## AlphaSift 选股与热点链路
+## AlphaSift Screening and Hot Topics Pipeline
 
 ```mermaid
 flowchart TD
-    UI[Web 选股/热点入口] --> API[/api/v1/alphasift/]
+    UI[Web screening/hot topics entry] --> API[/api/v1/alphasift/]
 
     API --> SCREEN{screen}
-    SCREEN --> ENV[注入 DSA LLM 与数据源运行环境]
-    ENV --> SNAP[AlphaSift snapshot 源优先级]
+    SCREEN --> ENV[Inject DSA LLM and data source runtime environment]
+    ENV --> SNAP[AlphaSift snapshot source priority]
     SNAP --> TS{TUSHARE_TOKEN?}
     TS -->|yes| SP1[tushare -> sina -> efinance -> akshare_em -> em_datacenter]
     TS -->|no| SP2[sina -> efinance -> akshare_em -> em_datacenter]
     ENV --> DAILY[DSA provider context]
     DAILY --> DFM[DataFetcherManager: Tushare/Efinance/Tencent/AkShare/Pytdx/Baostock/YFinance]
-    DFM --> RESULT[候选股 + source_errors/warnings/llm_parse_errors]
+    DFM --> RESULT[Candidate stocks + source_errors/warnings/llm_parse_errors]
 
     API --> HOT{hotspots}
     HOT --> HP{provider specified?}
-    HP -->|no| EM[DSA EastMoney provider]
-    HP -->|yes| CUSTOM[指定 provider/env provider]
-    EM --> LIVE[实时热点题材]
-    LIVE -->|成功| HCACHE[写入热点 last-good cache]
-    LIVE -->|失败| OLD[读取 hotspots.json / hotspot_details]
-    OLD -->|无缓存| EMPTY[稳定空态 + eastmoney_hotspot_unavailable]
+    HP -->|no| EM[DSA East Money provider]
+    HP -->|yes| CUSTOM[Specified provider/env provider]
+    EM --> LIVE[Real-time hot topics]
+    LIVE -->|success| HCACHE[Write hot topics last-good cache]
+    LIVE -->|failure| OLD[Read hotspots.json / hotspot_details]
+    OLD -->|no cache| EMPTY[Stable empty state + eastmoney_hotspot_unavailable]
 ```
 
-## 推荐配置档
+## Recommended Configuration Profiles
 
-### 免费模式
+### Free Mode
 
-适合个人试用，依赖免费源自动 fallback。优点是不需要 token；缺点是更容易遇到上游限流或临时接口变化。
+Suitable for personal trial, relying on free source auto-fallback. Advantage: no token needed; disadvantage: more likely to encounter upstream rate limiting or temporary API changes.
 
 ```env
 REALTIME_SOURCE_PRIORITY=tencent,akshare_sina,efinance,akshare_em
 ENABLE_EASTMONEY_PATCH=true
 ```
 
-### A 股稳定模式
+### A-Shares Stable Mode
 
-适合经常跑选股、批量分析或对外服务。Tushare 用于增强 A 股日线与快照稳定性；TickFlow 可增强 A 股日 K、实时行情和大盘复盘（实时行情需显式加入 `REALTIME_SOURCE_PRIORITY`）；免费源继续作为兜底。
+Suitable for frequent screening, batch analysis, or external services. Tushare enhances A-shares daily line and snapshot stability; TickFlow enhances A-shares daily K, real-time quotes, and market review (real-time quotes need explicit addition to `REALTIME_SOURCE_PRIORITY`); free sources continue as fallback.
 
 ```env
 TUSHARE_TOKEN=your_tushare_token
@@ -139,16 +139,16 @@ TICKFLOW_API_KEY=your_tickflow_key
 REALTIME_SOURCE_PRIORITY=tickflow,tushare,tencent,akshare_sina,efinance,akshare_em
 SNAPSHOT_SOURCE_PRIORITY=tushare,sina,efinance,akshare_em,em_datacenter
 
-# AlphaSift 选股运行期默认值；显式配置时会保留你的值
+# AlphaSift screening runtime defaults; preserved when explicitly configured
 DAILY_FETCH_RETRIES=3
 DAILY_FETCH_MAX_WORKERS=1
 ```
 
-注意：TickFlow 能力按套餐权限分层；权限不足或请求失败时会 fail-open 回退到现有免费源，不建议把它当成所有市场行情的唯一来源。
+Note: TickFlow capabilities are tiered by plan permissions; insufficient permissions or failed requests will fail-open to existing free sources. It's not recommended as the sole source for all market data.
 
-### 港股 / 美股稳定模式
+### HK Stocks / US Stocks Stable Mode
 
-适合港美股组合、持仓和个股分析。Longbridge 配置后优先参与港美股链路；YFinance、Finnhub、AlphaVantage 作为兜底。
+Suitable for HK/US stock portfolios, holdings, and individual stock analysis. After Longbridge configuration, it participates in HK/US chains; YFinance, Finnhub, AlphaVantage serve as fallback.
 
 ```env
 LONGBRIDGE_OAUTH_CLIENT_ID=your_client_id
@@ -158,7 +158,7 @@ FINNHUB_API_KEY=your_finnhub_key
 ALPHAVANTAGE_API_KEY=your_alphavantage_key
 ```
 
-如果仍使用 Legacy Longbridge 凭证，也可以继续配置：
+If still using Legacy Longbridge credentials, you can continue configuring:
 
 ```env
 LONGBRIDGE_APP_KEY=your_app_key
@@ -166,25 +166,25 @@ LONGBRIDGE_APP_SECRET=your_app_secret
 LONGBRIDGE_ACCESS_TOKEN=your_access_token
 ```
 
-## 用户可见提示建议
+## User-Facing Message Recommendations
 
-对外沟通时建议区分三类情况：
+For external communication, it's recommended to distinguish three scenarios:
 
-| 情况 | 建议提示 |
+| Scenario | Recommended Message |
 | --- | --- |
-| 单个源失败但 fallback 成功 | 本次使用了降级数据源，分析仍可继续；报告中会标记实际成功源。 |
-| 多个源失败但有缓存 | 实时源不可用，本次使用上一次成功缓存；结论会降低置信度。 |
-| 全部源失败且无缓存 | 当前数据不可用，请稍后重试，或配置 Tushare / TickFlow / Longbridge 等 token 型数据源。 |
+| Single source failed but fallback succeeded | This analysis used a degraded data source; analysis can continue. The report will mark the actual successful source. |
+| Multiple sources failed but cache available | Real-time source unavailable; this analysis used the last successful cache. Conclusions will have reduced confidence. |
+| All sources failed and no cache | Current data unavailable; please try again later, or configure token-based data sources like Tushare / TickFlow / Longbridge. |
 
-## 后续可做的产品化增强
+## Potential Product Enhancements
 
-1. 数据源 Doctor 页面：展示每个源最近成功时间、失败原因、熔断状态和下一次恢复探测时间。
-2. 一键推荐配置：根据市场选择生成 `.env` 片段，例如“A 股稳定模式”“港美股稳定模式”“免费模式”。
-3. AlphaSift 状态面板：直接展示 snapshot/daily source health，让用户知道是 Sina、Efinance、AkShare 还是 Tushare 出问题。
-4. 批量任务限速策略：对免费源自动降低并发，优先复用本地日线缓存，减少触发上游限流。
-5. 可选商业源接入：只有在现有 Tushare / TickFlow / Longbridge / Finnhub / AlphaVantage 仍不能覆盖需求时，再考虑新增 Twelve Data、Massive/Polygon、Nasdaq Data Link 等源。
+1. Data Source Doctor Page: Display each source's last success time, failure reason, circuit breaker status, and next recovery probe time.
+2. One-click Recommended Configuration: Generate `.env` snippets based on market selection, e.g., "A-Shares Stable Mode", "HK/US Stocks Stable Mode", "Free Mode."
+3. AlphaSift Status Panel: Directly display snapshot/daily source health so users know whether Sina, Efinance, AkShare, or Tushare is having issues.
+4. Batch Task Rate Limiting Strategy: Automatically reduce concurrency for free sources, prioritize reusing local daily line cache, and reduce upstream rate limit triggers.
+5. Optional Commercial Source Integration: Only consider adding Twelve Data, Massive/Polygon, Nasdaq Data Link, etc., when existing Tushare / TickFlow / Longbridge / Finnhub / AlphaVantage still cannot cover requirements.
 
-## 官方资料
+## Official Resources
 
 - Tushare: https://tushare.pro/document/2
 - TickFlow: https://tickflow.org/

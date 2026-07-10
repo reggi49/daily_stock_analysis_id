@@ -35,12 +35,12 @@ _PHASE_CONTEXT_KEYS = (
 )
 
 _ZH_POSTMARKET_RECAP_PATTERNS = (
-    "今日收盘后",
-    "收盘后复盘",
-    "盘后复盘",
-    "明日重点关注",
-    "明天重点关注",
-    "完整交易日复盘",
+    "Full trading day review",
+    "Buy now",
+    "Buy now",
+    "Buy now",
+    "Buy now",
+    "Full trading day review",
 )
 
 _EN_POSTMARKET_RECAP_PATTERNS = (
@@ -55,14 +55,14 @@ _EN_POSTMARKET_RECAP_PATTERNS = (
 )
 
 _IMMEDIATE_ACTION_MARKERS_ZH = (
-    "立即买入",
-    "马上买入",
-    "立即加仓",
-    "马上加仓",
-    "立即卖出",
-    "马上卖出",
-    "立即减仓",
-    "马上减仓",
+    "Buy now",
+    "Buy now",
+    "Add position now",
+    "Add position now",
+    "sell now",
+    "sell immediately",
+    "Reduce positions immediately",
+    "Reduce positions immediately",
 )
 _IMMEDIATE_ACTION_MARKERS_EN = ("buy now", "sell now", "immediate buy", "immediate sell", "add now", "reduce now")
 _NEGATION_PREFIXES_ZH = ("暂不", "不建议", "禁止", "不要", "无需", "避免", "不能", "不可", "不宜", "勿", "不")

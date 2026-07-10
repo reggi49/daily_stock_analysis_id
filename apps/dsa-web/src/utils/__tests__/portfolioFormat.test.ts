@@ -40,12 +40,12 @@ describe('portfolioFormat', () => {
   it('formats position price fields based on price availability', () => {
     expect(formatPositionPrice(pricedPosition)).toBe('321.1234');
     expect(formatPositionMoney(123, pricedPosition)).toBe('CNY 123.00');
-    expect(getPositionPriceLabel(pricedPosition)).toBe('实时价 · longbridge');
+    expect(getPositionPriceLabel(pricedPosition)).toBe('Realtime price · longbridge');
 
     const missingPosition = { ...pricedPosition, priceAvailable: false, priceSource: 'missing' };
     expect(formatPositionPrice(missingPosition)).toBe('--');
     expect(formatPositionMoney(123, missingPosition)).toBe('--');
-    expect(getPositionPriceLabel(missingPosition)).toBe('缺价');
+    expect(getPositionPriceLabel(missingPosition)).toBe('Missing price');
   });
 
   it('formats broker labels and CSV result variants', () => {

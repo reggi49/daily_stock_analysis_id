@@ -128,8 +128,8 @@ describe('systemConfigApi', () => {
             category: 'ai_model',
             required: true,
             status: 'needs_action',
-            message: '缺少主模型配置',
-            next_step: '打开系统设置',
+            message: 'Missing primary model config',
+            next_step: 'Open system settings',
           },
         ],
       },
@@ -140,7 +140,7 @@ describe('systemConfigApi', () => {
     expect(get).toHaveBeenCalledWith('/api/v1/system/config/setup/status');
     expect(result.isComplete).toBe(false);
     expect(result.nextStepKey).toBe('llm_primary');
-    expect(result.checks[0].nextStep).toBe('打开系统设置');
+    expect(result.checks[0].nextStep).toBe('Open system settings');
   });
 
   it('loads generation backend status with camelCase fields', async () => {

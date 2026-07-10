@@ -4,44 +4,44 @@ import { DashboardStateBlock } from '../DashboardStateBlock';
 
 describe('DashboardStateBlock', () => {
   it('renders the title as a paragraph by default', () => {
-    const { container } = render(<DashboardStateBlock title="开始分析" description="查看提示文案" />);
+    const { container } = render(<DashboardStateBlock title="Start analysis" description="View tip text" />);
 
-    const title = screen.getByText('开始分析');
+    const title = screen.getByText('Start analysis');
     expect(title.tagName).toBe('P');
     expect(container.querySelector('h3')).toBeNull();
   });
 
   it('renders the title with the requested heading level', () => {
-    render(<DashboardStateBlock title="开始分析" titleAs="h3" description="查看提示文案" />);
+    render(<DashboardStateBlock title="Start analysis" titleAs="h3" description="View tip text" />);
 
-    expect(screen.getByRole('heading', { name: '开始分析', level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Start analysis', level: 3 })).toBeInTheDocument();
   });
 
   it('keeps icon, description, action, and loading behaviors intact', () => {
     const { rerender } = render(
       <DashboardStateBlock
-        title="开始分析"
-        description="输入股票代码进行分析"
+        title="Start analysis"
+        description="Enter stock code to analyze"
         icon={<span data-testid="icon">icon</span>}
-        action={<button type="button">立即开始</button>}
+        action={<button type="button">Start now</button>}
       />,
     );
 
     expect(screen.getByTestId('icon')).toBeInTheDocument();
-    expect(screen.getByText('输入股票代码进行分析')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '立即开始' })).toBeInTheDocument();
+    expect(screen.getByText('Enter stock code to analyze')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start now' })).toBeInTheDocument();
 
     rerender(
       <DashboardStateBlock
-        title="开始分析"
+        title="Start analysis"
         titleAs="h3"
-        description="输入股票代码进行分析"
+        description="Enter stock code to analyze"
         loading
       />,
     );
 
-    expect(screen.getByRole('heading', { name: '开始分析', level: 3 })).toBeInTheDocument();
-    expect(screen.getByText('输入股票代码进行分析')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Start analysis', level: 3 })).toBeInTheDocument();
+    expect(screen.getByText('Enter stock code to analyze')).toBeInTheDocument();
     expect(document.querySelector('.home-spinner')).not.toBeNull();
     expect(screen.queryByTestId('icon')).not.toBeInTheDocument();
   });

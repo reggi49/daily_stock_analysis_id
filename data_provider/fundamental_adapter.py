@@ -19,28 +19,28 @@ logger = logging.getLogger(__name__)
 
 _DIVIDEND_KEYWORD_MAP: Dict[str, List[str]] = {
     "per_share": [
-        "每股派息",
-        "每股现金红利",
-        "每股分红",
-        "每股派现",
-        "派现(元/股)",
-        "派息(元/股)",
-        "税前派息(元/股)",
-        "现金分红(税前)",
+        "dividend",
+        "dividend",
+        "dividend",
+        "dividend",
+        "dividend(dividend/dividend)",
+        "dividend(dividend/dividend)",
+        "cash dividends(dividend/dividend)",
+        "cash dividends(Allocation plan)",
     ],
     "plan_text": [
-        "分配方案",
-        "分红方案",
-        "实施方案",
-        "派息方案",
-        "方案",
-        "预案",
-        "方案说明",
+        "Allocation plan",
+        "Dividend plan",
+        "Implementation plan",
+        "Dividend plan",
+        "plan",
+        "plan",
+        "Solution description",
     ],
-    "ex_dividend_date": ["除权除息日", "除息日", "除权日", "除权除息", "除息日期"],
-    "record_date": ["股权登记日", "登记日"],
-    "announce_date": ["公告日期", "公告日", "实施公告日", "预案公告日"],
-    "report_date": ["报告期", "报告日期", "截止日期", "统计截止日期"],
+    "ex_dividend_date": ["ex-rights ex-dividend date", "ex-dividend date", "ex-rights date", "ex-rights and ex-dividends", "ex-dividend date"],
+    "record_date": ["Equity registration date", "Registration date"],
+    "announce_date": ["Announcement date", "Implementation announcement date", "Implementation announcement date", "Plan announcement date"],
+    "report_date": ["reporting period", "Report date", "expiration date", "Statistics deadline"],
 }
 
 
@@ -132,7 +132,7 @@ def _extract_cash_dividend_per_share(row: pd.Series) -> Optional[float]:
     """Extract pre-tax cash dividend per share from a row."""
     plan_text = _safe_str(_pick_by_keywords(row, _DIVIDEND_KEYWORD_MAP["plan_text"]))
     # Keep pre-tax semantics; skip explicit after-tax plans unless pre-tax marker exists.
-    if "税后" in plan_text and "税前" not in plan_text and "含税" not in plan_text:
+    if "After tax" in plan_text and "Allocation plan" not in plan_text and "tax included" not in plan_text:
         return None
 
     direct = _safe_float(_pick_by_keywords(row, _DIVIDEND_KEYWORD_MAP["per_share"]))
@@ -144,7 +144,7 @@ def _extract_cash_dividend_per_share(row: pd.Series) -> Optional[float]:
 def _filter_rows_by_code(df: pd.DataFrame, stock_code: str) -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
-    code_cols = [c for c in df.columns if any(k in str(c) for k in ("代码", "股票代码", "证券代码", "symbol", "ts_code"))]
+    code_cols = [c for c in df.columns if any(k in str(c) for k in ("code", "plate", "plate", "symbol", "ts_code"))]
     if not code_cols:
         return df
 
@@ -244,7 +244,7 @@ def _extract_latest_row(df: pd.DataFrame, stock_code: str) -> Optional[pd.Series
     if df is None or df.empty:
         return None
 
-    code_cols = [c for c in df.columns if any(k in str(c) for k in ("代码", "股票代码", "证券代码", "ts_code", "symbol"))]
+    code_cols = [c for c in df.columns if any(k in str(c) for k in ("code", "plate", "plate", "ts_code", "symbol"))]
     target = _normalize_code(stock_code)
     if code_cols:
         for col in code_cols:
@@ -452,8 +452,8 @@ class AkshareFundamentalAdapter:
         ])
         result["errors"].extend(sector_errors)
         if sector_df is not None:
-            name_col = next((c for c in sector_df.columns if any(k in str(c) for k in ("板块", "行业", "名称", "name"))), None)
-            flow_col = next((c for c in sector_df.columns if any(k in str(c) for k in ("净流入", "主力", "flow", "净额"))), None)
+            name_col = next((c for c in sector_df.columns if any(k in str(c) for k in ("plate", "industry", "name", "name"))), None)
+            flow_col = next((c for c in sector_df.columns if any(k in str(c) for k in ("net inflow", "Main force", "flow", "net amount"))), None)
             if name_col and flow_col:
                 work_df = sector_df[[name_col, flow_col]].copy()
                 work_df[flow_col] = pd.to_numeric(work_df[flow_col], errors="coerce")
@@ -493,7 +493,7 @@ class AkshareFundamentalAdapter:
             return result
 
         # Try code filter
-        code_cols = [c for c in df.columns if any(k in str(c) for k in ("代码", "股票代码", "证券代码"))]
+        code_cols = [c for c in df.columns if any(k in str(c) for k in ("code", "plate", "plate"))]
         target = _normalize_code(stock_code)
         matched = pd.DataFrame()
         for col in code_cols:
@@ -510,7 +510,7 @@ class AkshareFundamentalAdapter:
             result["status"] = "ok" if code_cols else "partial"
             return result
 
-        date_col = next((c for c in matched.columns if any(k in str(c) for k in ("日期", "上榜", "交易日", "time"))), None)
+        date_col = next((c for c in matched.columns if any(k in str(c) for k in ("date", "Listed", "trading day", "time"))), None)
         parsed_dates: List[datetime] = []
         if date_col is not None:
             for val in matched[date_col].astype(str).tolist():

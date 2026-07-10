@@ -64,33 +64,33 @@ const BLOCK_LABELS: Record<ReportLanguage, Record<string, string>> = {
 
 const TEXT = {
   zh: {
-    eyebrow: '数据上下文',
-    title: '输入数据块',
-    counts: '状态计数',
-    source: '来源',
-    warnings: '告警',
-    missingReasons: '缺失原因',
-    inputScope: '本次分析输入',
-    evidenceScope: '仅代表进入本次 LLM 的输入，不等同于数据源运行成功',
-    qualityScore: '质量分',
-    limitations: '数据限制',
-    newsResultCount: '新闻结果数',
-    triggerSource: '触发来源',
+    eyebrow: 'DATA CONTEXT',
+    title: 'Input Blocks',
+    counts: 'Status Counts',
+    source: 'source',
+    warnings: 'Alerts',
+    missingReasons: 'Missing Reasons',
+    inputScope: 'Analysis Input',
+    evidenceScope: 'Shows inputs included in this LLM run, not provider run success',
+    qualityScore: 'Quality',
+    limitations: 'Data Limitations',
+    newsResultCount: 'News Results',
+    triggerSource: 'Trigger',
     qualityLevel: {
-      good: '良好',
-      usable: '可用',
-      limited: '受限',
-      poor: '较差',
+      good: 'Good',
+      usable: 'Available',
+      limited: 'Limited',
+      poor: 'Poor',
     },
     status: {
-      available: '可用',
-      missing: '缺失',
-      not_supported: '不支持',
-      fallback: '降级',
-      stale: '过期',
-      estimated: '估算',
-      partial: '部分可用',
-      fetch_failed: '抓取失败',
+      available: 'Available',
+      missing: 'Missing',
+      not_supported: 'Not supported',
+      fallback: 'Fallback',
+      stale: 'Stale',
+      estimated: 'Estimated',
+      partial: 'Partial',
+      fetch_failed: 'Fetch failed',
     },
   },
   en: {
@@ -157,14 +157,14 @@ const TEXT = {
 
 const MISSING_REASON_LABELS: Record<ReportLanguage, Record<string, string>> = {
   zh: {
-    daily_bars_missing: '未进入分析输入',
-    news_context_missing: '未进入分析输入',
-    realtime_quote_missing: '未进入分析输入',
-    trend_result_missing: '未进入分析输入',
-    fundamental_context_missing: '未进入分析输入',
-    chip_distribution_missing: '未进入分析输入',
-    today_missing: '今日数据未进入分析输入',
-    yesterday_missing: '昨日数据未进入分析输入',
+    daily_bars_missing: 'Not included in analysis input',
+    news_context_missing: 'Not included in analysis input',
+    realtime_quote_missing: 'Not included in analysis input',
+    trend_result_missing: 'Not included in analysis input',
+    fundamental_context_missing: 'Not included in analysis input',
+    chip_distribution_missing: 'Not included in analysis input',
+    today_missing: 'Today data not included in analysis input',
+    yesterday_missing: 'Yesterday data not included in analysis input',
   },
   en: {
     daily_bars_missing: 'Not included in analysis input',
@@ -230,7 +230,7 @@ const formatLimitation = (
 
   const label = BLOCK_LABELS[language][key] || key;
   const statusLabel = (text.status as Record<string, string>)[status] || status;
-  return language === 'zh' ? `${label}：${statusLabel}` : `${label}: ${statusLabel}`;
+  return `${label}: ${statusLabel}`;
 };
 
 const formatMissingReason = (reason: string, language: ReportLanguage): string => {

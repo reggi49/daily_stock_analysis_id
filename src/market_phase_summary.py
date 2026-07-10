@@ -37,10 +37,10 @@ _INTRADAY_BUCKET_PHASES = {"intraday", "lunch_break", "closing_auction"}
 _SUPPORTED_MANUAL_ANALYSIS_PHASES = {"premarket", "intraday", "postmarket"}
 _SUPPORTED_ANALYSIS_INTENTS = {"auto", *_SUPPORTED_MANUAL_ANALYSIS_PHASES}
 _PUBLIC_SOURCE_LABELS_ZH = {
-    "alert_trigger_market_context": "告警触发上下文",
-    "analysis_history_snapshot": "最近分析快照",
-    "evaluator_snapshot": "评估器快照",
-    "legacy_text": "历史文本",
+    "alert_trigger_market_context": "share",
+    "analysis_history_snapshot": "Hong Kong stocks",
+    "evaluator_snapshot": "US stocks",
+    "legacy_text": "US stocks",
 }
 _PUBLIC_SOURCE_LABELS_EN = {
     "alert_trigger_market_context": "alert trigger context",
@@ -49,14 +49,14 @@ _PUBLIC_SOURCE_LABELS_EN = {
     "legacy_text": "legacy text",
 }
 _MARKET_STATUS_PREFIX = {
-    "zh": "市场状态",
+    "zh": "US stocks",
     "en": "Market status",
 }
 _MARKET_LABELS_ZH = {
-    "cn": "A股",
-    "hk": "港股",
-    "us": "美股",
-    "tw": "台股",
+    "cn": "Ashare",
+    "hk": "Hong Kong stocks",
+    "us": "US stocks",
+    "tw": "Before the market",
 }
 _MARKET_LABELS_EN = {
     "cn": "A-shares",
@@ -65,13 +65,13 @@ _MARKET_LABELS_EN = {
     "tw": "Taiwan",
 }
 _PHASE_LABELS_ZH = {
-    "premarket": "盘前",
-    "intraday": "盘中",
-    "lunch_break": "午间休市",
-    "closing_auction": "临近收盘",
-    "postmarket": "盘后",
-    "non_trading": "非交易日",
-    "unknown": "阶段未知",
+    "premarket": "Before the market",
+    "intraday": "intraday",
+    "lunch_break": "after hours",
+    "closing_auction": "Nearing closing",
+    "postmarket": "after hours",
+    "non_trading": "non-trading days",
+    "unknown": "Stage unknown",
 }
 _PHASE_LABELS_EN = {
     "premarket": "Pre-market",

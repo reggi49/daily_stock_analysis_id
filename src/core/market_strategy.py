@@ -47,40 +47,40 @@ class MarketStrategyBlueprint:
     def to_markdown_block(self) -> str:
         """Render blueprint as markdown section for template fallback report."""
         dims = "\n".join([f"- **{dim.name}**: {dim.objective}" for dim in self.dimensions])
-        section_title = "### VI. Strategy Framework" if self.region == "us" else "### 六、策略框架"
+        section_title = "### VI. Strategy Framework" if self.region == "us" else "### VI. Strategy Framework"
         return f"{section_title}\n{dims}\n"
 
 
 CN_BLUEPRINT = MarketStrategyBlueprint(
     region="cn",
-    title="A股市场三段式复盘策略",
-    positioning="聚焦指数趋势、资金博弈与板块轮动，形成次日交易计划。",
+    title="A-Share Three-Phase Market Review Strategy",
+    positioning="Focus on index trend, capital flow dynamics, and sector rotation to form next-day trading plans.",
     principles=[
-        "先看指数方向，再看量能结构，最后看板块持续性。",
-        "结论必须映射到仓位、节奏与风险控制动作。",
-        "判断使用当日数据与近3日新闻，不臆测未验证信息。",
+        "Read index direction first, then volume structure, and finally sector persistence.",
+        "Conclusions must map to position sizing, pacing, and risk control actions.",
+        "Use current-day data and recent 3-day news for judgments; do not speculate on unverified information.",
     ],
     dimensions=[
         StrategyDimension(
-            name="趋势结构",
-            objective="判断市场处于上升、震荡还是防守阶段。",
-            checkpoints=["上证/深证/创业板是否同向", "放量上涨或缩量下跌是否成立", "关键支撑阻力是否被突破"],
+            name="Trend Structure",
+            objective="Classify the market as uptrend, sideways, or defensive phase.",
+            checkpoints=["Are Shanghai/Shenzhen/ChiNext aligned directionally", "Did volume confirm the move", "Are key support/resistance levels breached"],
         ),
         StrategyDimension(
-            name="资金情绪",
-            objective="识别短线风险偏好与情绪温度。",
-            checkpoints=["涨跌家数与涨跌停结构", "成交额是否扩张", "高位股是否出现分歧"],
+            name="Capital Sentiment",
+            objective="Identify short-term risk appetite and sentiment temperature.",
+            checkpoints=["Advance/decline counts and limit up/down structure", "Whether trading volume is expanding", "Whether high-flying stocks are showing divergence"],
         ),
         StrategyDimension(
-            name="主线板块",
-            objective="提炼可交易主线与规避方向。",
-            checkpoints=["领涨板块是否具备事件催化", "板块内部是否有龙头带动", "领跌板块是否扩散"],
+            name="Core Sectors",
+            objective="Distill tradeable themes and avoidance directions.",
+            checkpoints=["Are leading sectors backed by event catalysts", "Is there a leader driving the sector internally", "Are lagging sectors broadening"],
         ),
     ],
     action_framework=[
-        "进攻：指数共振上行 + 成交额放大 + 主线强化。",
-        "均衡：指数分化或缩量震荡，控制仓位并等待确认。",
-        "防守：指数转弱 + 领跌扩散，优先风控与减仓。",
+        "Offense: Index alignment upward + expanding volume + strengthening themes.",
+        "Neutral: Mixed index signals or low-volume sideways; control positions and wait for confirmation.",
+        "Defense: Weakening indices + broadening laggards; prioritize risk control and reduce positions.",
     ],
 )
 
@@ -131,101 +131,101 @@ US_BLUEPRINT = MarketStrategyBlueprint(
 
 HK_BLUEPRINT = MarketStrategyBlueprint(
     region="hk",
-    title="港股市场三段式复盘策略",
-    positioning="聚焦恒生指数趋势、南向资金博弈与板块轮动，形成次日交易计划。",
+    title="HK Market Three-Phase Review Strategy",
+    positioning="Focus on Hang Seng Index trend, southbound capital dynamics, and sector rotation to form next-day trading plans.",
     principles=[
-        "先看恒指/恒科/国企指数方向，再看南向资金情绪，最后看板块持续性。",
-        "结论必须映射到仓位、节奏与风险控制动作。",
-        "判断使用当日数据与近3日新闻，不臆测未验证信息。",
+        "Read HSI/Hang Seng Tech/HSCEI direction first, then southbound capital sentiment, and finally sector persistence.",
+        "Conclusions must map to position sizing, pacing, and risk control actions.",
+        "Use current-day data and recent 3-day news for judgments; do not speculate on unverified information.",
     ],
     dimensions=[
         StrategyDimension(
-            name="趋势结构",
-            objective="判断市场处于上升、震荡还是防守阶段。",
-            checkpoints=["恒指/恒科/国企指数是否同向", "放量上涨或缩量下跌是否成立", "关键支撑阻力是否被突破"],
+            name="Trend Structure",
+            objective="Classify the market as uptrend, sideways, or defensive phase.",
+            checkpoints=["Are HSI/Hang Seng Tech/HSCEI aligned", "Did volume confirm the move", "Are key support/resistance levels breached"],
         ),
         StrategyDimension(
-            name="资金情绪",
-            objective="识别南向资金风险偏好与情绪温度。",
-            checkpoints=["南向资金净流入方向与规模", "港元汇率与内地政策含义", "市场广度与龙头集中度"],
+            name="Capital Sentiment",
+            objective="Identify southbound capital risk appetite and sentiment temperature.",
+            checkpoints=["Southbound net inflow direction and scale", "HKD exchange rate and mainland policy implications", "Market breadth and leadership concentration"],
         ),
         StrategyDimension(
-            name="主线板块",
-            objective="提炼可交易主线与规避方向。",
-            checkpoints=["科技/互联网平台趋势持续性", "金融/地产对政策转向的敏感度", "防御与成长因子轮动"],
+            name="Core Sectors",
+            objective="Distill tradeable themes and avoidance directions.",
+            checkpoints=["Tech/internet platform trend persistence", "Financials/real estate sensitivity to policy shifts", "Defensive vs growth factor rotation"],
         ),
     ],
     action_framework=[
-        "进攻：恒指共振上行 + 南向资金持续流入 + 主线强化。",
-        "均衡：指数分化或缩量震荡，控制仓位并等待确认。",
-        "防守：指数转弱 + 波动率上升，优先风控与减仓。",
+        "Offense: HSI alignment upward + persistent southbound inflows + strengthening themes.",
+        "Neutral: Mixed index signals or low-volume sideways; control positions and wait for confirmation.",
+        "Defense: Weakening indices + rising volatility; prioritize risk control and reduce positions.",
     ],
 )
 
 
 JP_BLUEPRINT = MarketStrategyBlueprint(
     region="jp",
-    title="日本市场三段式复盘策略",
-    positioning="聚焦日经225、东证指数、汇率与全球风险偏好，形成次日交易计划。",
+    title="Japan Market Three-Phase Review Strategy",
+    positioning="Focus on Nikkei 225, TOPIX, exchange rates, and global risk appetite to form next-day trading plans.",
     principles=[
-        "先看日经225与TOPIX是否同向，再看日元、半导体/出口链与金融股表现。",
-        "把指数结论映射到仓位、节奏与风险控制动作。",
-        "只基于可得指数、新闻和价格行为判断，不臆造市场广度或板块统计。",
+        "Check if Nikkei 225 and TOPIX are aligned, then look at yen, semiconductor/export chain, and financial stock performance.",
+        "Map index conclusions to position sizing, pacing, and risk control actions.",
+        "Base judgments only on available indices, news, and price action; do not fabricate market breadth or sector statistics.",
     ],
     dimensions=[
         StrategyDimension(
-            name="趋势结构",
-            objective="判断日本市场处于上攻、震荡还是防守阶段。",
-            checkpoints=["日经225/TOPIX是否同向", "指数是否突破或跌破关键区间", "大盘权重与成长链是否共振"],
+            name="Trend Structure",
+            objective="Classify the Japanese market as uptrend, sideways, or defensive phase.",
+            checkpoints=["Are Nikkei 225/TOPIX aligned", "Has the index broken out of or below a key range", "Are large-cap weights and growth chain aligned"],
         ),
         StrategyDimension(
-            name="宏观与汇率",
-            objective="识别日元、利率和全球风险偏好对权益市场的影响。",
-            checkpoints=["日元方向对出口链的影响", "日本央行和美债利率叙事", "海外科技股与半导体链映射"],
+            name="Macro and FX",
+            objective="Identify the impact of yen, interest rates, and global risk appetite on the equity market.",
+            checkpoints=["Yen direction impact on export chain", "BOJ and US Treasury yield narrative", "Overseas tech and semiconductor chain mapping"],
         ),
         StrategyDimension(
-            name="主题线索",
-            objective="提炼可延续主线与需要规避的拥挤方向。",
-            checkpoints=["半导体/自动化/汽车链持续性", "金融与内需股是否轮动", "新闻催化是否支撑价格行为"],
+            name="Theme Clues",
+            objective="Distill persistent themes and crowded directions to avoid.",
+            checkpoints=["Semiconductor/automation/auto chain persistence", "Are financials and domestic demand stocks rotating", "Do news catalysts support price action"],
         ),
     ],
     action_framework=[
-        "进攻：主要指数共振上行 + 外部风险偏好改善 + 主线强化。",
-        "均衡：指数分化或汇率扰动，降低追涨并等待确认。",
-        "防守：主要指数转弱或外部风险升温，优先控制仓位。",
+        "Offense: Major index alignment + improving external risk appetite + strengthening themes.",
+        "Neutral: Index divergence or FX disturbance; reduce chasing and wait for confirmation.",
+        "Defense: Major indices weakening or rising external risks; prioritize position control.",
     ],
 )
 
 KR_BLUEPRINT = MarketStrategyBlueprint(
     region="kr",
-    title="韩国市场三段式复盘策略",
-    positioning="聚焦 KOSPI、KOSDAQ、半导体权重与全球科技风险偏好，形成次日交易计划。",
+    title="Korea Market Three-Phase Review Strategy",
+    positioning="Focus on KOSPI, KOSDAQ, semiconductor weights, and global tech risk appetite to form next-day trading plans.",
     principles=[
-        "先看 KOSPI/KOSDAQ 是否同向，再看三星电子、SK 海力士等权重线索。",
-        "区分指数 beta、半导体周期和成长股风险偏好的贡献。",
-        "只基于可得指数、新闻和价格行为判断，不臆造市场广度或板块统计。",
+        "Check if KOSPI/KOSDAQ are aligned, then look at Samsung Electronics, SK Hynix, and other heavyweight signals.",
+        "Separate the contributions of index beta, semiconductor cycle, and growth stock risk appetite.",
+        "Base judgments only on available indices, news, and price action; do not fabricate market breadth or sector statistics.",
     ],
     dimensions=[
         StrategyDimension(
-            name="趋势结构",
-            objective="判断韩国市场处于上攻、震荡还是防守阶段。",
-            checkpoints=["KOSPI/KOSDAQ 是否同向", "权重股是否支撑指数", "关键支撑阻力是否被突破"],
+            name="Trend Structure",
+            objective="Classify the Korean market as uptrend, sideways, or defensive phase.",
+            checkpoints=["Are KOSPI/KOSDAQ aligned", "Are heavyweight stocks supporting the index", "Are key support/resistance levels breached"],
         ),
         StrategyDimension(
-            name="科技周期",
-            objective="识别半导体、AI 硬件和全球科技股对韩国市场的映射。",
-            checkpoints=["存储/半导体链新闻催化", "美股科技方向联动", "外资风险偏好变化"],
+            name="Tech Cycle",
+            objective="Identify how semiconductors, AI hardware, and global tech stocks map to the Korean market.",
+            checkpoints=["Memory/semiconductor chain news catalysts", "US tech direction linkage", "Foreign capital risk appetite shifts"],
         ),
         StrategyDimension(
-            name="主题线索",
-            objective="提炼可延续主线与需要规避的拥挤方向。",
-            checkpoints=["电池/汽车/互联网是否轮动", "KOSDAQ 成长股风险偏好", "新闻催化是否支撑价格行为"],
+            name="Theme Clues",
+            objective="Distill persistent themes and crowded directions to avoid.",
+            checkpoints=["Are batteries/autos/internet rotating", "KOSDAQ growth stock risk appetite", "Do news catalysts support price action"],
         ),
     ],
     action_framework=[
-        "进攻：KOSPI/KOSDAQ 共振上行 + 科技权重确认 + 外部风险偏好改善。",
-        "均衡：指数或权重股分化，控制仓位并等待确认。",
-        "防守：科技权重转弱或外部风险升温，优先控制回撤。",
+        "Offense: KOSPI/KOSDAQ alignment upward + tech heavyweight confirmation + improving external risk appetite.",
+        "Neutral: Index or heavyweight divergence; control positions and wait for confirmation.",
+        "Defense: Tech weights weakening or rising external risks; prioritize drawdown control.",
     ],
 )
 

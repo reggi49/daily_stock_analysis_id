@@ -1,21 +1,21 @@
-# 运行诊断与数据可靠性 1.0（Phase 1）
+# Run Diagnostics & Data Reliability 1.0 (Phase 1)
 
-本文档记录 #1391 Phase 1 的最小运行时落地范围：统一 `trace_id`，并为首批关键数据链路记录结构化 provider 尝试。
+This document records the minimal runtime scope for #1391 Phase 1: unifying `trace_id` and recording structured provider attempts for the first batch of critical data paths.
 
-## 本轮范围
+## Scope of This Round
 
-- API / Web 异步任务创建时，`TaskInfo` 使用 `task_id` 作为默认 `trace_id`。
-- 任务列表、任务状态与 SSE 事件追加 `trace_id` 字段；旧客户端可忽略该字段。
-- 同步分析使用本次 `query_id` 作为默认 `trace_id`。
-- pipeline 运行时建立轻量诊断上下文，贯穿日线准备与单股分析。
-- `data_provider/base.py` 对以下链路记录 `ProviderRun` 风格事件：
+- API / Web async task creation: `TaskInfo` uses `task_id` as the default `trace_id`.
+- Task list, task status, and SSE events add the `trace_id` field; old clients may ignore it.
+- Synchronous analysis uses the current `query_id` as the default `trace_id`.
+- The pipeline establishes a lightweight diagnostic context at runtime, spanning daily data preparation and individual stock analysis.
+- `data_provider/base.py` records `ProviderRun`-style events for the following paths:
   - `daily_data`
   - `realtime_quote`
-- 诊断记录写入内存上下文，随分析 `context_snapshot.diagnostics` 保存；旧历史记录缺少该字段时保持兼容。
+- Diagnostic records are written to an in-memory context and saved with the analysis `context_snapshot.diagnostics`; old history records missing this field maintain compatibility.
 
-## `ProviderRun` 字段
+## `ProviderRun` Fields
 
-首版字段保持最小：
+Minimal fields for v1:
 
 - `trace_id`
 - `data_type`
@@ -29,15 +29,15 @@
 - `record_count`
 - `created_at`
 
-错误摘要会做基础脱敏，避免输出 token、API key、Authorization、Cookie、包含敏感参数的 webhook URL 等内容。
+Error summaries undergo basic sanitization to avoid outputting tokens, API keys, Authorization headers, cookies, webhook URLs with sensitive parameters, etc.
 
-## 稳定性边界
+## Stability Boundaries
 
-- 诊断记录失败只记录 warning，不影响主分析、数据源 fallback 或历史保存。
-- 本轮不新增配置项，不改变数据源优先级，不改变 fallback 策略。
-- 本轮不新增 Web 展示组件；`trace_id` 和 provider runs 先进入 API/SSE/历史快照，供后续 Phase 2/3 聚合与展示复用。
+- Diagnostic record failures only log a warning; they do not affect the main analysis, data source fallback, or history persistence.
+- This round adds no new configuration items, does not change data source priorities, and does not alter fallback strategies.
+- This round adds no new Web display components; `trace_id` and provider runs first enter API/SSE/history snapshots for reuse by subsequent Phase 2/3 aggregation and display.
 
-## 验证建议
+## Verification Recommendations
 
 ```bash
 python -m pytest tests/test_run_diagnostics_p1.py tests/test_analysis_api_contract.py::AnalysisApiContractTestCase::test_get_analysis_status_normalizes_completed_queue_result_contract

@@ -4,8 +4,8 @@ Research command — deep research on a stock or market topic.
 
 Usage:
     /research 600519                        -> Deep research on Kweichow Moutai
-    /research 600519 近期业绩风险            -> Focused research with specific question
-    /research 新能源板块前景分析              -> Topic-based research
+    /research 600519 recent earnings risks  -> Focused research with specific question
+    /research new energy sector outlook     -> Topic-based research
 """
 
 import logging
@@ -30,8 +30,8 @@ class ResearchCommand(BotCommand):
 
     Usage:
         /research 600519                    -> Deep research on a stock
-        /research 600519 业绩风险分析        -> Focused question
-        /research 新能源板块 发展前景         -> Sector research
+        /research 600519 earnings risk analysis -> Focused question
+        /research new energy sector prospects -> Sector research
     """
 
     @property
@@ -40,7 +40,7 @@ class ResearchCommand(BotCommand):
 
     @property
     def aliases(self) -> List[str]:
-        return ["深研", "deepsearch"]
+        return ["research", "deepsearch"]
 
     @property
     def description(self) -> str:
@@ -54,15 +54,15 @@ class ResearchCommand(BotCommand):
         if not args:
             return BotResponse.text_response(
                 f"Usage: {self.usage}\n"
-                "Example: /research 600519 近期有哪些风险\n"
-                "Example: /research 新能源板块前景分析"
+                "Example: /research 600519 what are the recent risks\n"
+                "Example: /research new energy sector outlook"
             )
 
         config = get_config()
 
         if not config.agent_mode:
             return BotResponse.text_response(
-                "⚠️ Agent 模式未开启，无法使用深度研究功能。\n请在配置中设置 `AGENT_MODE=true`。"
+                "⚠️ Agent mode is not enabled, deep research is unavailable.\nPlease set `AGENT_MODE=true` in your config."
             )
 
         # Parse arguments — first arg may be stock code, rest is the question
@@ -115,7 +115,7 @@ class ResearchCommand(BotCommand):
             if getattr(result, "timed_out", False):
                 logger.warning("[ResearchCommand] Deep research timed out after %ss", duration)
                 return BotResponse.text_response(
-                    f"⏳ 深度研究超时（{duration}s / {research_timeout}s），请稍后重试或缩小研究范围。"
+                    f"⏳ Deep research timed out ({duration}s / {research_timeout}s), please try again later or narrow the scope."
                 )
 
             if result.success:

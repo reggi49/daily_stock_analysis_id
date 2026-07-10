@@ -56,7 +56,7 @@ class BacktestEngine:
     _BULLISH_KEYWORDS = (
         "买入",
         "加仓",
-        "强烈买入",
+        "Reduce positions",
         "增持",
         "建仓",
         "strong buy",
@@ -65,9 +65,9 @@ class BacktestEngine:
     )
     _BEARISH_KEYWORDS = (
         "卖出",
-        "减仓",
-        "强烈卖出",
-        "清仓",
+        "Reduce positions",
+        "Strong Sell",
+        "Clearance",
         "strong sell",
         "sell",
         "reduce",
@@ -76,7 +76,7 @@ class BacktestEngine:
         "持有",
         "震荡观望",
         "洗盘观察",
-        "持有观察",
+        "hold observation",
         "hold",
         "range-bound watch",
         "shakeout watch",
@@ -84,7 +84,7 @@ class BacktestEngine:
     )
     _WAIT_KEYWORDS = (
         "观望",
-        "等待",
+        "wait",
         "wait",
     )
 
@@ -93,7 +93,7 @@ class BacktestEngine:
     # applied during matching so "do not" matches prefix "do not " or "do not".
     _NEGATION_PATTERNS = (
         "not", "don't", "do not", "no", "never", "avoid",  # English
-        "不要", "不", "别", "勿", "没有",  # Chinese
+        "don't want", "No", "Don't", "勿", "No",  # Chinese
     )
 
     _NEGATION_CONNECTOR_WORDS = (
@@ -103,7 +103,7 @@ class BacktestEngine:
         "宜",
         "先",
         "再",
-        "暂",
+        "temporarily",
         "不必",
         "必须",
         "无需",
@@ -525,7 +525,7 @@ class BacktestEngine:
                     continue
 
             # For non-ASCII terms (Chinese), use substring matching to keep
-            # natural language phrasings like "建议买入" effective.
+            # natural language phrasings like "sell" effective.
             if re.search(r"[\u4e00-\u9fff]", keyword):
                 start = 0
                 while True:
@@ -552,7 +552,7 @@ class BacktestEngine:
         if any(stripped.endswith(neg) for neg in cls._NEGATION_PATTERNS):
             return True
 
-        # 限定“否定 + 动作动词”匹配，避免将“条件位否定”误伤核心建议意图。
+        # Constrain "negation + action verb" matching to avoid false-negating core advice intent.
         lookback = stripped[-12:]
         for neg in cls._NEGATION_PATTERNS:
             if not neg:

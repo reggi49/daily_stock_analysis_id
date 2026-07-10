@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Offline unit tests for TwInstitutionalFetcher (台股三大法人 data-layer fetcher).
+"""Offline unit tests for TwInstitutionalFetcher (TW stock institutional data-layer fetcher).
 
 Fixtures are trimmed from real TWSE T86 / TPEx OpenAPI responses (captured
 2026-06-26) so the parser is pinned to the actual field layout, date formats,
@@ -19,7 +19,7 @@ from data_provider.tw_institutional_fetcher import (  # noqa: E402
     _to_int,
 )
 
-# --- real TWSE T86 row for 2330 台積電 @ 20260626 (西元 date, comma-grouped values) ---
+# # --- real TWSE T86 row for 2330 TSMC @ 20260626 (AD date, comma-grouped values) ---
 T86_FIXTURE = {
     "stat": "OK",
     "date": "20260626",
@@ -45,7 +45,7 @@ T86_FIXTURE = {
     ],
 }
 
-# --- real TPEx OpenAPI row for 3105 穩懋 @ 民國 1150626 (plain ints, messy keys) ---
+# # --- real TPEx OpenAPI row for 3105 win Semi @ ROC 1150626 (plain ints, messy keys) ---
 TPEX_FIXTURE = [
     {
         "Date": "1150626",
@@ -113,7 +113,7 @@ class TestT86Parsing(unittest.TestCase):
         self.assertEqual(rec["source"], "TWSE-T86")
         self.assertEqual(rec["unit"], "shares")
         self.assertEqual(rec["date"], "20260626")
-        # foreign = 外陸資 (不含外資自營商) = -14,281,155
+        # # foreign = foreign institutional (excluding foreign dealer) = -14,281,155
         self.assertEqual(rec["foreign_net"], -14281155)
         self.assertEqual(rec["trust_net"], 734398)
         self.assertEqual(rec["dealer_net"], 1009368)

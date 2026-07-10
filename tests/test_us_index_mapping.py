@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-data_provider/us_index_mapping.py 的单元测试
+Unit tests for data_provider/us_index_mapping.py
 """
 import unittest
 import sys
 import os
 
-# 确保能导入 data_provider 模块（直接导入避免加载重量级依赖）
+# # Ensure data_provider can be imported (direct import avoids loading heavy dependencies)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_provider')))
 
 from us_index_mapping import (

@@ -1,129 +1,129 @@
-# 小白客户端安装与配置指南
+# Beginner Client Installation and Configuration Guide
 
-这份文档写给不会代码、只想下载客户端直接用的用户。目标很简单：下载客户端，填一个模型服务密钥（Key），填股票代码，然后生成第一份分析报告。
+This document is written for users who don't code and just want to download the client and use it directly. The goal is simple: download the client, fill in a model service key, enter stock codes, and generate your first analysis report.
 
-> 本项目生成的是辅助分析报告，不构成投资建议。真实交易请自行判断风险。
+> This project generates supplementary analysis reports and does not constitute investment advice. Please assess risks yourself for actual trading.
 
-## 先准备
+## Prerequisites
 
-1. Windows 或 macOS 电脑。
-2. 一个模型服务密钥（Key），推荐从下面任选一个：
-   - [Anspire Open](https://open.anspire.cn/?share_code=QFBC0FYC)：支持全球主流模型，一个 Key 可同时用于模型和新闻搜索，第一次配置最省事。
-   - [AIHubMix](https://aihubmix.com/?aff=CfMq)：支持全球主流模型，适合想在一个平台切换多种模型的用户。
-3. 想分析的股票代码，例如 `600519,hk00700,AAPL`。
+1. A Windows or macOS computer.
+2. A model service key (Key); choose any one from the following:
+   - [Anspire Open](https://open.anspire.cn/?share_code=QFBC0FYC): Supports mainstream global models; one Key can be used for both model and news search, making first-time configuration easiest.
+   - [AIHubMix](https://aihubmix.com/?aff=CfMq): Supports mainstream global models; suitable for users who want to switch between multiple models on one platform.
+3. The stock codes you want to analyze, e.g., `600519,hk00700,AAPL`.
 
-## 1. 下载客户端
+## 1. Download the Client
 
-打开发布页：
+Open the releases page:
 
 <https://github.com/ZhuLinsen/daily_stock_analysis/releases/latest>
 
-在页面下方 `Assets`（附件）里下载：
+Download from the `Assets` section at the bottom of the page:
 
-| 电脑 | 下载哪个 |
+| Computer | Download |
 | --- | --- |
-| Windows | `daily-stock-analysis-windows-installer-<版本号>.exe` |
-| Windows 不想安装 | `daily-stock-analysis-windows-noinstall-<版本号>.zip` |
-| macOS Apple 芯片 | `daily-stock-analysis-macos-arm64-<版本号>.dmg` |
-| macOS Intel 芯片 | `daily-stock-analysis-macos-x64-<版本号>.dmg` |
+| Windows | `daily-stock-analysis-windows-installer-<version>.exe` |
+| Windows (no install) | `daily-stock-analysis-windows-noinstall-<version>.zip` |
+| macOS Apple Silicon | `daily-stock-analysis-macos-arm64-<version>.dmg` |
+| macOS Intel | `daily-stock-analysis-macos-x64-<version>.dmg` |
 
-不用下载 `latest.yml`、`*.blockmap`，它们不是客户端安装包。
+You don't need to download `latest.yml` or `*.blockmap`; they are not client installation packages.
 
-不知道 Mac 是哪种芯片：点击左上角苹果图标 -> 关于本机，看到 M1/M2/M3/M4 就选 `arm64`，看到 Intel 就选 `x64`。
+Don't know which Mac chip you have: Click the Apple icon in the top left corner > About This Mac; if you see M1/M2/M3/M4, choose `arm64`; if you see Intel, choose `x64`.
 
-## 2. 安装并打开
+## 2. Install and Open
 
-- Windows 安装包：双击 `.exe`，按提示安装，安装目录用默认位置即可。
-- Windows 免安装包：解压 `.zip`，双击 `Daily Stock Analysis.exe`。
-- macOS：双击 `.dmg`，把应用拖到 `Applications`。如果提示来自未验证开发者，在系统设置的隐私与安全性里允许打开。
+- Windows installer: Double-click the `.exe`, follow the prompts to install; the default location is fine.
+- Windows no-install package: Extract the `.zip`, double-click `Daily Stock Analysis.exe`.
+- macOS: Double-click the `.dmg`, drag the app to `Applications`. If it says it's from an unverified developer, allow it to open in System Settings > Privacy & Security.
 
-macOS 用户升级前建议先在客户端设置里导出一次配置备份。
+macOS users are recommended to export a configuration backup from client settings before upgrading.
 
-## 3. 配置 AI 模型
+## 3. Configure AI Model
 
-打开客户端，进入：
+Open the client and go to:
 
-`系统设置 -> AI 模型`
+`System Settings -> AI Model`
 
-只选下面一个方案即可。
+Only choose one of the following options.
 
-> 重要：每次改完设置后，都要点击页面上的保存按钮；看到保存成功提示后，再切换页面或回到首页。
+> Important: After changing any setting, click the save button on the page; wait for the save success message before switching pages or returning to the home page.
 
-### 方案 A：Anspire Open
+### Option A: Anspire Open
 
-1. 打开 [Anspire Open](https://open.anspire.cn/?share_code=QFBC0FYC)，注册 / 登录后创建 API Key。
-2. 回到客户端，在快速添加渠道里选择 `Anspire Open`。
-3. 粘贴 API Key。
-4. 模型名选择控制台里已开通的模型；不确定就先选控制台推荐或轻量模型。
-5. 点击保存；看到保存成功后，再点击测试连接。
+1. Open [Anspire Open](https://open.anspire.cn/?share_code=QFBC0FYC), register/log in and create an API Key.
+2. Return to the client and select `Anspire Open` in the quick channel setup.
+3. Paste the API Key.
+4. Select a model name for a model enabled in the console; if unsure, select the console's recommended or lightweight model.
+5. Click Save; after seeing save success, click Test Connection.
 
-### 方案 B：AIHubMix
+### Option B: AIHubMix
 
-1. 打开 [AIHubMix](https://aihubmix.com/?aff=CfMq)，注册 / 登录后创建 API Key。
-2. 回到客户端，在快速添加渠道里选择 `AIHubmix（聚合平台）`。
-3. 粘贴 API Key。
-4. 模型名选择控制台里已开通的模型；不确定就先选控制台推荐模型。
-5. 点击保存；看到保存成功后，再点击测试连接。
+1. Open [AIHubMix](https://aihubmix.com/?aff=CfMq), register/log in and create an API Key.
+2. Return to the client and select `AIHubmix (Aggregation Platform)` in the quick channel setup.
+3. Paste the API Key.
+4. Select a model name for a model enabled in the console; if unsure, select the console's recommended model.
+5. Click Save; after seeing save success, click Test Connection.
 
-看到测试成功，就继续下一步。
+When you see test success, proceed to the next step.
 
-## 4. 填写自选股
+## 4. Fill in Your Watchlist
 
-进入：
+Go to:
 
-`系统设置 -> 基础设置`
+`System Settings -> Basic Settings`
 
-找到 `自选股列表`，填写：
+Find `Watchlist` and enter:
 
 `600519,hk00700,AAPL`
 
-多个股票用英文逗号隔开。常见写法：
+Separate multiple stocks with commas. Common formats:
 
-- A 股：`600519`、`300750`、`000001`
-- 港股：`hk00700`、`hk09988`
-- 美股：`AAPL`、`TSLA`、`NVDA`
+- A-shares: `600519`, `300750`, `000001`
+- HK stocks: `hk00700`, `hk09988`
+- US stocks: `AAPL`, `TSLA`, `NVDA`
 
-填完点击保存，看到保存成功后再回首页。
+After filling in, click Save; wait for save success before returning to the home page.
 
-## 5. 建议配置新闻源
+## 5. Recommended: Configure News Sources
 
-新闻源不是必填，但建议配置。它会影响近期新闻、公告、事件驱动、热点题材和风险提示。
+News sources are optional but recommended. They affect recent news, announcements, event-driven analysis, hot topics, and risk alerts.
 
-进入：
+Go to:
 
-`系统设置 -> 数据源`
+`System Settings -> Data Source`
 
-按你的模型服务选择：
+Choose based on your model service:
 
-1. 用 Anspire Open：找到 `Anspire API Keys`，填入同一个 Anspire Key，保存成功后即可。
-2. 用 AIHubMix：建议再申请 [SerpAPI](https://serpapi.com/baidu-search-api?utm_source=github_daily_stock_analysis) 或 [Tavily](https://tavily.com/) 的 Key，填到 `SerpAPI API Keys` 或 `Tavily API Keys`，保存成功后即可。
+1. Using Anspire Open: Find `Anspire API Keys`, enter the same Anspire Key, and save successfully.
+2. Using AIHubMix: It's recommended to also apply for a [SerpAPI](https://serpapi.com/baidu-search-api?utm_source=github_daily_stock_analysis) or [Tavily](https://tavily.com/) Key, enter it in `SerpAPI API Keys` or `Tavily API Keys`, and save successfully.
 
-想先试用也可以跳过新闻源，客户端仍然能生成基础分析。
+You can skip news sources if you want to try it out first; the client can still generate basic analysis.
 
-## 6. 开始分析
+## 6. Start Analyzing
 
-回到首页：
+Return to the home page:
 
-1. 输入股票代码，例如 `600519`。
-2. 点击分析。
-3. 等任务从排队、分析中变成分析完成。
-4. 在历史记录里查看报告。
+1. Enter a stock code, e.g., `600519`.
+2. Click Analyze.
+3. Wait for the task to go from queuing, analyzing, to analysis complete.
+4. View the report in history.
 
-## 常见问题
+## FAQ
 
-### 下载页面里文件很多，该下哪个？
+### There are many files on the download page; which one should I download?
 
-普通 Windows 用户下载 `.exe` 安装包。不要下载 `latest.yml` 或 `*.blockmap`。
+Regular Windows users should download the `.exe` installer. Do not download `latest.yml` or `*.blockmap`.
 
-### API Key 填了还是不能用？
+### I entered the API Key but it still doesn't work?
 
-检查这几项：
+Check the following:
 
-1. Key 是否复制完整，没有多余空格。
-2. 平台账号是否有余额或额度。
-3. 当前模型是否已开通。
-4. 测试连接里是否提示模型不存在、权限不足或余额不足。
+1. Is the key copied completely, without extra spaces?
+2. Does the platform account have balance or quota?
+3. Is the current model enabled?
+4. Does the test connection show that the model doesn't exist, insufficient permissions, or insufficient balance?
 
-### 配置乱了怎么办？
+### My configuration is messed up; what should I do?
 
-在客户端设置里导出配置备份。出问题时可以导入之前的备份，或者只保留这三项重新配置：AI 模型、自选股、新闻源。
+Export a configuration backup from client settings. When something goes wrong, you can import a previous backup, or just keep these three items and reconfigure: AI Model, Watchlist, News Source.

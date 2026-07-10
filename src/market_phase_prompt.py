@@ -7,13 +7,13 @@ from typing import Any, Dict, List, Optional
 
 
 _PHASE_LABELS_ZH = {
-    "premarket": "盘前",
-    "intraday": "盘中",
-    "lunch_break": "午间休市",
-    "closing_auction": "临近收盘",
-    "postmarket": "盘后",
-    "non_trading": "非交易日",
-    "unknown": "未知阶段",
+    "premarket": "non-trading days",
+    "intraday": "unknown stage",
+    "lunch_break": "unknown market",
+    "closing_auction": "unknown stage",
+    "postmarket": "unknown market",
+    "non_trading": "unknown stage",
+    "unknown": "unknown market",
 }
 
 _PHASE_LABELS_EN = {
@@ -29,9 +29,9 @@ _PHASE_LABELS_EN = {
 _KNOWN_PHASES = set(_PHASE_LABELS_ZH)
 
 _WARNING_LABELS_ZH = {
-    "unknown_market": "未知市场",
-    "calendar_unavailable": "交易日历不可用",
-    "calendar_error": "交易日历异常",
+    "unknown_market": "unknown market",
+    "calendar_unavailable": "Trading calendar is unavailable",
+    "calendar_error": "Trading calendar exception",
 }
 
 _WARNING_LABELS_EN = {
@@ -141,17 +141,17 @@ def _phase_rule_zh(ctx: Dict[str, Any], phase: str) -> str:
 
     if phase == "premarket":
         return (
-            f"当前尚未开盘，不得描述“今日走势已经发生”；只能基于上一完整交易日{date_hint}"
-            "和盘前信息生成开盘计划、观察价位与风险预案。"
+            f"Shall not be described，Shall not be described“Today’s trend has already occurred”；Can only be based on the last complete trading day{date_hint}"
+            "Generate opening plan with pre-market information、Observe price levels and risk plans。"
         )
     if phase in {"intraday", "lunch_break", "closing_auction"}:
-        base = "当前不是盘后复盘，应聚焦当前盘中状态、观察条件与下一次检查点。"
+        base = "This is not an after-hours review at this time，The current intraday status should be focused、Observation conditions and next checkpoint。"
         if ctx.get("is_partial_bar") is True:
-            base += " 今日最后一根日线可能尚未完成，不得当作完整日线复盘。"
+            base += " It cannot be regarded as a complete daily review，It cannot be regarded as a complete daily review。"
         if phase == "lunch_break":
-            base += " 午间休市期间应说明后续复盘仍需下午交易确认。"
+            base += " During the lunch break, it should be stated that subsequent resumption of trading still requires afternoon trading confirmation.。"
         if phase == "closing_auction":
-            base += " 临近收盘时应更偏向收盘前风险控制和是否隔夜持仓。"
+            base += " When the market closes, we should focus more on pre-closing risk control and whether to hold positions overnight.。"
         return base
     if phase == "postmarket":
         return "常规交易时段已结束，可以保留完整交易日复盘语义。"

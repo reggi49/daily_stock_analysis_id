@@ -6,7 +6,7 @@ import { SidebarNav } from '../SidebarNav';
 const mockLogout = vi.fn().mockResolvedValue(undefined);
 const mockGetAlphaSiftStatus = vi.fn().mockResolvedValue({ enabled: false, available: false, installSpecIsDefault: false });
 const mockThemeToggle = vi.fn(({ collapsed }: { collapsed?: boolean }) => (
-  <button type="button">{collapsed ? '切换主题(折叠)' : '切换主题'}</button>
+  <button type="button">{collapsed ? 'Switch Theme (collapsed)' : 'Switch Theme'}</button>
 ));
 
 const completionBadgeState = { value: true };
@@ -45,7 +45,7 @@ describe('SidebarNav', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.queryByRole('link', { name: '选股' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Screening' })).not.toBeInTheDocument();
   });
 
   it('shows the screening navigation item when AlphaSift is enabled', async () => {
@@ -57,7 +57,7 @@ describe('SidebarNav', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByRole('link', { name: '选股' })).toHaveAttribute('href', '/screening');
+    expect(await screen.findByRole('link', { name: 'Screening' })).toHaveAttribute('href', '/screening');
   });
 
   it('places screening directly after chat when AlphaSift is enabled', async () => {
@@ -69,7 +69,7 @@ describe('SidebarNav', () => {
       </MemoryRouter>,
     );
 
-    await screen.findByRole('link', { name: '选股' });
+    await screen.findByRole('link', { name: 'Screening' });
     const hrefs = screen.getAllByRole('link').map((link) => link.getAttribute('href'));
     expect(hrefs.slice(0, 5)).toEqual(['/', '/chat', '/screening', '/portfolio', '/decision-signals']);
   });
@@ -85,10 +85,10 @@ describe('SidebarNav', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.queryByRole('link', { name: '选股' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Screening' })).not.toBeInTheDocument();
     window.dispatchEvent(new Event('dsa-system-config-changed'));
 
-    expect(await screen.findByRole('link', { name: '选股' })).toHaveAttribute('href', '/screening');
+    expect(await screen.findByRole('link', { name: 'Screening' })).toHaveAttribute('href', '/screening');
     await waitFor(() => expect(mockGetAlphaSiftStatus.mock.calls.length).toBeGreaterThanOrEqual(2));
   });
 
@@ -102,7 +102,7 @@ describe('SidebarNav', () => {
     );
 
     expect(screen.getByTestId('chat-completion-badge')).toBeInTheDocument();
-    expect(screen.getByLabelText('问股有新消息')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ask Stock has new messages')).toBeInTheDocument();
 
     completionBadgeState.value = false;
     rerender(
@@ -124,7 +124,7 @@ describe('SidebarNav', () => {
     expect(mockThemeToggle).toHaveBeenCalledWith(
       expect.objectContaining({ variant: 'nav', collapsed: true }),
     );
-    expect(screen.getByRole('button', { name: '切换主题(折叠)' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch Theme (collapsed)' })).toBeInTheDocument();
   });
 
   it('renders the alerts navigation item and marks it active', () => {
@@ -134,7 +134,7 @@ describe('SidebarNav', () => {
       </MemoryRouter>,
     );
 
-    const alertsLink = screen.getByRole('link', { name: '告警' });
+    const alertsLink = screen.getByRole('link', { name: 'Alerts' });
     expect(alertsLink).toHaveAttribute('href', '/alerts');
     expect(alertsLink).toHaveClass('font-medium');
   });
@@ -146,7 +146,7 @@ describe('SidebarNav', () => {
       </MemoryRouter>,
     );
 
-    const signalsLink = screen.getByRole('link', { name: 'AI 建议' });
+    const signalsLink = screen.getByRole('link', { name: 'AI Suggestions' });
     expect(signalsLink).toHaveAttribute('href', '/decision-signals');
     expect(signalsLink).toHaveClass('font-medium');
   });
@@ -158,10 +158,10 @@ describe('SidebarNav', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '退出' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Logout' }));
 
-    expect(await screen.findByRole('heading', { name: '退出登录' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '确认退出' }));
+    expect(await screen.findByRole('heading', { name: 'Confirm Logout' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     expect(mockLogout).toHaveBeenCalled();
   });
 });

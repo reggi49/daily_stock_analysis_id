@@ -15,16 +15,16 @@ const baseSnapshot: RunFlowSnapshot = {
     eventCount: 3,
   },
   lanes: [
-    { id: 'entry', label: '入口', order: 1 },
-    { id: 'data_source', label: '数据来源', order: 2 },
-    { id: 'analysis', label: '分析引擎', order: 3 },
+    { id: 'entry', label: 'Entry', order: 1 },
+    { id: 'data_source', label: 'Data source', order: 2 },
+    { id: 'analysis', label: 'Analysis engine', order: 3 },
   ],
   nodes: [
     {
       id: 'task_queue',
       lane: 'entry',
       kind: 'queue',
-      label: '任务队列',
+      label: 'Task queue',
       status: 'success',
     },
     {
@@ -56,7 +56,7 @@ const baseSnapshot: RunFlowSnapshot = {
       id: 'context_block_news',
       lane: 'data_source',
       kind: 'data_source',
-      label: '新闻',
+      label: 'News',
       status: 'success',
       recordCount: 6,
       metadata: { block_key: 'news' },
@@ -65,7 +65,7 @@ const baseSnapshot: RunFlowSnapshot = {
       id: 'context_block_fundamental',
       lane: 'data_source',
       kind: 'data_source',
-      label: '基本面',
+      label: 'Fundamentals',
       status: 'degraded',
       metadata: { block_key: 'fundamental' },
     },
@@ -114,7 +114,7 @@ const baseSnapshot: RunFlowSnapshot = {
       severity: 'warning',
       type: 'provider_run',
       nodeId: 'provider_news_search_tavily_1',
-      title: '新闻舆情失败',
+      title: 'News sentiment failed',
     },
     {
       id: 'evt-block',
@@ -122,7 +122,7 @@ const baseSnapshot: RunFlowSnapshot = {
       severity: 'warning',
       type: 'context_block_status',
       nodeId: 'context_block_fundamental',
-      title: '基本面输入状态',
+      title: 'Fundamentals input status',
     },
   ],
 };
@@ -136,7 +136,7 @@ describe('buildRunFlowTopologyModel', () => {
 
     const newsGroup = model.nodes.find((node) => node.id === 'topology_data_news_search');
     expect(newsGroup).toMatchObject({
-      label: '新闻舆情',
+      label: 'News sentiment',
       status: 'fallback',
       provider: 'Tavily -> SearXNG',
       attempts: 2,
@@ -179,7 +179,7 @@ describe('buildRunFlowTopologyModel', () => {
           id: 'api_normalized_context_news',
           lane: 'data_source',
           kind: 'data_source',
-          label: '新闻',
+          label: 'News',
           status: 'success',
           recordCount: 3,
           metadata: { blockKey: 'news' },
@@ -215,7 +215,7 @@ describe('buildRunFlowTopologyModel', () => {
           severity: 'warning',
           type: 'provider_run',
           nodeId: 'provider_compatible_alpha_1',
-          title: '兼容行情失败',
+          title: 'Compatible quote failed',
         },
         {
           id: 'evt-normalized-block',
@@ -223,7 +223,7 @@ describe('buildRunFlowTopologyModel', () => {
           severity: 'success',
           type: 'context_block_status',
           nodeId: 'api_normalized_context_news',
-          title: '新闻输入状态',
+          title: 'News input status',
         },
       ],
     };
@@ -297,7 +297,7 @@ describe('buildRunFlowTopologyModel', () => {
     const quoteGroup = collapsed.nodes.find((node) => node.id === 'topology_data_realtime_quote');
 
     expect(quoteGroup).toMatchObject({
-      label: '实时行情',
+      label: 'Realtime quote',
       status: 'fallback',
       provider: 'TickFlowFetcher -> AkshareFetcher',
       attempts: 2,

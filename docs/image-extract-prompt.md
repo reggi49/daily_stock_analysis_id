@@ -1,31 +1,31 @@
 # Image Extract Prompt (Vision LLM)
 
-本文档记录 `src/services/image_stock_extractor.py` 中 `EXTRACT_PROMPT` 的完整内容，便于 PR 审查时评估指令效果。
+This document records the full content of `EXTRACT_PROMPT` in `src/services/image_stock_extractor.py`, for evaluating instruction effectiveness during PR reviews.
 
-**当修改 EXTRACT_PROMPT 时**：请同步更新此文件，并在 PR 描述中展示完整变更（before/after），以便审查者评估针对 code+name+confidence 提取的优化程度。
+**When modifying EXTRACT_PROMPT**: Please update this file accordingly and include the full before/after change in the PR description so reviewers can assess the optimization level for code+name+confidence extraction.
 
 ---
 
-## 当前 Prompt（完整）
+## Current Prompt (Full)
 
 ```
-请分析这张股票市场截图或图片，提取其中所有可见的股票代码及名称。
+Please analyze this stock market screenshot or image and extract all visible stock codes and their names.
 
-重要：若图中同时显示股票名称和代码（如自选股列表、ETF 列表），必须同时提取两者，每个元素必须包含 code 和 name 字段。
+Important: If the image displays both stock names and codes (e.g., watchlist, ETF list), you must extract both for each element. Each element must include code and name fields.
 
-输出格式：仅返回有效的 JSON 数组，不要 markdown、不要解释。
-每个元素为对象：{"code":"股票代码","name":"股票名称","confidence":"high|medium|low"}
-- code: 必填，股票代码（A股6位、港股5位、美股1-5字母、ETF 如 159887/512880）
-- name: 若图中有名称则必填（如 贵州茅台、银行ETF、证券ETF），与代码一一对应；仅当图中确实无名称时可省略
-- confidence: 必填，识别置信度，high=确定、medium=较确定、low=不确定
+Output format: Return only a valid JSON array, no markdown, no explanation.
+Each element is an object: {"code":"stock code","name":"stock name","confidence":"high|medium|low"}
+- code: required, stock code (A-share 6-digit, HK 5-digit, US 1-5 letters, ETF like 159887/512880)
+- name: required if visible in the image (e.g., Kweichow Moutai, Bank ETF, Securities ETF), corresponding one-to-one with the code; may be omitted only if no name is visible in the image
+- confidence: required, recognition confidence, high=certain, medium=likely, low=uncertain
 
-示例（图中同时有名称和代码时）：
-- 个股：600519 贵州茅台、300750 宁德时代
-- 港股：00700 腾讯控股、09988 阿里巴巴
-- 美股：AAPL 苹果、TSLA 特斯拉
-- ETF：159887 银行ETF、512880 证券ETF、512000 券商ETF、512480 半导体ETF、515030 新能源车ETF
+Examples (when both name and code are in the image):
+- A-shares: 600519 Kweichow Moutai, 300750 CATL
+- HK stocks: 00700 Tencent Holdings, 09988 Alibaba
+- US stocks: AAPL Apple, TSLA Tesla
+- ETFs: 159887 Bank ETF, 512880 Securities ETF, 512000 Broker ETF, 512480 Semiconductor ETF, 515030 New Energy Vehicle ETF
 
-输出示例：[{"code":"600519","name":"贵州茅台","confidence":"high"},{"code":"159887","name":"银行ETF","confidence":"high"}]
+Output example: [{"code":"600519","name":"Kweichow Moutai","confidence":"high"},{"code":"159887","name":"Bank ETF","confidence":"high"}]
 
-禁止只返回代码数组如 ["159887","512880"]，必须使用对象格式。若未找到任何股票代码，返回：[]
+Do not return only a code array like ["159887","512880"]; you must use the object format. If no stock codes are found, return: []
 ```

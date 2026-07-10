@@ -142,7 +142,7 @@ describe('DecisionSignalTimeline', () => {
   it('shows truncated warning and opens a selected point', () => {
     const { onSelect } = renderTimeline({ truncated: true });
 
-    expect(screen.getByText('仅展示最近 100 条信号，请缩小时间范围。')).toBeInTheDocument();
+    expect(screen.getByText('Showing only the latest 100 signals. Please narrow the time range.')).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('timeline-click-1'));
 
     expect(onSelect).toHaveBeenCalledWith(baseSignal);
@@ -155,7 +155,7 @@ describe('DecisionSignalTimeline', () => {
       </UiLanguageProvider>,
     );
 
-    expect(screen.getByText('暂无时间线信号')).toBeInTheDocument();
+    expect(screen.getByText('No timeline signals yet')).toBeInTheDocument();
 
     rerender(
       <UiLanguageProvider>

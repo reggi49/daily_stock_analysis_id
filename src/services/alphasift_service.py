@@ -52,7 +52,7 @@ DSA_ALPHASIFT_HOTSPOT_DETAIL_CACHE_TTL_SECONDS = 30 * 60
 DSA_ALPHASIFT_HOTSPOT_EVENT_SUMMARY_MAX_CHARS = 90
 DSA_ALPHASIFT_HOTSPOT_PREFETCH_DETAIL_COUNT = 8
 DSA_ALPHASIFT_HOTSPOT_UNAVAILABLE_CODE = "eastmoney_hotspot_unavailable"
-DSA_ALPHASIFT_HOTSPOT_UNAVAILABLE_MESSAGE = "热点源连接中断，暂无可用缓存。"
+DSA_ALPHASIFT_HOTSPOT_UNAVAILABLE_MESSAGE = "Hotspot source connection interrupted, no cached data available."
 DSA_ALPHASIFT_HOTSPOT_CONNECTIVITY_ERROR_MARKERS = (
     "remote disconnected",
     "remote end closed connection",
@@ -391,7 +391,7 @@ def _build_hotspot_event_routes_from_search(topic: str, config: Config) -> List[
     )
     date = first_date or _extract_date_text(description) or today
     return [{
-        "title": "消息催化",
+        "title": "News Catalyst",
         "description": description,
         "source": ",".join(sources) if sources else "news_search",
         "date": date,
@@ -415,13 +415,13 @@ def _summarize_hotspot_news_event_locally(*, topic: str, text: str) -> str:
     catalyst = _extract_hotspot_catalyst_phrase(cleaned)
     impacts = _extract_hotspot_impact_phrases(cleaned)
     if catalyst and impacts:
-        summary = f"{catalyst}，带动{impacts}发酵。"
+        summary = f"{catalyst}, driving {impacts} to ferment."
     elif catalyst:
-        summary = f"{catalyst}，市场关注{topic}相关产业链机会。"
+        summary = f"{catalyst}, the market is watching {topic}-related industrial chain opportunities."
     else:
         summary = _first_meaningful_hotspot_sentence(cleaned)
-    summary = _truncate_text(summary, DSA_ALPHASIFT_HOTSPOT_EVENT_SUMMARY_MAX_CHARS).rstrip(".。…")
-    return _truncate_text(f"{summary}。", DSA_ALPHASIFT_HOTSPOT_EVENT_SUMMARY_MAX_CHARS)
+    summary = _truncate_text(summary, DSA_ALPHASIFT_HOTSPOT_EVENT_SUMMARY_MAX_CHARS).rstrip(". ")
+    return _truncate_text(f"{summary}.", DSA_ALPHASIFT_HOTSPOT_EVENT_SUMMARY_MAX_CHARS)
 
 
 def _strip_hotspot_news_noise(text: str) -> str:
@@ -433,7 +433,7 @@ def _strip_hotspot_news_noise(text: str) -> str:
     cleaned = re.sub(r"\([^)]{0,18}\d+\.\d+[^)]{0,18}\)", " ", cleaned)
     cleaned = re.sub(r"（[^）]{0,18}\d+\.\d+[^）]{0,18}）", " ", cleaned)
     cleaned = re.sub(r"截至[^。；;]*", " ", cleaned)
-    cleaned = re.sub(r"(建议关注|后续建议|风险提示|投资建议)[^。；;]*", " ", cleaned)
+    cleaned = re.sub(r"(Suggest watching|Follow-up suggestions|Risk warning|Investment advice)[^.;]*", " ", cleaned)
     cleaned = re.sub(r"\s+", " ", cleaned)
     return cleaned.strip(" ，,；;。.")
 
@@ -472,7 +472,7 @@ def _first_meaningful_hotspot_sentence(text: str) -> str:
         if _normalize_inline_text(item)
     ]
     for sentence in sentences:
-        if len(sentence) >= 8 and not re.search(r"(现价|成交额|涨跌幅|换手率|建议关注|截至)", sentence):
+        if len(sentence) >= 8 and not re.search(r"(current price|turnover|change rate|turnover rate|suggest watching|as of)", sentence):
             return sentence
     return sentences[0] if sentences else text
 
@@ -522,16 +522,16 @@ def _summarize_hotspot_news_event_with_llm(*, topic: str, text: str, config: Con
         import litellm
 
         prompt = (
-            "请把下面新闻压缩成一句 A 股热点题材催化摘要。"
-            "要求：不超过 70 个中文字符，只保留事件、影响方向和相关链条；"
-            "不要输出完整报道、股票价格流水、免责声明或投资建议。\n\n"
-            f"题材：{topic}\n新闻：{text}"
+            "Please compress the following news into a one-sentence A-share sector hotspot catalyst summary. "
+            "Requirements: no more than 70 Chinese characters, keep only the event, impact direction, and related chain; "
+            "do not output full reports, stock price details, disclaimers, or investment advice.\n\n"
+            f"Sector: {topic}\nNews: {text}"
         )
         with _alphasift_litellm_headers(config):
             response = litellm.completion(
                 model=model,
                 messages=[
-                    {"role": "system", "content": "你是A股题材事件摘要助手，只输出一句短摘要。"},
+                    {"role": "system", "content": "You are an A-share sector event summary assistant. Output only a short summary sentence."},
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.2,
@@ -1006,7 +1006,7 @@ class AlphaSiftService:
         if not topic_text:
             raise HTTPException(
                 status_code=400,
-                detail={"error": "alphasift_hotspot_topic_required", "message": "热点题材名称不能为空。"},
+                detail={"error": "alphasift_hotspot_topic_required", "message": "Hotspot topic name cannot be empty."},
             )
         provider_name, provider_arg = _resolve_hotspot_provider(provider)
         if not isinstance(provider_arg, DsaEastMoneyHotspotProvider):
@@ -1094,7 +1094,7 @@ class AlphaSiftService:
         _ensure_supported_strategy(strategy)
 
         adapter = _get_dsa_adapter()
-        screen = _get_adapter_callable(adapter, "screen", "screen() 不可调用。")
+        screen = _get_adapter_callable(adapter, "screen", "screen() is not callable.")
         try:
             raw = _call_alphasift_screen(screen, strategy, market, max_results, self.config)
         except ValueError as exc:
@@ -1105,14 +1105,14 @@ class AlphaSiftService:
         except (TypeError, KeyError) as exc:
             raise HTTPException(
                 status_code=422,
-                detail={"error": "alphasift_invalid_input", "message": f"AlphaSift 参数非法：{exc}"},
+                detail={"error": "alphasift_invalid_input", "message": f"AlphaSift invalid input: {exc}"},
             ) from exc
         except HTTPException:
             raise
         except Exception as exc:
             raise HTTPException(
                 status_code=424,
-                detail={"error": "alphasift_screen_failed", "message": f"AlphaSift 选股运行失败：{exc}"},
+                detail={"error": "alphasift_screen_failed", "message": f"AlphaSift screening failed: {exc}"},
             ) from exc
 
         raw_data = _to_plain(raw)
@@ -1230,7 +1230,7 @@ def _hotspot_timeline_to_route(timeline: List[Any]) -> List[Dict[str, Any]]:
         source = _env_text(item.get("source")) or "alphasift_timeline"
         route.append({
             "title": title,
-            "description": f"{date}：{title}" if date else title,
+            "description": f"{date}: {title}" if date else title,
             "source": source,
             "url": _env_text(item.get("url")),
             "published_at": date,
@@ -1238,8 +1238,8 @@ def _hotspot_timeline_to_route(timeline: List[Any]) -> List[Dict[str, Any]]:
     if route:
         return route
     return [{
-        "title": "等待发酵",
-        "description": "暂未获取到明确催化事件，可继续观察涨跌幅、成交额和核心个股联动。",
+        "title": "Awaiting catalyst",
+        "description": "No clear catalytic event detected yet. Continue monitoring price changes, trading volume, and key stock correlations.",
         "source": "fallback",
     }]
 
@@ -1292,7 +1292,7 @@ def _has_meaningful_hotspot_route(route: Any) -> bool:
         source = _env_text(item.get("source"))
         if not title and not description:
             continue
-        if source == "fallback" and title == "等待发酵":
+        if source == "fallback" and title == "Awaiting catalyst":
             continue
         return True
     return False
@@ -1304,16 +1304,16 @@ def _build_alphasift_hotspot_summary_text(summary: Dict[str, Any], *, topic: str
     heat = _safe_float(summary.get("heat_score"))
     stage = _env_text(summary.get("stage"))
     leaders = summary.get("leaders") if isinstance(summary.get("leaders"), list) else []
-    parts = [f"{display_topic} 当前热点详情"]
+    parts = [f"{display_topic} current hotspot details"]
     if heat is not None:
-        parts.append(f"热度 {heat:.1f}")
+        parts.append(f"heat {heat:.1f}")
     if stage:
-        parts.append(f"阶段 {stage}")
+        parts.append(f"stage {stage}")
     if leaders:
-        parts.append("核心股 " + "、".join(_env_text(item) for item in leaders[:3] if _env_text(item)))
+        parts.append("key stocks " + ", ".join(_env_text(item) for item in leaders[:3] if _env_text(item)))
     if quality:
-        parts.append(f"质量状态 {quality}")
-    return "，".join(part for part in parts if part) + "。"
+        parts.append(f"quality status {quality}")
+    return ", ".join(part for part in parts if part) + "."
 
 
 def _install_alphasift(config: Config) -> Dict[str, Any]:
@@ -1341,7 +1341,7 @@ def _install_alphasift(config: Config) -> Dict[str, Any]:
         except Exception as exc:
             raise HTTPException(
                 status_code=424,
-                detail={"error": "alphasift_install_failed", "message": f"修复安装 AlphaSift 失败：{exc}"},
+                detail={"error": "alphasift_install_failed", "message": f"AlphaSift repair install failed: {exc}"},
             ) from exc
 
         if completed.returncode != 0:
@@ -1352,7 +1352,7 @@ def _install_alphasift(config: Config) -> Dict[str, Any]:
                 status_code=424,
                 detail={
                     "error": "alphasift_install_failed",
-                    "message": f"修复安装 AlphaSift 失败：{detail}",
+                    "message": f"AlphaSift repair install failed: {detail}",
                 },
             )
 
@@ -1362,7 +1362,7 @@ def _install_alphasift(config: Config) -> Dict[str, Any]:
         if not _is_adapter_available(adapter_status):
             raise HTTPException(
                 status_code=424,
-                detail={"error": "alphasift_unavailable", "message": "AlphaSift 安装完成，但适配层当前不可用（available=false）。请检查当前 Python 环境和安装状态后重试。"},
+                detail={"error": "alphasift_unavailable", "message": "AlphaSift installation completed, but the adapter layer is currently unavailable (available=false). Please check the current Python environment and installation status, then try again."},
             )
         _get_dsa_adapter()
 
@@ -1379,7 +1379,7 @@ def _validate_install_spec(raw_install_spec: str) -> str:
             status_code=424,
             detail={
                 "error": "alphasift_install_spec_missing",
-                "message": f"请先将 ALPHASIFT_INSTALL_SPEC 配置为受信任来源：{DEFAULT_ALPHASIFT_INSTALL_SPEC}。",
+                "message": f"Please configure ALPHASIFT_INSTALL_SPEC to a trusted source first: {DEFAULT_ALPHASIFT_INSTALL_SPEC}.",
             },
         )
 
@@ -1389,8 +1389,8 @@ def _validate_install_spec(raw_install_spec: str) -> str:
             detail={
                 "error": "alphasift_install_spec_not_allowed",
                 "message": (
-                    "出于安全考虑，修复安装 AlphaSift 仅允许使用受信任来源："
-                    f"{DEFAULT_ALPHASIFT_INSTALL_SPEC}。如需使用本地路径或 wheel，请先手动安装到当前 Python 环境。"
+                    "For security reasons, AlphaSift repair install only allows trusted sources: "
+                    f"{DEFAULT_ALPHASIFT_INSTALL_SPEC}. To use a local path or wheel, please install it manually into the current Python environment first."
                 ),
             },
         )
@@ -1419,12 +1419,12 @@ def _ensure_alphasift_available_for_use() -> None:
         return
     normalized_diagnostics = _include_alphasift_diagnostic_suffix(diagnostics)
     if _is_missing_alphasift_module(diagnostics):
-        raise _alphasift_unavailable_exception(
-            "AlphaSift 是 DSA 的项目依赖，但当前运行环境未安装适配层。请先执行 `pip install -r requirements.txt`，或重建 Docker/桌面后端产物。",
-            diagnostics=normalized_diagnostics,
-        )
+            raise _alphasift_unavailable_exception(
+                "AlphaSift is a project dependency of DSA, but the adapter layer is not installed in the current runtime environment. Please run `pip install -r requirements.txt` first, or rebuild the Docker/desktop backend artifacts.",
+                diagnostics=normalized_diagnostics,
+            )
     raise _alphasift_unavailable_exception(
-        "AlphaSift 已开启但当前运行时状态异常。已保留异常诊断，避免自动重装掩盖真实问题。",
+        "AlphaSift is enabled but the current runtime state is abnormal. Diagnostics have been preserved to avoid auto-reinstall masking the real issue.",
         diagnostics=normalized_diagnostics,
     )
 
@@ -1444,7 +1444,7 @@ def _include_alphasift_diagnostic_suffix(
     normalized.setdefault("resolution", "no_auto_install")
     normalized.setdefault(
         "message",
-        "请先检查后端日志并修复运行时异常，当前未触发修复安装。",
+        "Please check the backend logs and fix the runtime exception first. No repair install has been triggered.",
     )
     return normalized
 
@@ -1488,7 +1488,7 @@ def _ensure_alphasift_install_access(request: Request) -> None:
             status_code=403,
             detail={
                 "error": "alphasift_install_access_denied",
-                "message": "AlphaSift 修复安装仅允许桌面模式或已启用管理员认证的会话。请先启用管理员认证后重试。",
+                "message": "AlphaSift repair install is only allowed in desktop mode or sessions with admin authentication enabled. Please enable admin authentication first and try again.",
             },
         )
 
@@ -1500,7 +1500,7 @@ def _ensure_alphasift_install_access(request: Request) -> None:
         status_code=401,
         detail={
             "error": "alphasift_install_access_denied",
-            "message": "AlphaSift 修复安装需要有效管理员会话。",
+            "message": "AlphaSift repair install requires a valid admin session.",
         },
     )
 
@@ -1529,18 +1529,18 @@ def _import_alphasift() -> Any:
                 "module": str(getattr(exc, "name", ALPHASIFT_DSA_ADAPTER_MODULE)),
             }
             raise _alphasift_unavailable_exception(
-                f"AlphaSift 未安装或未挂载到当前 Python 环境，无法导入 {ALPHASIFT_DSA_ADAPTER_MODULE}：{exc}",
+                f"AlphaSift is not installed or not mounted in the current Python environment, unable to import {ALPHASIFT_DSA_ADAPTER_MODULE}: {exc}",
                 diagnostics=diagnostics,
             ) from exc
         diagnostics = _log_unexpected_alphasift_exception("import_adapter", exc)
         raise _alphasift_unavailable_exception(
-            f"AlphaSift 适配层导入失败，请检查依赖完整性和当前 Python 环境：{exc}",
+            f"AlphaSift adapter layer import failed, please check dependency integrity and current Python environment: {exc}",
             diagnostics=diagnostics,
         ) from exc
     except Exception as exc:
         diagnostics = _log_unexpected_alphasift_exception("import_adapter", exc)
         raise _alphasift_unavailable_exception(
-            f"AlphaSift 适配层导入失败，请检查依赖完整性和当前 Python 环境：{exc}",
+            f"AlphaSift adapter layer import failed, please check dependency integrity and current Python environment: {exc}",
             diagnostics=diagnostics,
         ) from exc
 
@@ -1590,7 +1590,7 @@ def _prepare_alphasift_runtime_env() -> None:
 def _get_dsa_adapter() -> Any:
     adapter = _import_alphasift()
     for attr in ("get_status", "list_strategies", "screen"):
-        _get_adapter_callable(adapter, attr, f"{attr}() 不可调用。")
+        _get_adapter_callable(adapter, attr, f"{attr}() is not callable.")
     return adapter
 
 
@@ -1599,7 +1599,7 @@ def _get_adapter_callable(adapter: Any, name: str, missing_error: str) -> Any:
     if not callable(callable_obj):
         raise HTTPException(
             status_code=424,
-            detail={"error": "alphasift_unavailable", "message": f"已导入 alphasift 适配层，但 {missing_error}"},
+            detail={"error": "alphasift_unavailable", "message": f"AlphaSift adapter layer imported, but {missing_error}"},
         )
     return callable_obj
 
@@ -1617,21 +1617,21 @@ def _call_alphasift_status() -> Dict[str, Any]:
                 "module": str(getattr(exc, "name", ALPHASIFT_DSA_ADAPTER_MODULE)),
             }
             raise _alphasift_unavailable_exception(
-                f"AlphaSift 未安装或未挂载到当前 Python 环境，无法导入 {ALPHASIFT_DSA_ADAPTER_MODULE}：{exc}",
+                f"AlphaSift is not installed or not mounted in the current Python environment, unable to import {ALPHASIFT_DSA_ADAPTER_MODULE}: {exc}",
                 diagnostics=diagnostics,
             ) from exc
 
         diagnostics = _log_unexpected_alphasift_exception("import_adapter", exc)
         raise _alphasift_unavailable_exception(
-            f"AlphaSift 适配层导入失败，请检查依赖完整性和当前 Python 环境：{exc}",
+            f"AlphaSift adapter layer import failed, please check dependency integrity and current Python environment: {exc}",
             diagnostics=diagnostics,
         ) from exc
     try:
-        get_status = _get_adapter_callable(adapter, "get_status", "get_status() 不可调用。")
+        get_status = _get_adapter_callable(adapter, "get_status", "get_status() is not callable.")
     except HTTPException as exc:
         diagnostics = _log_unexpected_alphasift_exception("get_status_callable", exc)
         raise _alphasift_unavailable_exception(
-            "AlphaSift 适配层 get_status 不可调用，请检查适配层版本。",
+            "AlphaSift adapter layer get_status is not callable, please check the adapter version.",
             diagnostics=diagnostics,
         ) from exc
     try:
@@ -1639,14 +1639,14 @@ def _call_alphasift_status() -> Dict[str, Any]:
     except Exception as exc:
         diagnostics = _log_unexpected_alphasift_exception("get_status", exc)
         raise _alphasift_unavailable_exception(
-            f"AlphaSift 适配层 get_status 调用失败：{exc}",
+            f"AlphaSift adapter layer get_status call failed: {exc}",
             diagnostics=diagnostics,
         ) from exc
     if not isinstance(result, dict):
         exc = TypeError(f"get_status returned {type(result).__name__}, expected dict")
         diagnostics = _log_unexpected_alphasift_exception("get_status_result", exc)
         raise _alphasift_unavailable_exception(
-            "AlphaSift 适配层 get_status 返回结构非法，请检查适配层版本。",
+            "AlphaSift adapter layer get_status returned invalid structure, please check the adapter version.",
             diagnostics=diagnostics,
         ) from exc
     return result
@@ -1692,12 +1692,12 @@ def _extract_alphasift_diagnostics(exc: HTTPException) -> Optional[Dict[str, str
 
 def _list_strategies() -> List[Dict[str, Any]]:
     adapter = _get_dsa_adapter()
-    list_strategies = _get_adapter_callable(adapter, "list_strategies", "list_strategies() 不可调用。")
+    list_strategies = _get_adapter_callable(adapter, "list_strategies", "list_strategies() is not callable.")
     raw = _to_plain(list_strategies())
     if not isinstance(raw, list):
         raise HTTPException(
             status_code=424,
-            detail={"error": "alphasift_invalid_result", "message": "AlphaSift list_strategies 返回非列表。"},
+            detail={"error": "alphasift_invalid_result", "message": "AlphaSift list_strategies returned a non-list result."},
         )
 
     normalized: List[Dict[str, Any]] = []
@@ -1761,8 +1761,8 @@ def _ensure_supported_strategy(strategy: str) -> None:
     if strategy in ids:
         return
 
-    # 兼容“策略列表为空时手动输入”以及“用户手动覆盖策略参数”场景，
-    # 策略由适配层进行最终校验，因此在列表外仍保持透传。
+    # Compatible with manual input when strategy list is empty or user overrides strategy parameters.
+    # The adapter layer performs final validation, so pass-through is maintained.
 
 
 def _call_alphasift_screen(screen: Any, strategy: str, market: str, max_results: int, config: Config) -> Any:
@@ -1894,8 +1894,8 @@ def _resolve_alphasift_snapshot_source_priority(config: Config) -> str:
 def _build_alphasift_runtime_env(config: Config, *, max_results: Optional[int] = None) -> Dict[str, str]:
     # Bridge runtime only: only inject resolved DSA values for this request/process scope.
     # User .env/config is never rewritten here; unset channels/models are not silently migrated.
-    # 与 LiteLLM provider/model、openai-compatible `api_base` 与 headers 注入语义保持一致，
-    # 参见 https://docs.litellm.ai/docs/providers 与
+    # Consistent with LiteLLM provider/model, openai-compatible `api_base` and headers injection semantics,
+    # see https://docs.litellm.ai/docs/providers and
     # https://docs.litellm.ai/docs/proxy/configs#the-model_list-key
     env: Dict[str, str] = {}
 
@@ -2252,8 +2252,8 @@ class DsaEastMoneyHotspotProvider:
         info = self._fetch_ths_info(topic)
         if info:
             route.append({
-                "title": "同花顺板块概况",
-                "description": "；".join(f"{key} {value}" for key, value in list(info.items())[:4]),
+                "title": "Board Overview",
+                "description": "; ".join(f"{key} {value}" for key, value in list(info.items())[:4]),
                 "source": "ths_info",
             })
         if not stocks and summary:
@@ -2263,7 +2263,7 @@ class DsaEastMoneyHotspotProvider:
                 stocks.append({
                     "code": stock_code,
                     "name": stock_name,
-                    "role": "异动核心",
+                    "role": "core change",
                     "change_pct": None,
                     "hot_stock_score": 60.0,
                 })
@@ -2443,12 +2443,12 @@ class DsaEastMoneyHotspotProvider:
     def _derive_hotspot_stage(self, *, change_pct: Optional[float], event_count: int) -> str:
         positive_change = max(change_pct or 0.0, 0.0)
         if event_count >= 180 and positive_change >= 3.0:
-            return "加速发酵"
+            return "accelerating"
         if event_count >= 90:
-            return "持续发酵"
+            return "sustained"
         if positive_change >= 5.0:
-            return "快速拉升"
-        return "初次异动"
+            return "rapid surge"
+        return "initial breakout"
 
     def _hotspot_group(self, topic: str) -> str:
         topic_text = _env_text(topic)
@@ -2483,17 +2483,17 @@ class DsaEastMoneyHotspotProvider:
 
     def _build_hotspot_summary(self, topic: str, summary: Dict[str, Any]) -> str:
         if not summary:
-            return f"{topic} 当前暂无可用的板块异动摘要。"
+            return f"{topic} currently has no available board change summary."
         change_pct = _safe_float(summary.get("涨跌幅"))
         event_count = int(_safe_float(summary.get("板块异动总次数")) or 0)
         leader = _env_text(summary.get("板块异动最频繁个股及所属类型-股票名称"))
         action = _env_text(summary.get("板块异动最频繁个股及所属类型-买卖方向"))
-        parts = [f"{topic} 当前涨跌幅 {change_pct:.2f}%" if change_pct is not None else f"{topic} 当前有异动记录"]
+        parts = [f"{topic} current change {change_pct:.2f}%" if change_pct is not None else f"{topic} has change records"]
         if event_count:
-            parts.append(f"盘中异动 {event_count} 次")
+            parts.append(f"{event_count} intraday change events")
         if leader:
-            parts.append(f"高频异动个股为 {leader}{f'（{action}）' if action else ''}")
-        return "，".join(parts) + "。"
+            parts.append(f"high-frequency change stock is {leader}{f' ({action})' if action else ''}")
+        return ", ".join(parts) + "."
 
     def _build_hotspot_route(self, topic: str, summary: Dict[str, Any]) -> List[Dict[str, Any]]:
         route_by_date: Dict[str, Dict[str, Any]] = {}

@@ -1154,8 +1154,8 @@ class TestOrchestratorExecution(unittest.TestCase):
 
         orch = self._make_orchestrator()
         history = [
-            {"role": "user", "content": "之前的问题"},
-            {"role": "assistant", "content": "之前的回答"},
+            {"role": "user", "content": "previous question"},
+            {"role": "assistant", "content": "previous answer"},
         ]
         captured = {}
 

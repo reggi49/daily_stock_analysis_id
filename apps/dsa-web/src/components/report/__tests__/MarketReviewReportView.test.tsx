@@ -31,48 +31,48 @@ const combinedMarketReviewPayload: MarketReviewPayload = {
   kind: 'market_review',
   region: 'cn,hk',
   language: 'zh',
-  rootTitle: '大盘复盘',
+  rootTitle: 'Market Review',
   markets: {
     cn: {
-      title: 'A股市场',
+      title: 'A-Share Market',
       breadth: {
         upCount: 3120,
         downCount: 1420,
         limitUpCount: 72,
         limitDownCount: 4,
         totalAmount: 9600,
-        turnoverUnit: '亿元',
+        turnoverUnit: 'billion yuan',
       },
       indices: [{
         code: '000300',
-        name: '沪深300',
+        name: 'CSI 300',
         current: 3920.2,
         changePct: 1.2,
         high: 3940.5,
         low: 3860.1,
       }],
       sectors: {
-        top: [{ name: '半导体', changePct: 2.35 }],
-        bottom: [{ name: '煤炭', changePct: -1.1 }],
+        top: [{ name: 'Semiconductor', changePct: 2.35 }],
+        bottom: [{ name: 'Coal', changePct: -1.1 }],
       },
       concepts: {
-        top: [{ name: '机器人概念', changePct: 4.2 }],
-        bottom: [{ name: '转基因', changePct: -2.05 }],
+        top: [{ name: 'Robotics Concept', changePct: 4.2 }],
+        bottom: [{ name: 'GMO', changePct: -2.05 }],
       },
     },
     hk: {
-      title: '港股市场',
+      title: 'HK Stock Market',
       breadth: {
         upCount: 680,
         downCount: 410,
         limitUpCount: 0,
         limitDownCount: 0,
         totalAmount: 1180,
-        turnoverUnit: '亿港元',
+        turnoverUnit: 'billion HKD',
       },
       indices: [{
         code: 'HSI',
-        name: '恒生指数',
+        name: 'Hang Seng Index',
         current: 18920.4,
         changePct: -0.5,
         high: 19050.2,
@@ -123,8 +123,8 @@ describe('MarketReviewReportView', () => {
     expect(screen.getByText('No rotation view yet')).toBeInTheDocument();
     expect(screen.getByText('Risks & Watchlist')).toBeInTheDocument();
     expect(screen.getByText('No key observations yet')).toBeInTheDocument();
-    expect(screen.queryByText('复盘摘要')).not.toBeInTheDocument();
-    expect(screen.queryByText('暂无摘要')).not.toBeInTheDocument();
+    expect(screen.queryByText('Review summary')).not.toBeInTheDocument();
+    expect(screen.queryByText('No review summary yet')).not.toBeInTheDocument();
   });
 
   it('renders structured data for every market in a combined market review payload', () => {
@@ -136,10 +136,10 @@ describe('MarketReviewReportView', () => {
       />,
     );
 
-    expect(screen.getByText('A股市场')).toBeInTheDocument();
-    expect(screen.getByText('港股市场')).toBeInTheDocument();
-    expect(screen.getByText('沪深300')).toBeInTheDocument();
-    expect(screen.getByText('恒生指数')).toBeInTheDocument();
+    expect(screen.getByText('A-Share Market')).toBeInTheDocument();
+    expect(screen.getByText('HK Stock Market')).toBeInTheDocument();
+    expect(screen.getByText('CSI 300')).toBeInTheDocument();
+    expect(screen.getByText('Hang Seng Index')).toBeInTheDocument();
     expect(screen.getByText('3120')).toBeInTheDocument();
     expect(screen.getByText('680')).toBeInTheDocument();
   });
@@ -153,10 +153,10 @@ describe('MarketReviewReportView', () => {
       />,
     );
 
-    expect(screen.getAllByText('行业板块')).toHaveLength(2);
-    expect(screen.getAllByText('概念板块')).toHaveLength(2);
-    expect(screen.getByText('半导体')).toBeInTheDocument();
-    expect(screen.getByText('机器人概念')).toBeInTheDocument();
+    expect(screen.getAllByText('Industry Sectors')).toHaveLength(2);
+    expect(screen.getAllByText('Concept Sectors')).toHaveLength(2);
+    expect(screen.getByText('Semiconductor')).toBeInTheDocument();
+    expect(screen.getByText('Robotics Concept')).toBeInTheDocument();
     expect(screen.getByText('+4.20%')).toBeInTheDocument();
     expect(screen.getByText('-2.05%')).toBeInTheDocument();
   });
@@ -170,15 +170,15 @@ describe('MarketReviewReportView', () => {
       />,
     );
 
-    expect(screen.getByText('结构化大盘数据')).toBeInTheDocument();
-    expect(screen.getAllByText('上涨家数')).toHaveLength(2);
-    expect(screen.getAllByText('下跌家数')).toHaveLength(2);
-    expect(screen.getAllByText('涨停/跌停')).toHaveLength(2);
-    expect(screen.getAllByText('成交额')).toHaveLength(2);
-    expect(screen.getAllByText('指数')).toHaveLength(2);
-    expect(screen.getAllByText('最新')).toHaveLength(2);
-    expect(screen.getAllByText('涨跌幅')).toHaveLength(2);
-    expect(screen.getAllByText('高/低')).toHaveLength(2);
+    expect(screen.getByText('Structured Market Data')).toBeInTheDocument();
+    expect(screen.getAllByText('Advancers')).toHaveLength(2);
+    expect(screen.getAllByText('Decliners')).toHaveLength(2);
+    expect(screen.getAllByText('Limit Up/Down')).toHaveLength(2);
+    expect(screen.getAllByText('Turnover')).toHaveLength(2);
+    expect(screen.getAllByText('Index')).toHaveLength(2);
+    expect(screen.getAllByText('Latest')).toHaveLength(2);
+    expect(screen.getAllByText('Change')).toHaveLength(2);
+    expect(screen.getAllByText('High/Low')).toHaveLength(2);
     expect(screen.queryByText('Structured Market Data')).not.toBeInTheDocument();
     expect(screen.queryByText('Advancers')).not.toBeInTheDocument();
     expect(screen.queryByText('Index')).not.toBeInTheDocument();
@@ -300,7 +300,7 @@ describe('MarketReviewReportView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '查看历史记录 7 运行流' }));
+    fireEvent.click(screen.getByRole('button', { name: 'View run flow for record 7' }));
 
     expect(onOpenRunFlow).toHaveBeenCalledWith(7);
   });

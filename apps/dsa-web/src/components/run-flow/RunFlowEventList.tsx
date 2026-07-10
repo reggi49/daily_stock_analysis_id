@@ -46,9 +46,9 @@ const matchesFilter = (event: RunFlowEvent, filter: EventFilter): boolean => {
       || /failed|error|timeout/.test(text);
   }
   if (filter === 'fallback') {
-    return /fallback|retry|降级|重试/.test(text);
+    return /fallback|retry|degraded/i.test(text);
   }
-  return /cancel|取消/.test(text);
+  return /cancel|cancelled/i.test(text);
 };
 
 export const RunFlowEventList: React.FC<RunFlowEventListProps> = ({

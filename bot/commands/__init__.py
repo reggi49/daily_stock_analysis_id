@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-命令处理器模块
+Command Handler Module
 ===================================
 
-包含所有机器人命令的实现。
+Contains all bot command implementations.
 """
 
 from bot.commands.base import BotCommand

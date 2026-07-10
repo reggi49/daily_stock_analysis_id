@@ -23,7 +23,7 @@ const overview: AnalysisContextPackOverview = {
   blocks: [
     {
       key: 'quote',
-      label: '行情',
+      label: 'Quote',
       status: 'available',
       source: 'mock_quote',
       warnings: [],
@@ -31,7 +31,7 @@ const overview: AnalysisContextPackOverview = {
     },
     {
       key: 'news',
-      label: '新闻',
+      label: 'News',
       status: 'missing',
       source: null,
       warnings: ['news_provider_timeout'],
@@ -39,7 +39,7 @@ const overview: AnalysisContextPackOverview = {
     },
     {
       key: 'fundamentals',
-      label: '基本面',
+      label: 'Fundamentals',
       status: 'fetch_failed',
       source: 'fundamental_pipeline',
       warnings: [],
@@ -86,28 +86,28 @@ describe('AnalysisContextSummary', () => {
 
     const panel = screen.getByTestId('analysis-context-summary');
     expect(panel).not.toHaveAttribute('open');
-    expect(within(panel).getAllByText('输入数据块')[0]).toBeVisible();
-    expect(screen.getAllByText('可用 1')[0]).toBeVisible();
-    expect(screen.getAllByText('缺失 1')[0]).toBeVisible();
-    expect(screen.getAllByText('抓取失败 1')[0]).toBeVisible();
-    expect(screen.getAllByText('质量分 82/100 可用')[0]).toBeVisible();
-    expect(screen.getByText('触发来源: api')).toBeVisible();
-    expect(screen.getByText('来源: mock_quote')).not.toBeVisible();
+    expect(within(panel).getAllByText('Input Blocks')[0]).toBeVisible();
+    expect(screen.getAllByText('Available 1')[0]).toBeVisible();
+    expect(screen.getAllByText('Missing 1')[0]).toBeVisible();
+    expect(screen.getAllByText('Fetch failed 1')[0]).toBeVisible();
+    expect(screen.getAllByText('Quality 82/100 Usable')[0]).toBeVisible();
+    expect(screen.getByText('Trigger: api')).toBeVisible();
+    expect(screen.getByText('Source: mock_quote')).not.toBeVisible();
 
-    fireEvent.click(within(panel).getAllByText('输入数据块')[0]);
+    fireEvent.click(within(panel).getAllByText('Input Blocks')[0]);
 
     expect(panel).toHaveAttribute('open');
-    expect(screen.getByText('行情')).toBeInTheDocument();
-    expect(screen.getByText('来源: mock_quote')).toBeVisible();
-    expect(screen.getByText('告警:')).toBeInTheDocument();
+    expect(screen.getByText('Quote')).toBeInTheDocument();
+    expect(screen.getByText('Source: mock_quote')).toBeVisible();
+    expect(screen.getByText('Alerts:')).toBeInTheDocument();
     expect(screen.getByText(/intraday_realtime_overlay/)).toBeInTheDocument();
-    expect(screen.getByText('数据限制:')).toBeInTheDocument();
-    expect(screen.getByText(/基本面：抓取失败/)).toBeInTheDocument();
+    expect(screen.getByText('Data Limitations:')).toBeInTheDocument();
+    expect(screen.getByText(/fundamentals: Fetch failed/)).toBeInTheDocument();
     expect(screen.getByText(/news_provider_timeout/)).toBeInTheDocument();
     expect(screen.getByText(/未进入分析输入 \(news_context_missing\)/)).toBeInTheDocument();
     expect(screen.getByText(/fundamental_pipeline_failed/)).toBeInTheDocument();
-    expect(screen.getAllByText('新闻结果数: 3').some((item) => item.textContent === '新闻结果数: 3')).toBe(true);
-    expect(screen.getAllByText('本次分析输入')[0]).toBeVisible();
+    expect(screen.getAllByText('News result count: 3').some((item) => item.textContent === 'News result count: 3')).toBe(true);
+    expect(screen.getAllByText('Analysis input for this run')[0]).toBeVisible();
   });
 
   it('localizes the collapsed summary for english reports', () => {
@@ -135,7 +135,7 @@ describe('AnalysisContextSummary', () => {
       blocks: [
         {
           key: 'quote',
-          label: '行情',
+      label: 'Quote',
           status: 'fallback',
           source: 'cached_quote',
           warnings: ['quote_fallback'],
@@ -143,7 +143,7 @@ describe('AnalysisContextSummary', () => {
         },
         {
           key: 'fundamental',
-          label: '基本面',
+          label: 'Fundamentals',
           status: 'stale',
           source: 'fundamental_cache',
           warnings: ['stale_fundamental'],
@@ -166,10 +166,10 @@ describe('AnalysisContextSummary', () => {
 
     const panel = screen.getByTestId('analysis-context-summary');
     expect(panel).not.toHaveAttribute('open');
-    expect(within(panel).getByText('可用 0')).toBeVisible();
-    expect(within(panel).getByText('缺失 0')).toBeVisible();
-    expect(within(panel).getAllByText('降级 1')[0]).toBeVisible();
-    expect(within(panel).getAllByText('过期 1')[0]).toBeVisible();
+    expect(within(panel).getByText('Available 0')).toBeVisible();
+    expect(within(panel).getByText('Missing 0')).toBeVisible();
+    expect(within(panel).getAllByText('Degraded 1')[0]).toBeVisible();
+    expect(within(panel).getAllByText('Stale 1')[0]).toBeVisible();
   });
 
   it('does not render without an overview', () => {
@@ -181,7 +181,7 @@ describe('AnalysisContextSummary', () => {
     const unsafeOverview = {
       ...overview,
       value: 'raw trend payload',
-      content: '完整新闻正文不应出现',
+      content: 'Full news text should not appear',
       apiKey: 'secret-key',
       blocks: [
         {
@@ -198,10 +198,10 @@ describe('AnalysisContextSummary', () => {
 
     render(<AnalysisContextSummary overview={unsafeOverview} />);
 
-    fireEvent.click(screen.getAllByText('输入数据块')[0]);
+    fireEvent.click(screen.getAllByText('Input Blocks')[0]);
 
     expect(screen.queryByText('raw trend payload')).not.toBeInTheDocument();
-    expect(screen.queryByText('完整新闻正文不应出现')).not.toBeInTheDocument();
+    expect(screen.queryByText('Full news text should not appear')).not.toBeInTheDocument();
     expect(screen.queryByText('secret-key')).not.toBeInTheDocument();
   });
 });
@@ -244,8 +244,8 @@ describe('ReportSummary analysis context placement', () => {
       },
       summary: {
         analysisSummary: 'summary',
-        operationAdvice: '持有',
-        trendPrediction: '震荡',
+        operationAdvice: 'Hold',
+        trendPrediction: 'Oscillation',
         sentimentScore: 70,
       },
       strategy: {
@@ -262,8 +262,8 @@ describe('ReportSummary analysis context placement', () => {
       report,
       diagnosticSummary: {
         status: 'normal',
-        statusLabel: '正常',
-        reason: '运行正常',
+        statusLabel: 'Normal',
+        reason: 'Running normally',
         components: {},
         copyText: '',
       },
@@ -273,25 +273,25 @@ describe('ReportSummary analysis context placement', () => {
     render(<ReportSummary data={result} />);
 
     await waitFor(() => {
-      expect(screen.getByText('暂无相关资讯')).toBeInTheDocument();
+      expect(screen.getByText('No related news')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('市场阶段: CN · 盘中')).toBeInTheDocument();
-    expect(screen.getByText('日线未完成')).toBeInTheDocument();
-    expect(screen.getAllByText('质量分 82/100 可用')[0]).toBeInTheDocument();
+    expect(screen.getByText('Market phase: CN · Intraday')).toBeInTheDocument();
+    expect(screen.getByText('Partial bar')).toBeInTheDocument();
+    expect(screen.getAllByText('Quality 82/100 Usable')[0]).toBeInTheDocument();
 
-    const strategy = screen.getByText('狙击点位');
-    const news = screen.getByText('相关资讯');
+    const strategy = screen.getByText('Sniper Levels');
+    const news = screen.getByText('Related News');
     const diagnostics = screen.getByTestId('run-diagnostics');
     const contextSummary = screen.getByTestId('analysis-context-summary');
     expect(contextSummary).not.toHaveAttribute('open');
     expect(diagnostics).not.toHaveAttribute('open');
-    const traceability = screen.getByText('数据追溯');
+    const traceability = screen.getByText('Data Traceability');
 
     expect(strategy.compareDocumentPosition(news) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(news.compareDocumentPosition(contextSummary) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(contextSummary.compareDocumentPosition(diagnostics) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(diagnostics.compareDocumentPosition(traceability) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(screen.queryByText('AI 建议 / 决策信号')).not.toBeInTheDocument();
+    expect(screen.queryByText('AI Suggestions / Decision Signals')).not.toBeInTheDocument();
   });
 });

@@ -1,34 +1,34 @@
-# 资讯 / 情报源 MVP
+# News / Intelligence Sources MVP
 
-Issue #1707 的首版能力聚焦“合规资讯源采集、本地沉淀、可查询证据”，不把 RSS/Atom 混入按需搜索语义，也不默认新增独立舆情页。
+Issue #1386's v1 capability focuses on "compliant news source collection, local persistence, and queryable evidence," without mixing RSS/Atom into on-demand search semantics or defaulting to adding an independent sentiment page.
 
-## 能力范围
+## Capability Scope
 
-- 支持配置 RSS / Atom HTTP(S) 资讯源。
-- 支持 NewsNow HTTP JSON 源，默认内置财联社热门、雪球热门股票、华尔街见闻快讯、金十数据和格隆汇事件等主流财经源。
-- 支持查询内置 RSS/Atom/NewsNow 模板，并可从模板创建可测试、可启停的资讯源；也可以一键创建全部内置默认源。
-- 保存资讯源配置、启用状态、作用域和最近一次拉取状态。
-- 拉取条目落库到 `intelligence_items`，保存标题、摘要、URL、来源、发布时间、拉取时间、市场与作用域。
-- 按 URL 去重；无 URL 条目使用 `no-url:intel:<hash>` 兜底键。
-- 支持 `symbol` / `market` / `sector` 作用域，以及 `cn` / `hk` / `us` / `jp` / `kr` / `tw` / `global` 市场标记。
-- 拉取批处理采用 fail-open：单个源失败不会阻塞其他源或主分析链路。
-- 支持 retention 清理，避免资讯池无限增长。
+- Supports configuring RSS / Atom HTTP(S) news sources.
+- Supports NewsNow HTTP JSON sources, with built-in defaults for mainstream financial sources including Cailianshe Hot, Xueqiu Hot Stocks, Wall Street CN Flash, Jin10 Data, and Gelonghui Events.
+- Supports querying built-in RSS/Atom/NewsNow templates, and creating testable, toggleable news sources from templates; one-click creation of all built-in default sources is also supported.
+- Saves news source configuration, enabled status, scope, and last fetch status.
+- Fetched items are persisted to `intelligence_items`, saving title, summary, URL, source, publish time, fetch time, market, and scope.
+- Deduplication by URL; items without URLs use `no-url:intel:<hash>` as the fallback key.
+- Supports `symbol` / `market` / `sector` scope, as well as `cn` / `hk` / `us` / `jp` / `kr` / `tw` / `global` market markers.
+- Fetch batching uses fail-open: a single source failure does not block other sources or the main analysis chain.
+- Supports retention cleanup to prevent unbounded growth of the news pool.
 
-## 安全边界
+## Security Boundaries
 
-自定义 URL 会做基础校验：
+Custom URLs undergo basic validation:
 
-- 只允许绝对 `http` / `https` URL；
-- 禁止 URL 中携带 username/password；
-- 禁止 `localhost`、`.local`、回环地址、内网地址、链路本地地址、保留地址、共享地址段和组播地址；
-- 解析与拉取阶段显式禁用环境代理（如 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY`），避免通过环境代理绕过校验边界；
-- 实际连接阶段会再次校验目标主机 DNS 解析结果，避免校验后解析漂移到受限地址；
-- 重定向后的最终 URL 也会再次校验；
-- 错误消息会脱敏常见 `token` / `key` / `secret` 查询参数。
+- Only absolute `http` / `https` URLs are allowed;
+- URLs containing username/password are prohibited;
+- `localhost`, `.local`, loopback addresses, intranet addresses, link-local addresses, reserved addresses, shared address ranges, and multicast addresses are prohibited;
+- Environment proxies (e.g., `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`) are explicitly disabled during parsing and fetching stages to avoid bypassing validation via environment proxies;
+- During the actual connection stage, the target host's DNS resolution is re-validated to prevent post-validation resolution drift to restricted addresses;
+- Redirected final URLs are also re-validated;
+- Error messages sanitize common `token` / `key` / `secret` query parameters.
 
-明确非目标：不做反爬、模拟登录、Cookie 抓取或非授权门户直抓。
+Explicitly out of scope: no anti-scraping, simulated login, cookie harvesting, or unauthorized portal direct fetching.
 
-## 配置项
+## Configuration
 
 ```env
 NEWS_INTEL_RETENTION_DAYS=30
@@ -38,90 +38,90 @@ NEWS_INTEL_AUTO_FETCH_ENABLED=false
 NEWSNOW_BASE_URL=https://newsnow.busiyi.world
 ```
 
-`NEWSNOW_BASE_URL` 用于拼出 `GET {NEWSNOW_BASE_URL}/api/s?id=<source_id>`。
+`NEWSNOW_BASE_URL` is used to construct `GET {NEWSNOW_BASE_URL}/api/s?id=<source_id>`.
 
-`NEWS_INTEL_AUTO_FETCH_ENABLED` 默认关闭。设为 `true` 后，个股分析、Agent 分析和大盘复盘在读取本地资讯池前会先执行一次 fail-open 自动刷新：缺少内置资讯源时自动创建并启用默认源，已有但禁用的内置默认源会重新启用，然后拉取全部启用源并写入 `intelligence_items`。为避免每只股票重复请求外部站点，运行进程内有 60 分钟冷却；冷却内复用本地库数据。
+`NEWS_INTEL_AUTO_FETCH_ENABLED` is disabled by default. When set to `true`, individual stock analysis, Agent analysis, and market review will perform a fail-open auto-refresh before reading the local news pool: built-in news sources that are missing are automatically created and enabled, built-in default sources that exist but are disabled are re-enabled, then all enabled sources are fetched and written to `intelligence_items`. To avoid repeated external site requests per stock, there is a 60-minute cooldown within the running process; during cooldown, local library data is reused.
 
-**外部依赖兼容性说明：**
+**External dependency compatibility notes:**
 
-- **官方项目与部署指南**：https://github.com/qqhann/newsnow
-- **当前默认值** `https://newsnow.busiyi.world` 是公开示例实例，**非官方部署**，存在以下风险：
-  - 可能因官方维护、限流或停止服务而不可用
-  - 不保证稳定性、可靠性或数据准确性，仅用于演示和测试
-  - 每个用户都指向同一公开实例，可能遭遇限流
-- **生产环境强烈建议**：自建 NewsNow 实例或接入已确认可控的私有/企业部署，以确保稳定性和数据可靠性
+- **Official project and deployment guide**: https://github.com/qqhann/newsnow
+- **Current default** `https://newsnow.busiyi.world` is a public demo instance, **not an official deployment**, with the following risks:
+  - May become unavailable due to official maintenance, rate limiting, or service discontinuation
+  - Stability, reliability, or data accuracy is not guaranteed; used only for demonstration and testing
+  - All users point to the same public instance and may encounter rate limiting
+- **Production environment strongly recommended**: Self-host a NewsNow instance or connect to a confirmed controllable private/enterprise deployment to ensure stability and data reliability
 
-**API 契约兼容性核验（部署前必做）：**
+**API contract compatibility verification (required before deployment):**
 
-- 验证基础可达性和返回格式：
+- Verify basic reachability and response format:
   ```bash
   curl -sS "${NEWSNOW_BASE_URL}/api/s?id=cls-hot" | python -c "import sys, json; data=json.load(sys.stdin); assert isinstance(data, dict) and isinstance(data.get('items'), list); print('OK')"
   ```
-- 详细字段兼容性可参考自动化测试：`test_newsnow_source_fetches_json_items`，涵盖 `status`、`id`、`items[].title`、`items[].url`/`mobileUrl`、`items[].pubDate`/`items[].extra.date` 等字段
-- **部署实例不在自动化上线保障范围内**；如果依赖公开示例实例，部署前务必在实际生产环境执行上述验证
+- Detailed field compatibility can be referenced in the automated test: `test_newsnow_source_fetches_json_items`, covering `status`, `id`, `items[].title`, `items[].url`/`mobileUrl`, `items[].pubDate`/`items[].extra.date`, and other fields.
+- **Deployed instances are not within automated go-live guarantees**; if relying on the public demo instance, the above verification must be performed in the actual production environment before deployment.
 
 ## API
 
-所有接口位于 `/api/v1/intelligence`。
+All endpoints are under `/api/v1/intelligence`.
 
-- `POST /sources`：创建资讯源。
-- `GET /sources`：查询资讯源。
-- `GET /sources/templates?market=hk`：查询内置资讯源模板。
-- `POST /sources/templates/{template_id}`：从内置模板创建资讯源，可覆盖名称、启用状态、作用域和说明。
-- `POST /sources/defaults`：一键创建全部内置默认源；接口幂等，已存在的同名源会返回 `created=false`，不会重复插入。默认不传 `enabled` 时以 `false` 创建；如需默认启用可传 `{ "enabled": true }`。
-- `POST /sources/test`：测试 payload，不落库。
-- `POST /sources/{source_id}/fetch?dry_run=false`：拉取单个源。
-- `POST /sources/fetch-enabled`：fail-open 拉取全部启用源。
-- `GET /items?scope_type=market&market=cn&days=7`：查询资讯条目。
+- `POST /sources`: Create a news source.
+- `GET /sources`: Query news sources.
+- `GET /sources/templates?market=hk`: Query built-in news source templates.
+- `POST /sources/templates/{template_id}`: Create a news source from a built-in template, with overrides for name, enabled status, scope, and description.
+- `POST /sources/defaults`: One-click creation of all built-in default sources; the endpoint is idempotent — existing sources with the same name return `created=false` without duplicate insertion. When `enabled` is not passed, defaults to `false`; to enable by default, pass `{ "enabled": true }`.
+- `POST /sources/test`: Test payload without persistence.
+- `POST /sources/{source_id}/fetch?dry_run=false`: Fetch a single source.
+- `POST /sources/fetch-enabled`: Fail-open fetch of all enabled sources.
+- `GET /items?scope_type=market&market=cn&days=7`: Query news items.
 
-如果希望在本地 `.env`、Docker 或其他已显式透传环境变量的运行环境中自动完成“建源 -> 拉取 -> 入库 -> 分析消费”，设置：
+If you want automatic "create source -> fetch -> persist -> analysis consumption" in local `.env`, Docker, or other runtimes with explicit environment variable passthrough, set:
 
 ```env
 NEWS_INTEL_AUTO_FETCH_ENABLED=true
 ```
 
-该开关代表用户明确同意运行时访问已配置的外部 RSS/Atom/NewsNow HTTP 源；默认关闭是为了避免未确认的外部请求、公开 NewsNow 示例实例压力和分析 prompt 输入变化。
+This toggle represents explicit user consent for the runtime to access configured external RSS/Atom/NewsNow HTTP sources; defaulting to off avoids unconfirmed external requests, public NewsNow demo instance pressure, and analysis prompt input changes.
 
-> 说明：该开关只有在实际执行进程环境变量中可见时才会生效。仓库默认随带的 `00-daily-analysis.yml` 为 `env` 采用 allowlist 映射策略，未显式列入映射时，即便在仓库 Variables/Secrets 中设置同名变量也不会注入运行环境，因此默认 workflow 中不会自动接收该开关。若要在仓库自带每日分析任务里开启该能力，请在 workflow 中显式添加该变量透传，或改为本地/Docker 直接配置环境变量运行。
+> Note: This toggle only takes effect when visible in the actual runtime process environment variables. The repository's default `00-daily-analysis.yml` uses an allowlist mapping strategy for `env`; when not explicitly listed in the mapping, even setting a same-name variable in the repository's Variables/Secrets will not inject it into the runtime environment, so the default workflow will not automatically receive this toggle. To enable this capability in the repository's built-in daily analysis task, add explicit variable passthrough in the workflow, or run locally/Docker with the environment variable configured directly.
 
-## NewsNow 默认源
+## NewsNow Default Sources
 
-NewsNow 不是 RSS，而是一个聚合热点平台。DSA 直接按 HTTP API 读取它的 JSON 返回，不需要 MCP：
+NewsNow is not RSS but an aggregation hotspot platform. DSA reads its JSON response directly via HTTP API without needing MCP:
 
 ```text
 GET {NEWSNOW_BASE_URL}/api/s?id=cls-hot
 ```
 
-本 PR 先接入以下财经相关默认源，保证流程能从“源配置 -> 拉取 -> 落库 -> 分析读取”跑通：
+This PR first integrates the following finance-related default sources to ensure the "source config -> fetch -> persist -> analysis read" pipeline runs end-to-end:
 
-- `cls-hot`：财联社热门，偏 A 股和题材热点。
-- `xueqiu-hotstock`：雪球热门股票，偏个股关注度。
-- `wallstreetcn-quick`：华尔街见闻快讯，偏宏观、商品和市场事件。
-- `jin10`：金十数据，偏全球宏观和外盘事件。
-- `gelonghui`：格隆汇事件，偏港股和中概股上下文。
+- `cls-hot`: Cailianshe Hot, biased toward A-shares and theme hotspots.
+- `xueqiu-hotstock`: Xueqiu Hot Stocks, biased toward individual stock attention.
+- `wallstreetcn-quick`: Wall Street CN Flash, biased toward macro, commodities, and market events.
+- `jin10`: Jin10 Data, biased toward global macro and offshore events.
+- `gelonghui`: Gelonghui Events, biased toward Hong Kong and ADR context.
 
-如果需要更多国内平台，可以继续通过 `POST /sources` 手动添加 NewsNow 源，`source_type=newsnow`，`url` 填 `https://<your-newsnow>/api/s?id=<source_id>`。如果更偏好 RSS，也可以用 RSSHub 等合规 RSS 源继续按 `source_type=rss` 接入。
+If more domestic platforms are needed, additional NewsNow sources can be added via `POST /sources` with `source_type=newsnow` and `url` set to `https://<your-newsnow>/api/s?id=<source_id>`. If you prefer RSS, compliant RSS sources like RSSHub can also be integrated via `source_type=rss`.
 
-## 后续接入建议
+## Follow-up Integration Recommendations
 
-首版基线之上，分析链路会 best-effort 读取本地资讯池：
+Beyond the v1 baseline, the analysis chain will best-effort read the local news pool:
 
-- 个股传统分析会优先读取 `symbol=<股票代码>` 的资讯，并补充同市场 `market` 级资讯；内容追加到既有 `news_context`，随 AnalysisContextPack 摘要和历史 `news_content` 保存。
-- Agent 分析同样通过 `news_context` 注入本地资讯证据，避免 Agent 必须重新搜索才能看到已沉淀新闻。
-- 大盘复盘会把同市场 `market` 级资讯合并到市场新闻列表，Prompt、结构化 payload 和报告 news 字段都能看到来源链接。
-- 如果 `NEWS_INTEL_AUTO_FETCH_ENABLED=true`，上述入口会先 fail-open 自动刷新本地资讯池；刷新失败不会阻塞分析。
-- 本次能力仅新增本地资讯消费路径，不改模型名、provider/base URL、默认模型策略、回退策略、`save_context_snapshot` 前清理逻辑或运行时配置语义；兼容现有部署配置，回滚方式为清退本地资讯接入入口或移除本地资讯源配置/数据。
+- Individual stock traditional analysis prioritizes reading `symbol=<stock_code>` news and supplements same-market `market`-level news; content is appended to the existing `news_context` and saved with the AnalysisContextPack summary and historical `news_content`.
+- Agent analysis also injects local news evidence via `news_context`, avoiding the need for the Agent to re-search to see already-persisted news.
+- Market review merges same-market `market`-level news into the market news list; Prompt, structured payload, and report news fields all show source links.
+- If `NEWS_INTEL_AUTO_FETCH_ENABLED=true`, the above entry points will first perform a fail-open auto-refresh of the local news pool; refresh failures do not block analysis.
+- This capability only adds a local news consumption path without changing model names, provider/base URL, default model strategy, fallback strategy, `save_context_snapshot` pre-cleanup logic, or runtime configuration semantics; it is compatible with existing deployment configurations, and rollback involves removing the local news integration entry point or removing local news source configuration/data.
 
-后续 PR 可以继续完善 NewsNow HTTP provider、报告 evidence 展示和 Web 设置/报告查看入口。
+Follow-up PRs can continue to improve the NewsNow HTTP provider, report evidence display, and Web settings/report viewing entry points.
 
-## 兼容性与回滚说明（Issue #1707）
+## Compatibility & Rollback Notes (Issue #1386)
 
-- 本功能不改动第三方 LLM provider 语义，不新增 provider/model/base URL/默认模型策略/运行时路由或配置迁移分支。
-- 结构化检测提示中的模型/API 兼容风险在本次改动中不成立：`news_context` 注入链路仅复用现有 LLM 分析输入构造流程（`src/core/pipeline.py`、`src/market_analyzer.py`、`src/analyzer.py`），且不新增 `.env` 写入、保存前清理、清空/回填逻辑。
-- 回滚方式：`revert` 本 PR；如需降级配置，仅需停用并移除本地资讯源配置（含 `sources` 表与 `intelligence_items` 存量）即可，不影响原有模型、provider 或其它历史分析链路。
+- This feature does not modify third-party LLM provider semantics and does not add new provider/model/base URL/default model strategy/runtime routing or configuration migration branches.
+- Model/API compatibility risks flagged in structured detection do not apply to this change: the `news_context` injection chain only reuses existing LLM analysis input construction flow (`src/core/pipeline.py`, `src/market_analyzer.py`, `src/analyzer.py`) and does not add `.env` writes, pre-save cleanup, or clear/backfill logic.
+- Rollback: `revert` this PR; for degraded configuration, only disable and remove local news source configuration (including `sources` table and `intelligence_items` existing data); existing models, providers, or other historical analysis chains are unaffected.
 
-## PR 描述可复用内容（Issue #1707）
+## PR Reusable Content (Issue #1386)
 
-- Refs: `#1707`
-- 兼容性结论：本次仅新增本地资讯消费链路，不改模型名/provider/base URL/默认模型策略/回退策略/保存前清理逻辑/运行时配置迁移。`news_context` 与 `market_review_payload` 的扩展为 best-effort 追加，不影响既有契约与兼容性边界。
-- 回滚方案：最小回滚路径为 `revert this PR`；如仅需降级接入，可在运行时停用并清理本地资讯源（`sources` 与 `intelligence_items`）。
+- Refs: `#1386`
+- Compatibility conclusion: This change only adds a local news consumption path without changing model name/provider/base URL/default model strategy/fallback strategy/pre-save cleanup logic/runtime configuration migration. The extensions to `news_context` and `market_review_payload` are best-effort additions that do not affect existing contracts and compatibility boundaries.
+- Rollback plan: The minimum rollback path is `revert this PR`; for degraded integration only, local news sources (`sources` and `intelligence_items`) can be disabled and cleaned up at runtime.
