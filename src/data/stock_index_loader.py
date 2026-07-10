@@ -336,8 +336,8 @@ def _resolve_index_stock_code_uncached(query: str) -> str | None:
             resolved = _build_stock_code_lookup(raw_items).get(code)
             if resolved:
                 return resolved
-            except (OSError, TypeError, ValueError) as exc:
-                logger.debug("[Stock Index] Failed to resolve code index %s: %s", index_path, exc)
+        except (OSError, TypeError, ValueError) as exc:
+            logger.debug("[Stock Index] Failed to resolve code index %s: %s", index_path, exc)
 
     return None
 
