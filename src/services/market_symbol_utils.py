@@ -8,17 +8,24 @@ without introducing import cycles.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 
 @dataclass(frozen=True)
 class SuffixMarketSpec:
-    """A suffix-only Yahoo Finance market rule."""
+    """A suffix-only Yahoo Finance market rule.
+
+    A base is accepted when it is all digits with a length in ``digit_lengths``
+    OR all letters with a length in ``alpha_lengths``. Digit-based markets
+    (CN offshore listings, JP/KR/TW) use ``digit_lengths``; alphabetic markets
+    such as Indonesia (IDX, ``.JK``) use ``alpha_lengths``.
+    """
 
     market: str
     suffixes: tuple[str, ...]
-    digit_lengths: tuple[int, ...]
+    digit_lengths: tuple[int, ...] = ()
+    alpha_lengths: tuple[int, ...] = ()
 
 
 _SUFFIX_MARKET_SPECS: tuple[SuffixMarketSpec, ...] = (
@@ -27,6 +34,12 @@ _SUFFIX_MARKET_SPECS: tuple[SuffixMarketSpec, ...] = (
     # Taiwan support mirrors the same suffix-only pattern; keep it here so the
     # shared helpers stay complete for all yfinance-only offshore markets.
     SuffixMarketSpec("tw", ("TW", "TWO"), (4, 5, 6)),
+    # Indonesia (IDX / Bursa Efek Indonesia). Yahoo Finance lists Indonesian
+    # equities with the `.JK` suffix and alphabetic tickers, e.g. BBCA.JK,
+    # TLKM.JK, GOTO.JK. IDX tickers are 4 letters in practice; allow 2-5 to
+    # stay resilient without introducing ambiguity (the `.JK` suffix is
+    # required for detection).
+    SuffixMarketSpec("id", ("JK",), alpha_lengths=(2, 3, 4, 5)),
 )
 
 _MARKET_TO_SPEC = {spec.market: spec for spec in _SUFFIX_MARKET_SPECS}
@@ -35,6 +48,16 @@ _SUFFIX_TO_SPEC = {
     for spec in _SUFFIX_MARKET_SPECS
     for suffix in spec.suffixes
 }
+
+
+def _base_matches_spec(base: str, spec: SuffixMarketSpec) -> bool:
+    """Return True when ``base`` is a valid ticker body for ``spec``."""
+
+    if base.isdigit() and len(base) in spec.digit_lengths:
+        return True
+    if base.isalpha() and len(base) in spec.alpha_lengths:
+        return True
+    return False
 
 
 def split_suffix_symbol(stock_code: str) -> tuple[str, str] | None:
@@ -50,7 +73,7 @@ def split_suffix_symbol(stock_code: str) -> tuple[str, str] | None:
 
 
 def get_suffix_market(stock_code: str) -> Optional[str]:
-    """Return jp/kr/tw for supported suffix-only Yahoo symbols, else None."""
+    """Return jp/kr/tw/id for supported suffix-only Yahoo symbols, else None."""
 
     parts = split_suffix_symbol(stock_code)
     if parts is None:
@@ -59,7 +82,7 @@ def get_suffix_market(stock_code: str) -> Optional[str]:
     spec = _SUFFIX_TO_SPEC.get(suffix)
     if spec is None:
         return None
-    if not (base.isdigit() and len(base) in spec.digit_lengths):
+    if not _base_matches_spec(base, spec):
         return None
     return spec.market
 
@@ -85,6 +108,10 @@ def is_tw_suffix_symbol(stock_code: str) -> bool:
     return is_suffix_market_symbol(stock_code, "tw")
 
 
+def is_id_suffix_symbol(stock_code: str) -> bool:
+    return is_suffix_market_symbol(stock_code, "id")
+
+
 def normalize_suffix_market_symbol(stock_code: str) -> Optional[str]:
     """Normalize supported suffix-only symbols to upper-case Yahoo form."""
 
@@ -101,8 +128,9 @@ def suffix_base_lookup_allowed(canonical_code: str) -> bool:
     """Return True when a suffix-market code may be resolved from its bare base.
 
     JP/KR intentionally allow stock-index-backed bare-code lookup to support the
-    existing MVP behavior. TW remains strict suffix-only for now because its
-    follow-up index work is not part of this issue.
+    existing MVP behavior. TW/ID remain strict suffix-only: TW because its
+    follow-up index work is not part of this issue, ID because Indonesian tickers are
+    alphabetic and only unambiguous with the `.JK` suffix.
     """
 
     return get_suffix_market(canonical_code) in {"jp", "kr"}

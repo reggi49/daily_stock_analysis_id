@@ -38,7 +38,7 @@ except ImportError:
     )
 
 # Market -> exchange code (exchange-calendars)
-MARKET_EXCHANGE = {"cn": "XSHG", "hk": "XHKG", "us": "XNYS", "jp": "XTKS", "kr": "XKRX", "tw": "XTAI"}
+MARKET_EXCHANGE = {"cn": "XSHG", "hk": "XHKG", "us": "XNYS", "jp": "XTKS", "kr": "XKRX", "tw": "XTAI", "id": "XIDX"}
 
 # Market -> IANA timezone for "today"
 MARKET_TIMEZONE = {
@@ -48,6 +48,7 @@ MARKET_TIMEZONE = {
     "jp": "Asia/Tokyo",
     "kr": "Asia/Seoul",
     "tw": "Asia/Taipei",
+    "id": "Asia/Jakarta",
 }
 
 # P0 market phase baseline (Issue #1386). This is an intentionally small
@@ -562,7 +563,7 @@ def compute_effective_region(
         '': all relevant markets closed, skip market review
         'cn' | 'hk' | 'us' | 'jp' | 'kr' | 'both': effective subset for today
     """
-    markets = ("cn", "hk", "us", "jp", "kr")
+    markets = ("cn", "hk", "us", "jp", "kr", "id")
     normalized = (config_region or "cn").strip().lower()
     if not normalized:
         normalized = "cn"

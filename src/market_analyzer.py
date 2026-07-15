@@ -1718,7 +1718,7 @@ Market conditions can change quickly. The data above is for reference only and d
 """
             return report
 
-        market_labels = {"cn": "A股", "us": "美股", "hk": "港股", "jp": "日股", "kr": "韩股"}
+        market_labels = {"cn": "A-Share", "us": "US Stock", "hk": "HK Stock", "jp": "Japan Stock", "kr": "Korea Stock", "id": "Indonesian Stock"}
         market_label = market_labels.get(self.region, "A股")
         dashboard_block = self._build_stats_block(overview) if self.profile.has_market_stats else ""
         indices_block = self._build_indices_block(overview)

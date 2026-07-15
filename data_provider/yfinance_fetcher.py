@@ -93,6 +93,15 @@ class YfinanceFetcher(BaseFetcher):
         """
         return is_suffix_market_symbol(stock_code, "tw")
 
+    @staticmethod
+    def _is_id_suffix_stock(stock_code: str) -> bool:
+        """Return True for supported Indonesia (IDX) `.JK` Yahoo symbols.
+
+        Indonesian tickers are alphabetic (e.g. BBCA.JK, TLKM.JK); Yahoo
+        Finance accepts the `.JK` symbol as-is.
+        """
+        return is_suffix_market_symbol(stock_code, "id")
+
     def _convert_stock_code(self, stock_code: str) -> str:
         """
         Convert stock symbol to Yahoo Finance Format
@@ -130,9 +139,13 @@ class YfinanceFetcher(BaseFetcher):
             logger.debug(f"Identified as US stock code: {code}")
             return code
 
-        # Japanese stocks/Korean stocks/Taiwan stocks MVP：explicit Yahoo Finance suffix-only code，Pass it as is Yahoo。
-        if self._is_jp_kr_suffix_stock(code) or self._is_tw_suffix_stock(code):
-            logger.debug(f"Identified as Japan, Korea and Taiwan Yahoo suffix code: {code}")
+        # JP/KR/TW MVP: Explicit Yahoo Finance suffix-only code, passed as-is to Yahoo.
+        if (
+            self._is_jp_kr_suffix_stock(code)
+            or self._is_tw_suffix_stock(code)
+            or self._is_id_suffix_stock(code)
+        ):
+            logger.debug(f"Identified as JP/KR/TW/ID Yahoo suffix code: {code}")
             return code
 
         # Hong Kong stocks：hkprefix -> .HKsuffix
@@ -356,6 +369,8 @@ class YfinanceFetcher(BaseFetcher):
             return self._get_kr_main_indices(yf)
         if region == "tw":
             return self._get_tw_main_indices(yf)
+        if region == "id":
+            return self._get_id_main_indices(yf)
 
         # A stock index：akshare code -> (yfinance code, display name)
         yf_mapping = {
@@ -467,6 +482,29 @@ class YfinanceFetcher(BaseFetcher):
                 return results
         except Exception as e:
             logger.error(f"[Yfinance] Failed to obtain Japanese index quotes: {e}")
+        return None
+
+    def _get_id_main_indices(self, yf) -> Optional[List[Dict[str, Any]]]:
+        """Get Indonesia main index quotes (Jakarta Composite Index JKSE / LQ45), reusing _fetch_yf_ticker_data."""
+        id_indices = {
+            'JKSE': ('^JKSE', 'IDX Composite'),
+            'LQ45': ('^JKLQ45', 'LQ45'),
+        }
+        results = []
+        try:
+            for code, (yf_symbol, name) in id_indices.items():
+                try:
+                    item = self._fetch_yf_ticker_data(yf, yf_symbol, name, code)
+                    if item:
+                        results.append(item)
+                        logger.debug(f"[Yfinance] Successfully fetched Indonesia index {name}")
+                except Exception as e:
+                    logger.warning(f"[Yfinance] Failed to fetch Indonesia index {name}: {e}")
+            if results:
+                logger.info(f"[Yfinance] Successfully fetched {len(results)} Indonesia index quotes")
+                return results
+        except Exception as e:
+            logger.error(f"[Yfinance] Failed to fetch Indonesia index quotes: {e}")
         return None
 
     def _get_kr_main_indices(self, yf) -> Optional[List[Dict[str, Any]]]:
@@ -809,8 +847,9 @@ class YfinanceFetcher(BaseFetcher):
             self._is_us_stock(stock_code)
             or self._is_jp_kr_suffix_stock(stock_code)
             or self._is_tw_suffix_stock(stock_code)
+            or self._is_id_suffix_stock(stock_code)
         ):
-            logger.debug(f"[Yfinance] {stock_code} Not US stocks or Japan and South Korea suffix code，jump over")
+            logger.debug(f"[Yfinance] {stock_code} is not a US stock or JP/KR/TW/ID suffix code, skipping")
             return None
 
         try:

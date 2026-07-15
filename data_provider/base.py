@@ -139,6 +139,8 @@ def normalize_stock_code(stock_code: str) -> str:
             return f"{base}.{suffix.upper()}"
         if suffix.upper() in ('TW', 'TWO') and base.isdigit() and 4 <= len(base) <= 6:
             return f"{base}.{suffix.upper()}"
+        if suffix.upper() == 'JK' and base.isalpha() and 2 <= len(base) <= 5:
+            return f"{base.upper()}.JK"
         if suffix.upper() == 'HK' and base.isdigit() and 1 <= len(base) <= 5:
             return f"HK{base.zfill(5)}"
         if base.upper() in ('SH', 'SS', 'SZ', 'BJ') and suffix.isdigit():
@@ -197,6 +199,14 @@ def _is_tw_market(code: str) -> bool:
     return is_suffix_market_symbol(code, "tw")
 
 
+def _is_id_market(code: str) -> bool:
+    """Determine if it is an Indonesia Yahoo Finance suffix code (e.g., BBCA.JK / TLKM.JK).
+
+    IDX stocks use the `.JK` suffix on Yahoo Finance, and the codes are letters (usually 4 letters).
+    """
+    return is_suffix_market_symbol(code, "id")
+
+
 def _is_etf_code(code: str) -> bool:
     """Determine whether the code is an A-share ETF fund code (conservative rule)."""
     normalized = normalize_stock_code(code)
@@ -237,7 +247,7 @@ def _is_meaningful_chip_distribution(chip: Any) -> bool:
 
 
 def _market_tag(code: str) -> str:
-    """Return the market tag: cn/us/hk/jp/kr/tw."""
+    """Return the market tag: cn/us/hk/jp/kr/tw/id."""
     if _is_us_market(code):
         return "us"
     if _is_hk_market(code):
@@ -248,6 +258,8 @@ def _market_tag(code: str) -> str:
         return "kr"
     if _is_tw_market(code):
         return "tw"
+    if _is_id_market(code):
+        return "id"
     return "cn"
 
 
@@ -621,7 +633,7 @@ class DataFetcherManager:
         "TickFlowFetcher": {"cn"},
         "PytdxFetcher": {"cn"},
         "BaostockFetcher": {"cn"},
-        "YfinanceFetcher": {"cn", "hk", "us", "jp", "kr", "tw"},
+        "YfinanceFetcher": {"cn", "hk", "us", "jp", "kr", "tw", "id"},
         "LongbridgeFetcher": {"hk", "us"},
         "FinnhubFetcher": {"us"},
         "AlphaVantageFetcher": {"us"},
@@ -1288,16 +1300,17 @@ class DataFetcherManager:
         is_jp = (not is_us) and (not is_hk) and _is_jp_market(stock_code)
         is_kr = (not is_us) and (not is_hk) and _is_kr_market(stock_code)
         is_tw = (not is_us) and (not is_hk) and _is_tw_market(stock_code)
-        market = "us" if is_us else "hk" if is_hk else "jp" if is_jp else "kr" if is_kr else "tw" if is_tw else "cn"
+        is_id = (not is_us) and (not is_hk) and _is_id_market(stock_code)
+        market = "us" if is_us else "hk" if is_hk else "jp" if is_jp else "kr" if is_kr else "tw" if is_tw else "id" if is_id else "cn"
         if market != "cn":
             fetchers = self._filter_daily_fetchers_for_market(fetchers, market)
         fetchers = self._filter_fetchers_by_capability(fetchers, capability="daily_data")
         total_fetchers = len(fetchers)
 
         if total_fetchers == 0:
-            market_label = "US stock index" if is_us_index else "US stocks" if is_us else "Hong Kong stocks" if is_hk else "Taiwan stocks" if is_tw else "Ashare"
-            error_summary = f"{market_label} {stock_code} Failed to obtain:\nNo data source available yet"
-            logger.error(f"[Data source terminated] {stock_code} Failed to obtain: {error_summary}")
+            market_label = "US Index" if is_us_index else "US Stock" if is_us else "HK Stock" if is_hk else "Taiwan Stock" if is_tw else "Indonesian Stock" if is_id else "A-Share"
+            error_summary = f"{market_label} {stock_code} fetch failed:\nNo available data source"
+            logger.error(f"[Data Source Terminated] {stock_code} fetch failed: {error_summary}")
             raise DataFetchError(error_summary)
 
         # US stocks（Including US stock index）Use dedicated routing；Hong Kong stocks go down the general data source cycle
@@ -1766,12 +1779,13 @@ class DataFetcherManager:
         is_jp = (not is_us) and (not is_hk) and _is_jp_market(stock_code)
         is_kr = (not is_us) and (not is_hk) and _is_kr_market(stock_code)
         is_tw = (not is_us) and (not is_hk) and _is_tw_market(stock_code)
+        is_id = (not is_us) and (not is_hk) and _is_id_market(stock_code)
 
-        if is_jp or is_kr or is_tw:
-            market_label = "Japanese stocks" if is_jp else "Korean stocks" if is_kr else "Taiwan stocks"
+        if is_jp or is_kr or is_tw or is_id:
+            market_label = "Japan Stock" if is_jp else "Korea Stock" if is_kr else "Taiwan Stock" if is_tw else "Indonesian Stock"
             quote = self._try_fetcher_quote(stock_code, "YfinanceFetcher")
             if quote is not None:
-                logger.info(f"[Real-time quotes] {market_label} {stock_code} successfully obtained (source: YfinanceFetcher)")
+                logger.info(f"[Real-time Quote] {market_label} {stock_code} successfully fetched (Source: YfinanceFetcher)")
                 return self._enrich_realtime_quote(
                     quote,
                     realtime_cache_ttl=getattr(config, "realtime_cache_ttl", None),
@@ -3129,7 +3143,7 @@ class DataFetcherManager:
         stock_code = normalize_stock_code(stock_code)
         market = _market_tag(stock_code)
         is_etf = _is_etf_code(stock_code)
-        if market in {"us", "hk", "jp", "kr", "tw"}:
+        if market in {"us", "hk", "jp", "kr", "tw", "id"}:
             return self._build_offshore_fundamental_context(
                 stock_code,
                 market=market,

@@ -13,10 +13,10 @@ from typing import List
 
 @dataclass
 class MarketProfile:
-    """Market review region profile configuration."""
+    """Market review region configuration"""
 
-    region: str  # "cn" | "hk" | "us" | "jp" | "kr"
-    # Index code used to gauge overall trend: Shanghai Composite 000001 for cn, S&P 500 SPX for us
+    region: str  # "cn" | "hk" | "us" | "jp" | "kr" | "id"
+    # Index code used to judge overall trend, cn uses Shanghai Composite 000001, us uses S&P SPX
     mood_index_code: str
     # News search keywords
     news_queries: List[str]
@@ -94,8 +94,22 @@ KR_PROFILE = MarketProfile(
 )
 
 
+ID_PROFILE = MarketProfile(
+    region="id",
+    mood_index_code="JKSE",
+    news_queries=[
+        "IHSG pasar saham Indonesia",
+        "Indonesia stock market IDX JCI",
+        "IHSG BEI analisis pasar hari ini",
+    ],
+    prompt_index_hint="Analyze the trend characteristics of main Indonesian indices such as the Jakarta Composite Index (IHSG/JKSE), LQ45, etc.",
+    has_market_stats=False,
+    has_sector_rankings=False,
+)
+
+
 def get_profile(region: str) -> MarketProfile:
-    """Return the MarketProfile for the given region."""
+    """Return the corresponding MarketProfile based on the region"""
     if region == "us":
         return US_PROFILE
     if region == "hk":
@@ -104,4 +118,6 @@ def get_profile(region: str) -> MarketProfile:
         return JP_PROFILE
     if region == "kr":
         return KR_PROFILE
+    if region == "id":
+        return ID_PROFILE
     return CN_PROFILE
