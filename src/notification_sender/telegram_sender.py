@@ -81,15 +81,30 @@ class TelegramSender:
             # Telegram API endpoint
             api_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
 
-            # Telegram max message length: 4096 characters
-            max_length = 4096
+            # Telegram Bot API message length limit for this sender.
+            max_length = 3000
+            telegram_text = self._convert_to_telegram_markdown(content)
 
-            if len(content) <= max_length:
+            if len(telegram_text) <= max_length:
                 # Single message send
-                return self._send_telegram_message(api_url, chat_id, content, message_thread_id, timeout_seconds=timeout_seconds)
+                return self._send_telegram_message(
+                    api_url,
+                    chat_id,
+                    telegram_text,
+                    message_thread_id,
+                    timeout_seconds=timeout_seconds,
+                    prepared_text=True,
+                )
             else:
-                # Chunked send for long messages
-                return self._send_telegram_chunked(api_url, chat_id, content, max_length, message_thread_id, timeout_seconds=timeout_seconds)
+                # Chunked send for long messages after Telegram-specific formatting.
+                return self._send_telegram_chunked(
+                    api_url,
+                    chat_id,
+                    telegram_text,
+                    max_length,
+                    message_thread_id,
+                    timeout_seconds=timeout_seconds,
+                )
 
         except Exception as e:
             logger.error(f"Failed to send Telegram message: {e}")
@@ -105,11 +120,10 @@ class TelegramSender:
         message_thread_id: Optional[str] = None,
         *,
         timeout_seconds: Optional[float] = None,
+        prepared_text: bool = False,
     ) -> bool:
         """Send a single Telegram message with exponential backoff retry (Fixes #287)"""
-        # Convert Markdown to Telegram-compatible format
-        telegram_text = self._convert_to_telegram_markdown(text)
-
+        telegram_text = text if prepared_text else self._convert_to_telegram_markdown(text)
         payload = {
             "chat_id": chat_id,
             "text": telegram_text,
@@ -235,48 +249,69 @@ class TelegramSender:
         self,
         api_url: str,
         chat_id: str,
-        content: str,
+        telegram_text: str,
         max_length: int,
         message_thread_id: Optional[str] = None,
         *,
         timeout_seconds: Optional[float] = None,
     ) -> bool:
         """Send long Telegram messages in chunks."""
-        # Split by sections
-        sections = content.split("\n---\n")
-
-        current_chunk = []
-        current_length = 0
+        chunks = self._split_telegram_text(telegram_text, max_length)
         all_success = True
         chunk_index = 1
 
-        for section in sections:
-            section_length = len(section) + 5  # +5 for "\n---\n"
-
-            if current_length + section_length > max_length:
-                # Send current chunk
-                if current_chunk:
-                    chunk_content = "\n---\n".join(current_chunk)
-                    logger.info(f"Sending Telegram message chunk {chunk_index}...")
-                    if not self._send_telegram_message(api_url, chat_id, chunk_content, message_thread_id, timeout_seconds=timeout_seconds):
-                        all_success = False
-                    chunk_index += 1
-
-                # Reset
-                current_chunk = [section]
-                current_length = section_length
-            else:
-                current_chunk.append(section)
-                current_length += section_length
-
-        # Send last chunk
-        if current_chunk:
-            chunk_content = "\n---\n".join(current_chunk)
+        for chunk_content in chunks:
             logger.info(f"Sending Telegram message chunk {chunk_index}...")
-            if not self._send_telegram_message(api_url, chat_id, chunk_content, message_thread_id, timeout_seconds=timeout_seconds):
+            if not self._send_telegram_message(
+                api_url,
+                chat_id,
+                chunk_content,
+                message_thread_id,
+                timeout_seconds=timeout_seconds,
+                prepared_text=True,
+            ):
                 all_success = False
+            chunk_index += 1
 
         return all_success
+
+    @staticmethod
+    def _split_telegram_text(text: str, max_length: int) -> list[str]:
+        """Split Telegram text into chunks that never exceed max_length."""
+        if not text:
+            return [text]
+
+        if len(text) <= max_length:
+            return [text]
+
+        chunks = []
+        current_chunk = []
+        current_length = 0
+
+        for line in text.splitlines(keepends=True):
+            if len(line) > max_length:
+                if current_chunk:
+                    chunks.append("".join(current_chunk))
+                    current_chunk = []
+                    current_length = 0
+
+                for start in range(0, len(line), max_length):
+                    chunks.append(line[start:start + max_length])
+                continue
+
+            if current_chunk and current_length + len(line) > max_length:
+                chunks.append("".join(current_chunk))
+                current_chunk = [line]
+                current_length = len(line)
+                continue
+
+            current_chunk.append(line)
+            current_length += len(line)
+
+        if current_chunk:
+            chunks.append("".join(current_chunk))
+
+        return chunks
 
     def _send_telegram_photo(self, image_bytes: bytes) -> bool:
         """Send image via Telegram sendPhoto API (Issue #289)."""

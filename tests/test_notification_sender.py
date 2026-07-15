@@ -1585,6 +1585,35 @@ class TestTelegramSender(unittest.TestCase):
         self.assertIn("sendMessage", mock_post.call_args[0][0])
 
     @mock.patch("src.notification_sender.telegram_sender.requests.post")
+    def test_send_long_content_is_chunked_at_3000_chars(self, mock_post):
+        mock_post.return_value = _response(200, {"ok": True})
+        cfg = _config(telegram_bot_token="BOT", telegram_chat_id="CHAT")
+        sender = TelegramSender(cfg)
+        content = "A" * 6100
+
+        result = sender.send_to_telegram(content)
+
+        self.assertTrue(result)
+        self.assertEqual(mock_post.call_count, 3)
+        payload_lengths = [len(call.kwargs["json"]["text"]) for call in mock_post.call_args_list]
+        self.assertTrue(all(length <= 3000 for length in payload_lengths))
+        self.assertEqual(payload_lengths, [3000, 3000, 100])
+
+    @mock.patch("src.notification_sender.telegram_sender.requests.post")
+    def test_send_chunks_after_markdown_escape_expands_length(self, mock_post):
+        mock_post.return_value = _response(200, {"ok": True})
+        cfg = _config(telegram_bot_token="BOT", telegram_chat_id="CHAT")
+        sender = TelegramSender(cfg)
+        content = "[" * 2000
+
+        result = sender.send_to_telegram(content)
+
+        self.assertTrue(result)
+        self.assertEqual(mock_post.call_count, 2)
+        payload_lengths = [len(call.kwargs["json"]["text"]) for call in mock_post.call_args_list]
+        self.assertTrue(all(length <= 3000 for length in payload_lengths))
+
+    @mock.patch("src.notification_sender.telegram_sender.requests.post")
     def test_send_retries_plain_text_when_markdown_http_400(self, mock_post):
         markdown_error = _response(400)
         markdown_error.text = (
