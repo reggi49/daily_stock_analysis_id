@@ -54,11 +54,11 @@ class TestFetchYfTickerData(unittest.TestCase):
         mock_hist = _make_mock_hist(close=5100.0, prev_close=5000.0)
         mock_yf = _make_mock_yf(mock_hist)
 
-        result = self.fetcher._fetch_yf_ticker_data(mock_yf, '^GSPC', '标普500指数', 'SPX')
+        result = self.fetcher._fetch_yf_ticker_data(mock_yf, '^GSPC', 'S&P500Index', 'SPX')
 
         self.assertIsNotNone(result)
         self.assertEqual(result['code'], 'SPX')
-        self.assertEqual(result['name'], '标普500指数')
+        self.assertEqual(result['name'], 'S&P500Index')
         self.assertEqual(result['current'], 5100.0)
         self.assertEqual(result['prev_close'], 5000.0)
         self.assertEqual(result['change'], 100.0)
@@ -74,7 +74,7 @@ class TestFetchYfTickerData(unittest.TestCase):
         """Should return None when history is empty"""
         mock_yf = _make_mock_yf(pd.DataFrame())
 
-        result = self.fetcher._fetch_yf_ticker_data(mock_yf, '^GSPC', '标普500指数', 'SPX')
+        result = self.fetcher._fetch_yf_ticker_data(mock_yf, '^GSPC', 'S&P500Index', 'SPX')
 
         self.assertIsNone(result)
 
@@ -84,7 +84,7 @@ class TestFetchYfTickerData(unittest.TestCase):
         mock_hist = mock_hist.iloc[[-1]]
         mock_yf = _make_mock_yf(mock_hist)
 
-        result = self.fetcher._fetch_yf_ticker_data(mock_yf, '^GSPC', '标普500指数', 'SPX')
+        result = self.fetcher._fetch_yf_ticker_data(mock_yf, '^GSPC', 'S&P500Index', 'SPX')
 
         self.assertIsNotNone(result)
         self.assertEqual(result['change_pct'], 0.0)
@@ -102,10 +102,10 @@ class TestGetUsMainIndices(unittest.TestCase):
         """Return the index list when both mapping and fetching succeed"""
         def get_symbol(code):
             mapping = {
-                'SPX': ('^GSPC', '标普500指数'),
-                'IXIC': ('^IXIC', '纳斯达克综合指数'),
-                'DJI': ('^DJI', '道琼斯工业指数'),
-                'VIX': ('^VIX', 'VIX恐慌指数'),
+                'SPX': ('^GSPC', 'S&P500Index'),
+                'IXIC': ('^IXIC', 'Nasdaq Composite Index'),
+                'DJI': ('^DJI', 'Dow Jones Industrial Index'),
+                'VIX': ('^VIX', 'VIXpanic index'),
             }
             return mapping.get(code, (None, None))
 
@@ -130,8 +130,8 @@ class TestGetUsMainIndices(unittest.TestCase):
         call_count = [0]
 
         def get_symbol(code):
-            return ('^GSPC', '标普500指数') if code == 'SPX' else (
-                ('^IXIC', '纳斯达克综合指数') if code == 'IXIC' else (None, None)
+            return ('^GSPC', 'S&P500Index') if code == 'SPX' else (
+                ('^IXIC', 'Nasdaq Composite Index') if code == 'IXIC' else (None, None)
             )
 
         def history_side_effect(period):
@@ -164,7 +164,7 @@ class TestGetUsMainIndices(unittest.TestCase):
     @patch('data_provider.yfinance_fetcher.get_us_index_yf_symbol')
     def test_handles_ticker_exception(self, mock_get_symbol):
         """When Ticker.history raises, skip that index instead of failing entirely"""
-        mock_get_symbol.return_value = ('^GSPC', '标普500指数')
+        mock_get_symbol.return_value = ('^GSPC', 'S&P500Index')
         mock_ticker = MagicMock()
         mock_ticker.history.side_effect = Exception("Network error")
         mock_yf = MagicMock()
@@ -179,7 +179,7 @@ class TestGetUsMainIndices(unittest.TestCase):
         """Codes where get_us_index_yf_symbol returns (None, None) should be skipped"""
         def get_symbol(code):
             if code == 'SPX':
-                return ('^GSPC', '标普500指数')
+                return ('^GSPC', 'S&P500Index')
             return (None, None)
 
         mock_get_symbol.side_effect = get_symbol

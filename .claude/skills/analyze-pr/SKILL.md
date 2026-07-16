@@ -1,6 +1,6 @@
 # Analyze PR
 
-分析 GitHub Pull Request，评估必要性、描述完整性、验证证据、主要风险与是否可直接合入。
+analysis GitHub Pull Request，Assess the necessity、description completeness、verification evidence、Main risks and whether it can be directly integrated。
 
 **Repository**: https://github.com/ZhuLinsen/daily_stock_analysis/pulls
 
@@ -12,24 +12,24 @@
 
 ## Instructions
 
-分析时使用简洁中文，优先遵循仓库根目录 `AGENTS.md` 和 `.github/PULL_REQUEST_TEMPLATE.md`。
+Use concise Chinese when analyzing，Prioritize the warehouse root directory `AGENTS.md` and `.github/PULL_REQUEST_TEMPLATE.md`。
 
-### Step 1: 同步最新代码基线
+### Step 1: Synchronize the latest code baseline
 
-分析 PR 前必须先刷新远端状态，并尽量把本地安全推进到最新基线：
+analysis PR The remote status must be refreshed before，And try to push local security to the latest baseline：
 
 ```bash
 git status --short
 git fetch --all --prune
-# 仅当工作区干净且当前分支可 fast-forward 时执行：
+# Only if the workspace is clean and the current branch is available fast-forward executed when：
 git pull --ff-only
 ```
 
-- 只有在工作区干净、当前分支有可 fast-forward 的上游时，才执行并接受 `git pull --ff-only` 的结果。
-- 如存在本地改动、冲突状态、未跟踪风险文件、无上游分支或无法 fast-forward，不要执行 `stash`、`reset`、强制切分支或覆盖本地状态；改用已 fetch 的 `origin/main`、PR head 或 GitHub diff 做分析。
-- 在输出文档的 `Validation Evidence` 中记录同步结果：本地 HEAD、使用的远端基线，以及未更新本地工作树的原因（如有）。
+- Only clean the work area、The current branch is available fast-forward of the upstream，only then execute and accept `git pull --ff-only` the result。
+- If there are local changes、Conflict status、Risk files not tracked、No upstream branch or unable to fast-forward，Don't execute `stash`、`reset`、Force branch cutting or overwrite local state；Used instead fetch of `origin/main`、PR head or GitHub diff do analysis。
+- In the output document `Validation Evidence` Record synchronization results in：local HEAD、remote baseline used，and the reason why the local working tree is not updated（If any）。
 
-### Step 2: 拉取 PR 基本信息
+### Step 2: pull PR Basic information
 
 ```bash
 gh pr view <pr_number> --repo ZhuLinsen/daily_stock_analysis
@@ -38,66 +38,66 @@ gh pr checks <pr_number> --repo ZhuLinsen/daily_stock_analysis
 gh pr diff <pr_number> --repo ZhuLinsen/daily_stock_analysis
 ```
 
-如有失败的 CI，优先查看失败日志，而不是立刻在本地重跑全部检查：
+If there is any failure CI，Check the failure log first，Instead of immediately re-running all checks locally：
 
 ```bash
 gh run view <run_id> --log-failed
 ```
 
-### Step 3: 检查标题与描述完整性
+### Step 3: Check title and description completeness
 
-先检查 PR title 是否符合 `AGENTS.md` 的非阻断建议：
+Check first PR title Does it comply with `AGENTS.md` non-blocking recommendations：
 
-- 格式应为 `<类型>: <修改内容>`，例如 `fix: 修复大盘分析历史记录丢失`
-- 类型优先为 `fix`/`feat`/`refactor`/`docs`/`chore`/`test`/`ci`
-- 不应包含 `[codex]`、`codex`、`autocode`、`copilot` 或其他工具/agent 来源前缀
-- 标题应描述实际变更；若标题与 diff 不符，在描述完整性中指出，但不应单独作为 review process blocker。
+- The format should be `<Type>: <Modify content>`，For example `fix: Repair the loss of market analysis history records`
+- The type priority is `fix`/`feat`/`refactor`/`docs`/`chore`/`test`/`ci`
+- should not contain `[codex]`、`codex`、`autocode`、`copilot` or other tools/agent source prefix
+- The title should describe the actual change；If the title matches diff Does not match，noted in description completeness，but should not be used alone review process blocker。
 
-对照 `.github/PULL_REQUEST_TEMPLATE.md`，确认是否覆盖：
+control `.github/PULL_REQUEST_TEMPLATE.md`，Confirm whether it is covered：
 
 - `PR Type`
 - `Background And Problem`
 - `Scope Of Change`
 - `Issue Link`
 - `Verification Commands And Results`
-- `Visual Evidence`（仅当 PR 修改报告格式、报告渲染效果或 Web UI 界面时要求截图或替代可视证据）
+- `Visual Evidence`（only if PR Modify report format、Report rendering effects or Web UI Interface requires screenshots or alternative visual evidence）
 - `Compatibility And Risk`
 - `Rollback Plan`
 
-若 PR 涉及第三方模型 / API 兼容语义、请求参数固定值、OpenAI-compatible 路由、YAML alias、fallback 行为或运行时配置保存 / 清理 / 迁移逻辑，还要额外检查描述里是否明确写出：
+If PR Involves third-party models / API Compatible semantics、Request parameter fixed value、OpenAI-compatible routing、YAML alias、fallback Behavior or runtime configuration saving / clean up / Migration logic，Also check to see if it is clearly written in the description.：
 
-- 官方来源链接或公告
-- 当前锁定依赖 / 运行时兼容范围（例如 LiteLLM 版本窗口）
-- 已验证的调用链路覆盖面
-- 旧配置是否会被静默改写、清空、迁移或保持不变
-- 最小回滚路径（通常是 revert 本 PR）
+- Official source link or announcement
+- Current lock dependencies / Runtime compatibility range（For example LiteLLM version window）
+- Verified call link coverage
+- Will old configurations be silently overwritten?、Clear、Migrate or stay the same
+- minimal rollback path（usually revert Ben PR）
 
-若 PR 修改报告格式、报告渲染效果或 Web UI 界面，还要检查 `Visual Evidence` 是否附受影响报告 / 页面截图；涉及前后差异时优先检查前后对比。若无法截图，描述中应说明原因与替代可视证据。
+If PR Modify report format、Report rendering effects or Web UI interface，Also check `Visual Evidence` Is an impact report attached? / Page screenshot；When it comes to differences before and after, check the before and after comparison first.。If you cannot take a screenshot，Description should include reasons and alternative visual evidence。
 
-### Step 4: 优先使用 CI / Diff 证据
+### Step 4: priority use CI / Diff evidence
 
-- 先根据 `gh pr checks`、PR diff、现有测试与工作流日志判断问题
-- 仅当 CI 未覆盖改动面、CI 结果不足以定性问题、或需要验证关键回归风险时，再补充本地最小验证
-- 不要默认切换当前分支或执行 `gh pr checkout`
+- first based on `gh pr checks`、PR diff、Existing test and workflow log judgment issues
+- only if CI Changes not covered、CI The results are not sufficient to characterize the problem、or when critical regression risks need to be verified，Add local minimum verification
+- Don't default to switching the current branch or execution `gh pr checkout`
 
-如果必须补本地验证，按改动面选择最接近的检查，例如：
+If local verification is required，Select the closest inspection by modified face，For example：
 
-- 后端：`./scripts/ci_gate.sh` 或 `python -m py_compile <changed_python_files>`
-- 前端：`cd apps/dsa-web && npm ci && npm run lint && npm run build`
-- 桌面端：先构建 Web，再构建 Electron
+- backend：`./scripts/ci_gate.sh` or `python -m py_compile <changed_python_files>`
+- front end：`cd apps/dsa-web && npm ci && npm run lint && npm run build`
+- Desktop：Build first Web，Rebuild Electron
 
-### Step 5: 评估正确性与风险
+### Step 5: Assess correctness and risk
 
-重点检查：
+Key inspections：
 
-- 是否解决了明确问题，且没有夹带无关改动
-- 是否破坏 API / Schema / Web / Desktop 兼容性
-- 是否破坏 fallback、降级路径、通知链路或发布流程
-- 是否存在明显逻辑错误、异常吞没、安全问题、配置语义变化未同步文档
+- Has a clear problem been solved?，and no entrainment of irrelevant changes
+- whether to destroy API / Schema / Web / Desktop Compatibility
+- whether to destroy fallback、Downgrade path、Notification link or publishing process
+- Are there obvious logical errors?、Abnormal engulfment、security issues、Configuration semantic changes do not synchronize documents
 
-### Step 6: 生成评审文档
+### Step 6: Generate review documents
 
-保存到 `.claude/reviews/prs/pr-<number>.md`
+save to `.claude/reviews/prs/pr-<number>.md`
 
 ## Output Document Format
 
@@ -109,53 +109,53 @@ gh run view <run_id> --log-failed
 
 ## Findings
 
-- [严重级别] file:line - 问题描述
+- [Severity level] file:line - Problem description
 
 ## Summary
 
-- 必要性：
-- 是否有对应 issue：
-- PR 类型：
+- Necessity：
+- Is there any correspondence? issue：
+- PR Type：
 - PR title：
-- description 完整性：
-- 验证情况：
-- 主要风险：
-- 是否可直接合入：
+- description integrity：
+- Verification status：
+- Main risks：
+- Can it be directly integrated?：
 
 ## Validation Evidence
 
-- 代码同步基线：
-- CI 结论：
-- 本地补充验证（如有）：
+- Code synchronization baseline：
+- CI Conclusion：
+- Local supplementary verification（If any）：
 
 ## Compatibility And Risk
 
 - API / Web / Desktop：
-- 配置 / Docker / GitHub Actions：
-- fallback / 通知 / 报告结构：
-- 第三方依赖 / 官方约束来源：
-- 运行时兼容窗口 / 已覆盖链路：
-- 旧配置迁移或静默改写风险：
+- Configuration / Docker / GitHub Actions：
+- fallback / Notification / Report structure：
+- third party dependencies / Official binding source：
+- runtime compatibility window / Link covered：
+- Risks of old configuration migration or silent rewriting：
 
 ## Draft Review Comment
 
-<建议评论内容>
+<Suggested comment content>
 ```
 
 ## Allowed Auto-Actions (No Confirmation Needed)
 
-- 拉取 PR 元数据、diff、评论和 CI 状态
-- 执行 `git fetch --all --prune`，并在工作区干净且可 fast-forward 时执行 `git pull --ff-only`
-- 阅读相关代码、模板、工作流与文档
-- 在必要时执行最小化本地验证
-- 生成评审文档
+- pull PR metadata、diff、comments and CI Status
+- execute `git fetch --all --prune`，and keep the work area clean and accessible fast-forward executed when `git pull --ff-only`
+- Read the relevant code、Template、Workflow and documentation
+- Perform minimal local validation when necessary
+- Generate review documents
 
 ## Actions Requiring Confirmation
 
-执行以下动作前，先询问用户：
+Before performing the following actions，Ask the user first：
 
-1. 发布评论
+1. Post a comment
 2. Approve PR
 3. Request changes
 4. Merge PR
-5. 关闭 PR
+5. close PR

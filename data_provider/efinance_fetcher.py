@@ -444,8 +444,8 @@ class EfinanceFetcher(BaseFetcher):
                     f"range={beg_date}~{end_date_fmt}, rows={len(df)}, elapsed={api_elapsed:.2f}s"
                 )
                 logger.info(f"[APIreturn] List: {list(df.columns)}")
-                if '日期' in df.columns:
-                    logger.info(f"[APIreturn] date range: {df['日期'].iloc[0]} ~ {df['日期'].iloc[-1]}")
+                if 'Date' in df.columns:
+                    logger.info(f"[APIreturn] date range: {df['Date'].iloc[0]} ~ {df['Date'].iloc[-1]}")
                 logger.debug(f"[APIreturn] Latest 3 rows of data:\n{df.tail(3).to_string()}")
             else:
                 logger.warning(
@@ -537,8 +537,8 @@ class EfinanceFetcher(BaseFetcher):
                     f"range={beg_date}~{end_date_fmt}, rows={len(df)}, elapsed={api_elapsed:.2f}s"
                 )
                 logger.info(f"[APIreturn] List: {list(df.columns)}")
-                if '日期' in df.columns:
-                    logger.info(f"[APIreturn] date range: {df['日期'].iloc[0]} ~ {df['日期'].iloc[-1]}")
+                if 'Date' in df.columns:
+                    logger.info(f"[APIreturn] date range: {df['Date'].iloc[0]} ~ {df['Date'].iloc[-1]}")
                 logger.debug(f"[APIreturn] up to date3piece of data:\n{df.tail(3).to_string()}")
             else:
                 logger.warning(
@@ -679,7 +679,7 @@ class EfinanceFetcher(BaseFetcher):
             
             # Find specific stocks
             # efinance The returned column names may be 'Stock code' or 'code'
-            code_col = '股票代码' if '股票代码' in df.columns else 'code'
+            code_col = 'Stock code' if 'Stock code' in df.columns else 'code'
             row = df[df[code_col] == stock_code]
             if row.empty:
                 logger.info(f"[APIreturn] No stock found {stock_code} real-time quotes")
@@ -689,22 +689,22 @@ class EfinanceFetcher(BaseFetcher):
             
             # use realtime_types.py Unified conversion function in
             # Get column names（May be Chinese or English）
-            name_col = '股票名称' if '股票名称' in df.columns else 'name'
-            price_col = '最新价' if '最新价' in df.columns else 'price'
-            pct_col = '涨跌幅' if '涨跌幅' in df.columns else 'pct_chg'
-            chg_col = '涨跌额' if '涨跌额' in df.columns else 'change'
-            vol_col = '成交量' if '成交量' in df.columns else 'volume'
-            amt_col = '成交额' if '成交额' in df.columns else 'amount'
-            turn_col = '换手率' if '换手率' in df.columns else 'turnover_rate'
-            amp_col = '振幅' if '振幅' in df.columns else 'amplitude'
-            high_col = '最高' if '最高' in df.columns else 'high'
-            low_col = '最低' if '最低' in df.columns else 'low'
-            open_col = '开盘' if '开盘' in df.columns else 'open'
+            name_col = 'Stock name' if 'Stock name' in df.columns else 'name'
+            price_col = 'latest price' if 'latest price' in df.columns else 'price'
+            pct_col = 'Increase or decrease' if 'Increase or decrease' in df.columns else 'pct_chg'
+            chg_col = 'Changes' if 'Changes' in df.columns else 'change'
+            vol_col = 'Volume' if 'Volume' in df.columns else 'volume'
+            amt_col = 'Turnover' if 'Turnover' in df.columns else 'amount'
+            turn_col = 'turnover rate' if 'turnover rate' in df.columns else 'turnover_rate'
+            amp_col = 'Amplitude' if 'Amplitude' in df.columns else 'amplitude'
+            high_col = 'highest' if 'highest' in df.columns else 'high'
+            low_col = 'lowest' if 'lowest' in df.columns else 'low'
+            open_col = 'Open' if 'Open' in df.columns else 'open'
             # efinance Also returns the quantity ratio、P/E ratio、Market value and other fields
-            vol_ratio_col = '量比' if '量比' in df.columns else 'volume_ratio'
-            pe_col = '市盈率' if '市盈率' in df.columns else 'pe_ratio'
-            total_mv_col = '总市值' if '总市值' in df.columns else 'total_mv'
-            circ_mv_col = '流通市值' if '流通市值' in df.columns else 'circ_mv'
+            vol_ratio_col = 'Quantity ratio' if 'Quantity ratio' in df.columns else 'volume_ratio'
+            pe_col = 'P/E ratio' if 'P/E ratio' in df.columns else 'pe_ratio'
+            total_mv_col = 'Total market capitalization' if 'Total market capitalization' in df.columns else 'total_mv'
+            circ_mv_col = 'Circulation market value' if 'Circulation market value' in df.columns else 'circ_mv'
             
             quote = UnifiedRealtimeQuote(
                 code=stock_code,
@@ -786,7 +786,7 @@ class EfinanceFetcher(BaseFetcher):
                 logger.info(f"[Real-time quotes] ETFReal-time market data is empty(efinance)，jump over {stock_code}")
                 return None
 
-            code_col = '股票代码' if '股票代码' in df.columns else 'code'
+            code_col = 'Stock code' if 'Stock code' in df.columns else 'code'
             code_series = df[code_col].astype(str).str.zfill(6)
             target_code = str(stock_code).strip().zfill(6)
             row = df[code_series == target_code]
@@ -795,17 +795,17 @@ class EfinanceFetcher(BaseFetcher):
                 return None
 
             row = row.iloc[0]
-            name_col = '股票名称' if '股票名称' in df.columns else 'name'
-            price_col = '最新价' if '最新价' in df.columns else 'price'
-            pct_col = '涨跌幅' if '涨跌幅' in df.columns else 'pct_chg'
-            chg_col = '涨跌额' if '涨跌额' in df.columns else 'change'
-            vol_col = '成交量' if '成交量' in df.columns else 'volume'
-            amt_col = '成交额' if '成交额' in df.columns else 'amount'
-            turn_col = '换手率' if '换手率' in df.columns else 'turnover_rate'
-            amp_col = '振幅' if '振幅' in df.columns else 'amplitude'
-            high_col = '最高' if '最高' in df.columns else 'high'
-            low_col = '最低' if '最低' in df.columns else 'low'
-            open_col = '开盘' if '开盘' in df.columns else 'open'
+            name_col = 'Stock name' if 'Stock name' in df.columns else 'name'
+            price_col = 'latest price' if 'latest price' in df.columns else 'price'
+            pct_col = 'Increase or decrease' if 'Increase or decrease' in df.columns else 'pct_chg'
+            chg_col = 'Changes' if 'Changes' in df.columns else 'change'
+            vol_col = 'Volume' if 'Volume' in df.columns else 'volume'
+            amt_col = 'Turnover' if 'Turnover' in df.columns else 'amount'
+            turn_col = 'turnover rate' if 'turnover rate' in df.columns else 'turnover_rate'
+            amp_col = 'Amplitude' if 'Amplitude' in df.columns else 'amplitude'
+            high_col = 'highest' if 'highest' in df.columns else 'high'
+            low_col = 'lowest' if 'lowest' in df.columns else 'low'
+            open_col = 'Open' if 'Open' in df.columns else 'open'
 
             quote = UnifiedRealtimeQuote(
                 code=target_code,
@@ -857,7 +857,7 @@ class EfinanceFetcher(BaseFetcher):
             logger.info("[APIcall] ef.stock.get_realtime_quotes(['Shanghai and Shenzhen Series Index']) Get index quotes...")
             import time as _time
             api_start = _time.time()
-            df = _ef_call_with_timeout(ef.stock.get_realtime_quotes, ['沪深系列指数'])
+            df = _ef_call_with_timeout(ef.stock.get_realtime_quotes, ['Shanghai and Shenzhen Series Index'])
             api_elapsed = _time.time() - api_start
 
             if df is None or df.empty:
@@ -865,7 +865,7 @@ class EfinanceFetcher(BaseFetcher):
                 return None
 
             logger.info(f"[APIreturn] Index market success: {len(df)} strip, time consuming {api_elapsed:.2f}s")
-            code_col = '股票代码' if '股票代码' in df.columns else 'code'
+            code_col = 'Stock code' if 'Stock code' in df.columns else 'code'
             code_series = df[code_col].astype(str).str.zfill(6)
 
             results: List[Dict[str, Any]] = []
@@ -875,15 +875,15 @@ class EfinanceFetcher(BaseFetcher):
                     continue
                 item = row.iloc[0]
 
-                price_col = '最新价' if '最新价' in df.columns else 'price'
-                pct_col = '涨跌幅' if '涨跌幅' in df.columns else 'pct_chg'
-                chg_col = '涨跌额' if '涨跌额' in df.columns else 'change'
-                open_cols = [column for column in ('今开', '开盘', 'open') if column in df.columns]
-                high_col = '最高' if '最高' in df.columns else 'high'
-                low_col = '最低' if '最低' in df.columns else 'low'
-                vol_col = '成交量' if '成交量' in df.columns else 'volume'
-                amt_col = '成交额' if '成交额' in df.columns else 'amount'
-                amp_col = '振幅' if '振幅' in df.columns else 'amplitude'
+                price_col = 'latest price' if 'latest price' in df.columns else 'price'
+                pct_col = 'Increase or decrease' if 'Increase or decrease' in df.columns else 'pct_chg'
+                chg_col = 'Changes' if 'Changes' in df.columns else 'change'
+                open_cols = [column for column in ('Open today', 'Open', 'open') if column in df.columns]
+                high_col = 'highest' if 'highest' in df.columns else 'high'
+                low_col = 'lowest' if 'lowest' in df.columns else 'low'
+                vol_col = 'Volume' if 'Volume' in df.columns else 'volume'
+                amt_col = 'Turnover' if 'Turnover' in df.columns else 'amount'
+                amp_col = 'Amplitude' if 'Amplitude' in df.columns else 'amplitude'
 
                 current = safe_float(item.get(price_col, 0))
                 change_amount = safe_float(item.get(chg_col, 0))
@@ -982,11 +982,11 @@ class EfinanceFetcher(BaseFetcher):
         
         # 1. Extract basic comparison data：latest price、Collected yesterday
         # Compatible with column names returned by different interfaces sina/em efinance tushare xtdata
-        code_col = next((c for c in ['代码', '股票代码', 'ts_code','stock_code'] if c in df.columns), None)
-        name_col = next((c for c in ['名称', '股票名称','name','name'] if c in df.columns), None)
-        close_col = next((c for c in ['最新价', '最新价', 'close','lastPrice'] if c in df.columns), None)
-        pre_close_col = next((c for c in ['昨收', '昨日收盘', 'pre_close','lastClose'] if c in df.columns), None)
-        amount_col = next((c for c in ['成交额', '成交额', 'amount','amount'] if c in df.columns), None) 
+        code_col = next((c for c in ['code', 'Stock code', 'ts_code','stock_code'] if c in df.columns), None)
+        name_col = next((c for c in ['Name', 'Stock name','name','name'] if c in df.columns), None)
+        close_col = next((c for c in ['latest price', 'latest price', 'close','lastPrice'] if c in df.columns), None)
+        pre_close_col = next((c for c in ['Collected yesterday', "Yesterday's closing", 'pre_close','lastClose'] if c in df.columns), None)
+        amount_col = next((c for c in ['Turnover', 'Turnover', 'amount','amount'] if c in df.columns), None) 
         
         limit_up_count = 0
         limit_down_count = 0
@@ -1071,13 +1071,13 @@ class EfinanceFetcher(BaseFetcher):
             self._enforce_rate_limit()
 
             logger.info("[APIcall] ef.stock.get_realtime_quotes(['Industry sector']) Get sector quotes...")
-            df = _ef_call_with_timeout(ef.stock.get_realtime_quotes, ['行业板块'])
+            df = _ef_call_with_timeout(ef.stock.get_realtime_quotes, ['Industry sector'])
             if df is None or df.empty:
                 logger.warning("[efinance] Sector market data is empty")
                 return None
 
-            change_col = '涨跌幅' if '涨跌幅' in df.columns else 'pct_chg'
-            name_col = '股票名称' if '股票名称' in df.columns else 'name'
+            change_col = 'Increase or decrease' if 'Increase or decrease' in df.columns else 'pct_chg'
+            name_col = 'Stock name' if 'Stock name' in df.columns else 'name'
             if change_col not in df.columns or name_col not in df.columns:
                 return None
 
@@ -1235,7 +1235,7 @@ if __name__ == "__main__":
     print("Test common stock data acquisition (efinance)")
     print("=" * 50)
     try:
-        df = fetcher.get_daily_data('600519')  # 茅台
+        df = fetcher.get_daily_data('600519')  # Moutai
         print(f"[stock] get success，common {len(df)} piece of data")
         print(df.tail())
     except Exception as e:
@@ -1246,7 +1246,7 @@ if __name__ == "__main__":
     print("test ETF Fund data acquisition (efinance)")
     print("=" * 50)
     try:
-        df = fetcher.get_daily_data('512400')  # 有色龙头ETF
+        df = fetcher.get_daily_data('512400')  # Colored faucetETF
         print(f"[ETF] get success，common {len(df)} piece of data")
         print(df.tail())
     except Exception as e:
@@ -1272,7 +1272,7 @@ if __name__ == "__main__":
     try:
         info = fetcher.get_base_info('600519')
         if info:
-            print(f"[Historical data days] P/E ratio={info.get('市盈率(动)', 'N/A')}, price to book ratio={info.get('市净率', 'N/A')}")
+            print(f"[Historical data days] P/E ratio={info.get('P/E ratio(move)', 'N/A')}, price to book ratio={info.get('price to book ratio', 'N/A')}")
         else:
             print("[Historical data days] No data obtained")
     except Exception as e:

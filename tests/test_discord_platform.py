@@ -196,14 +196,14 @@ def test_format_response_wraps_interaction_callback():
         content="/analyze 600519",
         raw_data={"type": 2, "data": {"name": "analyze"}},
     )
-    response = BotResponse.text_response("分析结果")
+    response = BotResponse.text_response("Analyze results")
 
     webhook_response = platform.format_response(response, message)
 
     assert webhook_response.status_code == 200
     assert webhook_response.body["type"] == 4
     assert "data" in webhook_response.body
-    assert webhook_response.body["data"]["content"] == "分析结果"
+    assert webhook_response.body["data"]["content"] == "Analyze results"
     assert webhook_response.body["data"]["tts"] is False
 
 
@@ -226,7 +226,7 @@ def test_send_followup_patches_original_message():
             "token": "interaction-token",
         },
     )
-    response = BotResponse.text_response("分析结果")
+    response = BotResponse.text_response("Analyze results")
 
     with patch("bot.platforms.discord.requests") as mock_requests:
         mock_resp = type("R", (), {"status_code": 200, "text": "ok"})()
@@ -237,7 +237,7 @@ def test_send_followup_patches_original_message():
     mock_requests.patch.assert_called_once()
     call_args = mock_requests.patch.call_args
     assert "/app-123/interaction-token/messages/@original" in call_args[0][0]
-    assert call_args[1]["json"]["content"] == "分析结果"
+    assert call_args[1]["json"]["content"] == "Analyze results"
 
 
 def test_send_followup_chunks_long_content():
@@ -295,7 +295,7 @@ def test_send_followup_missing_token_returns_false():
         content="/analyze 600519",
         raw_data={"type": 2},
     )
-    response = BotResponse.text_response("分析结果")
+    response = BotResponse.text_response("Analyze results")
     assert platform.send_followup(response, message) is False
 
 

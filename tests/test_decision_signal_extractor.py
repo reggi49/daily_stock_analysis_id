@@ -42,32 +42,32 @@ def isolated_db(tmp_path):
 def _result(**overrides) -> AnalysisResult:
     result = AnalysisResult(
         code="600519",
-        name="贵州茅台",
+        name="Kweichow Moutai",
         sentiment_score=82,
-        trend_prediction="看多",
-        operation_advice="买入",
+        trend_prediction="long",
+        operation_advice="Buy",
         decision_type="buy",
-        confidence_level="高",
-        analysis_summary="趋势确认，量价配合。",
-        risk_warning="跌破支撑需止损",
+        confidence_level="high",
+        analysis_summary="trend confirmation，Coordination of quantity and price。",
+        risk_warning="Stop loss required if support falls below",
         report_language="zh",
     )
     result.dashboard = {
         "battle_plan": {
             "sniper_points": {
-                "ideal_buy": "理想买入点：1700元",
-                "secondary_buy": "1680-1690（回踩MA5附近）",
-                "stop_loss": "止损位：1600元",
-                "take_profit": "目标位：1850元",
+                "ideal_buy": "Ideal buying point：1700Yuan",
+                "secondary_buy": "1680-1690（DislikeMA5nearby）",
+                "stop_loss": "Stop loss level：1600Yuan",
+                "take_profit": "Target position：1850Yuan",
             },
-            "action_checklist": ["放量突破前高", "回踩不破MA10"],
+            "action_checklist": ["Heavy volume breaks through previous high", "Can't be broken if stepped backMA10"],
         },
         "phase_decision": {
-            "watch_conditions": ["盘中量能继续放大"],
+            "watch_conditions": ["The intraday volume can continue to increase"],
         },
         "intelligence": {
-            "risk_alerts": ["估值偏高"],
-            "positive_catalysts": ["业绩超预期"],
+            "risk_alerts": ["Valuation is high"],
+            "positive_catalysts": ["Performance exceeded expectations"],
         },
     }
     for key, value in overrides.items():
@@ -95,7 +95,7 @@ def test_build_payload_includes_tw_market() -> None:
     payload (market == "tw") rather than be silently dropped by _normalize_market.
     A plain action ("buy") is set so the path reaches the market mapping.
     """
-    result = _result(code="2330.TW", name="台积电")
+    result = _result(code="2330.TW", name="TSMC")
 
     payload = build_decision_signal_payload_from_report(
         result,
@@ -142,7 +142,7 @@ def test_build_payload_maps_report_context_and_price_plan() -> None:
 
     assert payload is not None
     assert payload["stock_code"] == "600519"
-    assert payload["stock_name"] == "贵州茅台"
+    assert payload["stock_name"] == "Kweichow Moutai"
     assert payload["market"] == "cn"
     assert payload["source_type"] == "analysis"
     assert payload["source_report_id"] == 88
@@ -157,10 +157,10 @@ def test_build_payload_maps_report_context_and_price_plan() -> None:
     assert payload["stop_loss"] == 1600.0
     assert payload["target_price"] == 1850.0
     assert payload["data_quality_summary"]["overall_score"] == 91
-    assert payload["watch_conditions"] == ["盘中量能继续放大"]
-    assert payload["risk_summary"] == ["跌破支撑需止损", "估值偏高"]
-    assert payload["catalyst_summary"] == ["业绩超预期"]
-    assert payload["metadata"]["report_confidence_level"] == "高"
+    assert payload["watch_conditions"] == ["The intraday volume can continue to increase"]
+    assert payload["risk_summary"] == ["Stop loss required if support falls below", "Valuation is high"]
+    assert payload["catalyst_summary"] == ["Performance exceeded expectations"]
+    assert payload["metadata"]["report_confidence_level"] == "high"
     assert payload["metadata"]["decision_profile"] == "balanced"
     assert payload["metadata"]["profile_source"] == BUILD_PROFILE_SOURCE
     assert payload["metadata"]["profile_policy_version"] == "decision-profile-v1"
@@ -177,11 +177,11 @@ def test_build_payload_maps_report_context_and_price_plan() -> None:
 
 
 def test_build_payload_uses_result_fallbacks_and_optional_catalysts() -> None:
-    result = _result(confidence_level="低")
+    result = _result(confidence_level="low")
     result.dashboard = {
         "battle_plan": {
             "sniper_points": {"ideal_buy": "1700"},
-            "action_checklist": ["等待回踩确认"],
+            "action_checklist": ["Waiting for confirmation"],
         },
         "intelligence": {},
     }
@@ -203,7 +203,7 @@ def test_build_payload_uses_result_fallbacks_and_optional_catalysts() -> None:
     assert payload["data_quality_summary"] == {"level": "limited"}
     assert payload["entry_low"] == 1700.0
     assert "entry_high" not in payload
-    assert payload["watch_conditions"] == ["等待回踩确认"]
+    assert payload["watch_conditions"] == ["Waiting for confirmation"]
     assert "catalyst_summary" not in payload
     assert payload["trigger_source"] == "system"
     assert payload["confidence"] == 0.4
@@ -213,7 +213,7 @@ def test_build_payload_uses_result_fallbacks_and_optional_catalysts() -> None:
 def test_build_payload_aligns_high_neutral_action_without_guardrail_to_buy() -> None:
     result = _result(
         sentiment_score=72,
-        operation_advice="持有",
+        operation_advice="hold",
         decision_type="hold",
         action=None,
     )
@@ -228,7 +228,7 @@ def test_build_payload_aligns_high_neutral_action_without_guardrail_to_buy() -> 
 
     assert payload is not None
     assert payload["action"] == "buy"
-    assert payload["action_label"] == "买入"
+    assert payload["action_label"] == "Buy"
     assert payload["metadata"]["raw_action"] == "hold"
     assert payload["metadata"]["final_action"] == "buy"
     assert payload["metadata"]["action_adjustment_reason"] == "canonical_score_alignment"
@@ -238,7 +238,7 @@ def test_build_payload_aligns_high_neutral_action_without_guardrail_to_buy() -> 
 def test_build_payload_keeps_high_neutral_action_with_guardrail_reason() -> None:
     result = _result(
         sentiment_score=72,
-        operation_advice="持有/观望待回踩",
+        operation_advice="hold/Wait and see and wait to step back",
         decision_type="hold",
         action=None,
     )
@@ -253,16 +253,16 @@ def test_build_payload_keeps_high_neutral_action_with_guardrail_reason() -> None
 
     assert payload is not None
     assert payload["action"] == "watch"
-    assert payload["action_label"] == "观望"
+    assert payload["action_label"] == "wait and see"
     assert payload["metadata"]["raw_action"] == "watch"
     assert payload["metadata"]["final_action"] == "watch"
-    assert payload["metadata"]["guardrail_reason"] == "持有/观望待回踩"
+    assert payload["metadata"]["guardrail_reason"] == "hold/Wait and see and wait to step back"
 
 
 def test_build_payload_uses_stability_calibration_raw_and_adjusted_scores() -> None:
     result = _result(
         sentiment_score=59,
-        operation_advice="观望",
+        operation_advice="wait and see",
         decision_type="hold",
         action=None,
     )
@@ -271,7 +271,7 @@ def test_build_payload_uses_stability_calibration_raw_and_adjusted_scores() -> N
         "raw_score": 72,
         "adjusted_score": 59,
         "final_action": "watch",
-        "guardrail_reason": "资金流较弱，按风险规则降级",
+        "guardrail_reason": "Fund flow is weak，Downgrade by risk rules",
     }
     result.dashboard = dashboard
 
@@ -290,13 +290,13 @@ def test_build_payload_uses_stability_calibration_raw_and_adjusted_scores() -> N
     assert payload["metadata"]["score_scale"]["score_band"] == "40-59"
     assert payload["metadata"]["raw_action"] == "watch"
     assert payload["metadata"]["final_action"] == "watch"
-    assert payload["metadata"]["guardrail_reason"] == "资金流较弱，按风险规则降级"
+    assert payload["metadata"]["guardrail_reason"] == "Fund flow is weak，Downgrade by risk rules"
 
 
 def test_build_payload_aligns_low_neutral_action_to_reduce() -> None:
     result = _result(
         sentiment_score=28,
-        operation_advice="观望",
+        operation_advice="wait and see",
         decision_type="hold",
         action=None,
     )
@@ -311,7 +311,7 @@ def test_build_payload_aligns_low_neutral_action_to_reduce() -> None:
 
     assert payload is not None
     assert payload["action"] == "reduce"
-    assert payload["action_label"] == "减仓"
+    assert payload["action_label"] == "Reduce positions"
     assert payload["metadata"]["raw_action"] == "watch"
     assert payload["metadata"]["final_action"] == "reduce"
     assert payload["metadata"]["score_scale"]["score_band"] == "20-39"
@@ -342,7 +342,7 @@ def test_build_payload_maps_secondary_only_entry_to_entry_high() -> None:
     result = _result()
     result.dashboard = {
         "battle_plan": {
-            "sniper_points": {"secondary_buy": "次优买入点：1680元"},
+            "sniper_points": {"secondary_buy": "Second best buying point：1680Yuan"},
         },
     }
 
@@ -398,7 +398,7 @@ def test_build_payload_reuses_shared_sniper_fallback_paths(isolated_db) -> None:
 
 
 def test_build_payload_skips_ambiguous_action_non_stock_and_unknown_market() -> None:
-    ambiguous = _result(operation_advice="买盘增强，继续观察", action=None)
+    ambiguous = _result(operation_advice="Buying orders strengthen，Continue to observe", action=None)
     assert build_decision_signal_payload_from_report(
         ambiguous,
         trace_id="trace-1",
@@ -407,7 +407,7 @@ def test_build_payload_skips_ambiguous_action_non_stock_and_unknown_market() -> 
         profile_source=BUILD_PROFILE_SOURCE,
     ) is None
 
-    market_review = _result(operation_advice="买入", action="buy")
+    market_review = _result(operation_advice="Buy", action="buy")
     assert build_decision_signal_payload_from_report(
         market_review,
         trace_id="trace-2",
@@ -416,7 +416,7 @@ def test_build_payload_skips_ambiguous_action_non_stock_and_unknown_market() -> 
         profile_source=BUILD_PROFILE_SOURCE,
     ) is None
 
-    unknown_market = _result(code="UNKNOWN", operation_advice="买入", action="buy")
+    unknown_market = _result(code="UNKNOWN", operation_advice="Buy", action="buy")
     assert build_decision_signal_payload_from_report(
         unknown_market,
         trace_id="trace-3",
@@ -429,7 +429,7 @@ def test_build_payload_skips_ambiguous_action_non_stock_and_unknown_market() -> 
 def test_extract_and_persist_reuses_service_dedup_and_sanitization(isolated_db) -> None:
     service = DecisionSignalService(db_manager=isolated_db)
     result = _result(
-        analysis_summary="趋势确认 token=super-secret",
+        analysis_summary="trend confirmation token=super-secret",
     )
 
     first = extract_and_persist_from_analysis_result(
@@ -459,7 +459,7 @@ def test_extract_and_persist_reuses_service_dedup_and_sanitization(isolated_db) 
     assert second is not None
     assert first["created"] is True
     assert second["created"] is False
-    assert first["item"]["reason"] == "趋势确认 token=[REDACTED]"
+    assert first["item"]["reason"] == "trend confirmation token=[REDACTED]"
     assert first["item"]["plan_quality"] == "complete"
     assert first["item"]["horizon"] == "intraday"
     assert first["item"]["expires_at"] is not None
@@ -476,7 +476,7 @@ def test_extract_and_persist_reuses_service_dedup_and_sanitization(isolated_db) 
     assert persisted["metadata"]["decision_signal_metadata_version"] == "decision-signal-metadata-v1"
     assert "scoring_version" not in persisted["metadata"]
     assert "scoring_breakdown" not in persisted["metadata"]
-    assert persisted["reason"] == "趋势确认 token=[REDACTED]"
+    assert persisted["reason"] == "trend confirmation token=[REDACTED]"
     assert persisted["entry_low"] == 1690.0
     assert persisted["entry_high"] == 1700.0
 
@@ -485,17 +485,17 @@ def test_extract_and_persist_reuses_stability_score_metadata(isolated_db) -> Non
     service = DecisionSignalService(db_manager=isolated_db)
     result = _result(
         sentiment_score=59,
-        operation_advice="观望",
+        operation_advice="wait and see",
         decision_type="hold",
         action=None,
-        confidence_level="中",
+        confidence_level="in",
     )
     dashboard = result.dashboard or {}
     dashboard["decision_score_calibration"] = {
         "raw_score": 72,
         "adjusted_score": 59,
         "final_action": "watch",
-        "guardrail_reason": "资金流较弱，按风险规则降级",
+        "guardrail_reason": "Fund flow is weak，Downgrade by risk rules",
     }
     result.dashboard = dashboard
 
@@ -517,7 +517,7 @@ def test_extract_and_persist_reuses_stability_score_metadata(isolated_db) -> Non
     assert persisted["metadata"]["adjusted_score"] == 59
     assert persisted["metadata"]["raw_action"] == "watch"
     assert persisted["metadata"]["final_action"] == "watch"
-    assert persisted["metadata"]["guardrail_reason"] == "资金流较弱，按风险规则降级"
+    assert persisted["metadata"]["guardrail_reason"] == "Fund flow is weak，Downgrade by risk rules"
 
 
 def test_extract_and_persist_writes_tw_signal(isolated_db) -> None:
@@ -529,7 +529,7 @@ def test_extract_and_persist_writes_tw_signal(isolated_db) -> None:
     so every tw analysis produced no signal while jp/kr did.
     """
     service = DecisionSignalService(db_manager=isolated_db)
-    result = _result(code="2330.TW", name="台积电")
+    result = _result(code="2330.TW", name="TSMC")
 
     created = extract_and_persist_from_analysis_result(
         result,

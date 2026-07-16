@@ -62,9 +62,9 @@ class TestHkIndexSymbolMapping(unittest.TestCase):
         # Collect all Ticker() call arguments
         ticker_calls = [call.args[0] for call in mock_yf.Ticker.call_args_list]
 
-        self.assertIn('^HSI', ticker_calls, '恒生指数应使用 ^HSI')
-        self.assertIn('HSTECH.HK', ticker_calls, '恒生科技指数应使用 HSTECH.HK，而非 ^HSTECH')
-        self.assertIn('^HSCE', ticker_calls, '国企指数应使用 ^HSCE，而非 ^HSCEI')
+        self.assertIn('^HSI', ticker_calls, 'Hang Seng Index should use ^HSI')
+        self.assertIn('HSTECH.HK', ticker_calls, 'Hang Seng Technology Index should be used HSTECH.HK，rather than ^HSTECH')
+        self.assertIn('^HSCE', ticker_calls, 'SOE index should be used ^HSCE，rather than ^HSCEI')
 
     def test_hk_indices_mapping_no_invalid_symbols(self):
         """Ensure the known-wrong old mapping symbols are no longer used"""
@@ -77,8 +77,8 @@ class TestHkIndexSymbolMapping(unittest.TestCase):
 
         ticker_calls = [call.args[0] for call in mock_yf.Ticker.call_args_list]
 
-        self.assertNotIn('^HSTECH', ticker_calls, '^HSTECH 不是有效的 Yahoo Finance 符号')
-        self.assertNotIn('^HSCEI', ticker_calls, '^HSCEI 不是有效的 Yahoo Finance 符号')
+        self.assertNotIn('^HSTECH', ticker_calls, '^HSTECH not valid Yahoo Finance symbol')
+        self.assertNotIn('^HSCEI', ticker_calls, '^HSCEI not valid Yahoo Finance symbol')
 
 
 class TestGetHkMainIndices(unittest.TestCase):

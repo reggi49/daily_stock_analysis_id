@@ -425,19 +425,19 @@ User: "analyze TSLA and NVDA using trend strategy"
         r'(?:[036]\d{5}|(?:43|83|87|88|92)\d{4})'  # A-share / BSE 6-digit codes
         r'|(?:hk|HK)\d{5}'                    # HK code
         r'|(?<![a-zA-Z])[A-Z]{2,5}(?![a-zA-Z])'  # US ticker — UPPERCASE only, no IGNORECASE
-        r'|分析|看看|查一?下|研究|诊断|怎么样|走势|趋势'
-        r'|能买|可以买|涨还是跌|怎么看|能追|建议|目标价'
-        r'|支撑|压力|阻力|止损|买点|卖点|技术面|基本面|筹码'
+        r'|analysis|take a look|Check it out?down|Research|Diagnosis|How is it|trend|Trend'
+        r'|Can buy|Can buy|up or down|How to see|Can chase|Suggestions|target price'
+        r'|support|pressure|resistance|stop loss|buy some|selling point|technical aspect|Fundamentals|chips'
         r'|(?i:analyz|stock|buy|sell|trend|backtest|strateg)',
     )
 
     _NL_NAME_CLEANUP_PATTERNS = (
         r'[，,。.!！?？:：;；`\'"“"''（）()\[\]{}<>]+',
         r'(?i:\b(?:please|analy[sz]e|analysis|research|check|look\s+at|stock|ticker|trend|price)\b)',
-        r'(?:帮我|帮忙|麻烦|请|想请你|我想|想|用|按照|基于|关于|对)\s*',
-        r'(?:分析|看看|研究|诊断|查一?下|聊聊|说说|问问|评估)\s*',
-        r'(?:最近|近期|当前|今天|这只|这个|个股|股票)\s*',
-        r'(?:走势|情况|表现|如何|怎么样|怎么看|可以吗|能买吗|值不值得买|技术面|基本面|策略)\s*',
+        r'(?:help me|help|trouble|please|want to invite you|I want|think|use|follow|Based on|About|Yes)\s*',
+        r'(?:analysis|take a look|Research|Diagnosis|Check it out?down|chat|Talk about it|ask|Assessment)\s*',
+        r'(?:Recently|Recently|current|today|This one|this|individual stocks|stocks)\s*',
+        r'(?:trend|situation|performance|how|How is it|How to see|is it ok|Can I buy it?|Is it worth buying?|technical aspect|Fundamentals|Strategy)\s*',
         r'\s+',
     )
 
@@ -688,13 +688,13 @@ User: "analyze TSLA and NVDA using trend strategy"
             cleaned = stripped
             for pattern in cls._NL_NAME_CLEANUP_PATTERNS:
                 cleaned = re.sub(pattern, " ", cleaned)
-            cleaned = cleaned.strip(" 的").strip()
+            cleaned = cleaned.strip(" of").strip()
             if cleaned and cleaned not in candidates:
                 candidates.append(cleaned)
 
             for source in list(candidates):
                 for token in re.findall(r'[A-Za-z][A-Za-z0-9\.]{0,9}|[\u4e00-\u9fff]{2,12}', source):
-                    normalized = token.strip(" 的").strip()
+                    normalized = token.strip(" of").strip()
                     if normalized and normalized not in candidates:
                         candidates.append(normalized)
 

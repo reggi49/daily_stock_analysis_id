@@ -1054,7 +1054,7 @@ class DataFetcherManager:
                 (
                     col
                     for col in raw_data.columns
-                    if str(col) in {"板块名称", "板块", "所属板块", "板块名", "name", "industry"}
+                    if str(col) in {"Section name", "plate", "Sector", "Section name", "name", "industry"}
                 ),
                 None,
             )
@@ -1062,7 +1062,7 @@ class DataFetcherManager:
                 (
                     col
                     for col in raw_data.columns
-                    if str(col) in {"板块代码", "代码", "code"}
+                    if str(col) in {"Section code", "code", "code"}
                 ),
                 None,
             )
@@ -1070,7 +1070,7 @@ class DataFetcherManager:
                 (
                     col
                     for col in raw_data.columns
-                    if str(col) in {"板块类型", "类别", "type"}
+                    if str(col) in {"Section type", "Category", "type"}
                 ),
                 None,
             )
@@ -1105,12 +1105,12 @@ class DataFetcherManager:
                     board_name_raw = (
                         item.get("name")
                         or item.get("board_name")
-                        or item.get("板块名称")
-                        or item.get("板块")
-                        or item.get("所属板块")
-                        or item.get("板块名")
+                        or item.get("Section name")
+                        or item.get("plate")
+                        or item.get("Sector")
+                        or item.get("Section name")
                         or item.get("industry")
-                        or item.get("行业")
+                        or item.get("Industry")
                     )
                     if DataFetcherManager._is_missing_board_value(board_name_raw):
                         continue
@@ -1121,15 +1121,15 @@ class DataFetcherManager:
                     normalized_item: Dict[str, Any] = {"name": board_name}
                     code_raw = (
                         item.get("code")
-                        or item.get("板块代码")
-                        or item.get("代码")
+                        or item.get("Section code")
+                        or item.get("code")
                     )
                     if not DataFetcherManager._is_missing_board_value(code_raw):
                         normalized_item["code"] = str(code_raw).strip()
                     type_raw = (
                         item.get("type")
-                        or item.get("板块类型")
-                        or item.get("类别")
+                        or item.get("Section type")
+                        or item.get("Category")
                     )
                     if not DataFetcherManager._is_missing_board_value(type_raw):
                         normalized_item["type"] = str(type_raw).strip()
@@ -2413,7 +2413,7 @@ class DataFetcherManager:
             stock_codes: Stock code list
             
         Returns:
-            {股票代码: 股票名称} dictionary
+            {Stock code: Stock name} dictionary
         """
         result = {}
         missing_codes = set(stock_codes)

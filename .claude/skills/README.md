@@ -1,10 +1,10 @@
 # Repository Claude Skills
 
-本目录存放仓库级协作 skills，属于版本库资产。
+This directory stores warehouse-level collaboration skills，Belongs to the repository assets。
 
-- 规则真源：仓库根目录 `AGENTS.md`
-- 兼容入口：根目录 `CLAUDE.md`（应为指向 `AGENTS.md` 的软链接）
-- 本目录中的 skill 需要与 `AGENTS.md` 保持一致
-- `.claude/reviews/` 属于本地分析产物，不作为规则真源
+- The true source of rules：Warehouse root directory `AGENTS.md`
+- Compatible entrance：root directory `CLAUDE.md`（should point to `AGENTS.md` soft link）
+- in this directory skill Need and `AGENTS.md` Be consistent
+- `.claude/reviews/` Belongs to local analysis product，Not as the true source of rules
 
-如果未来需要兼容其他 agent 目录（如 `.agents/skills/` 或 `.github/skills/`），应先明确单一真源，再通过脚本或镜像同步，而不是手工长期维护多份同义内容。
+If compatibility with other systems is required in the future agent Directory（Such as `.agents/skills/` or `.github/skills/`），A single source of truth should first be identified，Then synchronize through script or mirror，Instead of manually maintaining multiple copies of synonymous content for a long time。

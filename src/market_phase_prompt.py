@@ -69,13 +69,13 @@ def format_market_phase_prompt_section(
 
 def _format_zh(ctx: Dict[str, Any], phase: str) -> str:
     label = _PHASE_LABELS_ZH[phase]
-    lines = ["", "## 市场阶段上下文", f"- 当前市场阶段：{label}"]
+    lines = ["", "## market stage context", f"- current market stage：{label}"]
     lines.extend(_metadata_lines_zh(ctx))
-    lines.append(f"- 阶段约束：{_phase_rule_zh(ctx, phase)}")
+    lines.append(f"- stage constraints：{_phase_rule_zh(ctx, phase)}")
 
     warning_text = _warning_text(ctx.get("warnings"), lang="zh")
     if warning_text:
-        lines.append(f"- 降级说明：{warning_text}，请保持保守表述。")
+        lines.append(f"- Downgrade instructions：{warning_text}，Please keep it conservative。")
 
     return "\n".join(lines) + "\n"
 
@@ -102,15 +102,15 @@ def _metadata_lines_zh(ctx: Dict[str, Any]) -> List[str]:
     minutes_to_close = _int_like(ctx.get("minutes_to_close"))
 
     if market:
-        items.append(f"- 市场：{market}")
+        items.append(f"- market：{market}")
     if market_time:
-        items.append(f"- 市场本地时间：{market_time}")
+        items.append(f"- market local time：{market_time}")
     if effective_date:
-        items.append(f"- 最新可复用完整日线日期：{effective_date}")
+        items.append(f"- The latest reusable complete daily date：{effective_date}")
     if minutes_to_open is not None:
-        items.append(f"- 距常规开盘约 {minutes_to_open} 分钟。")
+        items.append(f"- Approximately from regular opening {minutes_to_open} minutes。")
     if minutes_to_close is not None:
-        items.append(f"- 距常规收盘约 {minutes_to_close} 分钟。")
+        items.append(f"- Approximately from regular close {minutes_to_close} minutes。")
     return items
 
 
@@ -154,10 +154,10 @@ def _phase_rule_zh(ctx: Dict[str, Any], phase: str) -> str:
             base += " When the market closes, we should focus more on pre-closing risk control and whether to hold positions overnight.。"
         return base
     if phase == "postmarket":
-        return "常规交易时段已结束，可以保留完整交易日复盘语义。"
+        return "Regular trading session has ended，Can retain complete trading day review semantics。"
     if phase == "non_trading":
-        return f"当前不是交易日或属于强制运行，只能基于上一完整交易日{date_hint}和已知事件分析，不得伪造今日盘中走势。"
-    return "当前市场阶段不可可靠推断，不要补全不存在的盘中或盘前事实，结论需保持保守。"
+        return f"It is not a trading day or it is a forced operation.，Can only be based on the last complete trading day{date_hint}and known event analysis，Do not fake today’s intraday trend。"
+    return "The current market stage cannot be reliably extrapolated，Do not complete intraday or pre-market facts that do not exist，Conclusions need to be conservative。"
 
 
 def _phase_rule_en(ctx: Dict[str, Any], phase: str) -> str:

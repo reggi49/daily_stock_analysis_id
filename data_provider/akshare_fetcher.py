@@ -549,7 +549,7 @@ class AkshareFetcher(BaseFetcher):
 
         except Exception as e:
             error_msg = str(e).lower()
-            if any(keyword in error_msg for keyword in ['banned', 'blocked', '频率', 'rate', '限制']):
+            if any(keyword in error_msg for keyword in ['banned', 'blocked', 'Frequency', 'rate', 'Limit']):
                 raise RateLimitError(f"Akshare(EM) may be rate-limited: {e}") from e
             raise e
 
@@ -581,7 +581,7 @@ class AkshareFetcher(BaseFetcher):
             if df is not None and not df.empty:
                 # Make sure the date column exists
                 if 'date' in df.columns:
-                    df = df.rename(columns={'date': '日期'})
+                    df = df.rename(columns={'date': 'Date'})
 
                 # Map additional columns to match _normalize_data expectations
                 # _normalize_data expect：date, opening, close, Highest, lowest, Volume, Turnover
@@ -592,9 +592,9 @@ class AkshareFetcher(BaseFetcher):
                 df = df.rename(columns=rename_map)
 
                 # Calculate the increase or decrease（Sina interface may not return）
-                if '收盘' in df.columns:
-                    df['涨跌幅'] = df['收盘'].pct_change() * 100
-                    df['涨跌幅'] = df['涨跌幅'].fillna(0)
+                if 'close' in df.columns:
+                    df['Increase or decrease'] = df['close'].pct_change() * 100
+                    df['Increase or decrease'] = df['Increase or decrease'].fillna(0)
 
                 return df
             return pd.DataFrame()
@@ -637,10 +637,10 @@ class AkshareFetcher(BaseFetcher):
 
                 # Tencent data usually contains 'Increase or decrease'，Calculate if not
                 if 'pct_chg' in df.columns:
-                    df = df.rename(columns={'pct_chg': '涨跌幅'})
-                elif '收盘' in df.columns:
-                    df['涨跌幅'] = df['收盘'].pct_change() * 100
-                    df['涨跌幅'] = df['涨跌幅'].fillna(0)
+                    df = df.rename(columns={'pct_chg': 'Increase or decrease'})
+                elif 'close' in df.columns:
+                    df['Increase or decrease'] = df['close'].pct_change() * 100
+                    df['Increase or decrease'] = df['Increase or decrease'].fillna(0)
 
                 return df
             return pd.DataFrame()
@@ -692,7 +692,7 @@ class AkshareFetcher(BaseFetcher):
             if df is not None and not df.empty:
                 logger.info(f"[APIreturn] ak.fund_etf_hist_em success: returned {len(df)} rows of data, elapsed {api_elapsed:.2f}s")
                 logger.info(f"[APIreturn] Columns: {list(df.columns)}")
-                logger.info(f"[APIreturn] Date range: {df['日期'].iloc[0]} ~ {df['日期'].iloc[-1]}")
+                logger.info(f"[APIreturn] Date range: {df['Date'].iloc[0]} ~ {df['Date'].iloc[-1]}")
                 logger.debug(f"[APIreturn] Latest 3 rows of data:\n{df.tail(3).to_string()}")
             else:
                 logger.warning(f"[APIreturn] ak.fund_etf_hist_em may be rate-limited, elapsed {api_elapsed:.2f}s")
@@ -703,7 +703,7 @@ class AkshareFetcher(BaseFetcher):
             error_msg = str(e).lower()
             
             # Detect anti-climbing bans
-            if any(keyword in error_msg for keyword in ['banned', 'blocked', '频率', 'rate', '限制']):
+            if any(keyword in error_msg for keyword in ['banned', 'blocked', 'Frequency', 'rate', 'Limit']):
                 logger.warning(f"Possible ban detected: {e}")
                 raise RateLimitError(f"Akshare May be restricted: {e}") from e
             
@@ -744,7 +744,7 @@ class AkshareFetcher(BaseFetcher):
             # stock_us_daily Return all historical data，Subsequent filtering by date is required
             df = ak.stock_us_daily(
                 symbol=symbol,
-                adjust="qfq"  # 前复权
+                adjust="qfq"  # Former restoration of rights
             )
             
             api_elapsed = _time.time() - api_start
@@ -779,15 +779,15 @@ class AkshareFetcher(BaseFetcher):
                 df = df.rename(columns=rename_map)
                 
                 # Calculate the increase or decrease（The US stock interface does not return directly）
-                if '收盘' in df.columns:
-                    df['涨跌幅'] = df['收盘'].pct_change() * 100
-                    df['涨跌幅'] = df['涨跌幅'].fillna(0)
+                if 'close' in df.columns:
+                    df['Increase or decrease'] = df['close'].pct_change() * 100
+                    df['Increase or decrease'] = df['Increase or decrease'].fillna(0)
                 
                 # Estimated turnover（US stock interface does not return）
-                if '成交量' in df.columns and '收盘' in df.columns:
-                    df['成交额'] = df['成交量'] * df['收盘']
+                if 'Volume' in df.columns and 'close' in df.columns:
+                    df['Turnover'] = df['Volume'] * df['close']
                 else:
-                    df['成交额'] = 0
+                    df['Turnover'] = 0
                 
                 return df
             else:
@@ -798,7 +798,7 @@ class AkshareFetcher(BaseFetcher):
             error_msg = str(e).lower()
             
             # Detect anti-climbing bans
-            if any(keyword in error_msg for keyword in ['banned', 'blocked', '频率', 'rate', '限制']):
+            if any(keyword in error_msg for keyword in ['banned', 'blocked', 'Frequency', 'rate', 'Limit']):
                 logger.warning(f"Possible ban detected: {e}")
                 raise RateLimitError(f"Akshare May be restricted: {e}") from e
             
@@ -842,7 +842,7 @@ class AkshareFetcher(BaseFetcher):
                 period="daily",
                 start_date=start_date.replace('-', ''),
                 end_date=end_date.replace('-', ''),
-                adjust="qfq"  # 前复权
+                adjust="qfq"  # Former restoration of rights
             )
             
             api_elapsed = _time.time() - api_start
@@ -851,7 +851,7 @@ class AkshareFetcher(BaseFetcher):
             if df is not None and not df.empty:
                 logger.info(f"[APIreturn] ak.stock_hk_hist success: return {len(df)} row data, time consuming {api_elapsed:.2f}s")
                 logger.info(f"[APIreturn] List: {list(df.columns)}")
-                logger.info(f"[APIreturn] date range: {df['日期'].iloc[0]} ~ {df['日期'].iloc[-1]}")
+                logger.info(f"[APIreturn] date range: {df['Date'].iloc[0]} ~ {df['Date'].iloc[-1]}")
                 logger.debug(f"[APIreturn] up to date3piece of data:\n{df.tail(3).to_string()}")
             else:
                 logger.warning(f"[APIreturn] ak.stock_hk_hist May be restricted, time consuming {api_elapsed:.2f}s")
@@ -862,7 +862,7 @@ class AkshareFetcher(BaseFetcher):
             error_msg = str(e).lower()
             
             # Detect anti-climbing bans
-            if any(keyword in error_msg for keyword in ['banned', 'blocked', '频率', 'rate', '限制']):
+            if any(keyword in error_msg for keyword in ['banned', 'blocked', 'Frequency', 'rate', 'Limit']):
                 logger.warning(f"Possible ban detected: {e}")
                 raise RateLimitError(f"Akshare May be restricted: {e}") from e
             
@@ -1009,7 +1009,7 @@ class AkshareFetcher(BaseFetcher):
                 return None
             
             # Find specific stocks
-            row = df[df['代码'] == stock_code]
+            row = df[df['code'] == stock_code]
             if row.empty:
                 logger.info(f"[APIreturn] No stock found {stock_code} real-time quotes")
                 return None
@@ -1019,26 +1019,26 @@ class AkshareFetcher(BaseFetcher):
             # use realtime_types.py Unified conversion function in
             quote = UnifiedRealtimeQuote(
                 code=stock_code,
-                name=str(row.get('名称', '')),
+                name=str(row.get('Name', '')),
                 source=RealtimeSource.AKSHARE_EM,
-                price=safe_float(row.get('最新价')),
-                change_pct=safe_float(row.get('涨跌幅')),
-                change_amount=safe_float(row.get('涨跌额')),
-                volume=safe_int(row.get('成交量')),
-                amount=safe_float(row.get('成交额')),
-                volume_ratio=safe_float(row.get('量比')),
-                turnover_rate=safe_float(row.get('换手率')),
-                amplitude=safe_float(row.get('振幅')),
-                open_price=safe_float(row.get('今开')),
-                high=safe_float(row.get('最高')),
-                low=safe_float(row.get('最低')),
-                pe_ratio=safe_float(row.get('市盈率-动态')),
-                pb_ratio=safe_float(row.get('市净率')),
-                total_mv=safe_float(row.get('总市值')),
-                circ_mv=safe_float(row.get('流通市值')),
-                change_60d=safe_float(row.get('60日涨跌幅')),
-                high_52w=safe_float(row.get('52周最高')),
-                low_52w=safe_float(row.get('52周最低')),
+                price=safe_float(row.get('latest price')),
+                change_pct=safe_float(row.get('Increase or decrease')),
+                change_amount=safe_float(row.get('Changes')),
+                volume=safe_int(row.get('Volume')),
+                amount=safe_float(row.get('Turnover')),
+                volume_ratio=safe_float(row.get('Quantity ratio')),
+                turnover_rate=safe_float(row.get('turnover rate')),
+                amplitude=safe_float(row.get('Amplitude')),
+                open_price=safe_float(row.get('Open today')),
+                high=safe_float(row.get('highest')),
+                low=safe_float(row.get('lowest')),
+                pe_ratio=safe_float(row.get('P/E ratio-Dynamic')),
+                pb_ratio=safe_float(row.get('price to book ratio')),
+                total_mv=safe_float(row.get('Total market capitalization')),
+                circ_mv=safe_float(row.get('Circulation market value')),
+                change_60d=safe_float(row.get('60daily increase or decrease')),
+                high_52w=safe_float(row.get('52Weekly highest')),
+                low_52w=safe_float(row.get('52Weekly lowest')),
             )
             
             logger.info(f"[Real-time quotes-Dongcai] {stock_code} {quote.name}: price={quote.price}, ups and downs={quote.change_pct}%, "
@@ -1083,7 +1083,7 @@ class AkshareFetcher(BaseFetcher):
             
             if response.status_code != 200:
                 failure_message = _build_realtime_failure_message(
-                    source_name="新浪",
+                    source_name="Sina",
                     endpoint=SINA_REALTIME_ENDPOINT,
                     stock_code=stock_code,
                     symbol=symbol,
@@ -1100,7 +1100,7 @@ class AkshareFetcher(BaseFetcher):
             content = response.text.strip()
             if '=""' in content or not content:
                 failure_message = _build_realtime_failure_message(
-                    source_name="新浪",
+                    source_name="Sina",
                     endpoint=SINA_REALTIME_ENDPOINT,
                     stock_code=stock_code,
                     symbol=symbol,
@@ -1118,7 +1118,7 @@ class AkshareFetcher(BaseFetcher):
             data_end = content.rfind('"')
             if data_start == -1 or data_end == -1:
                 failure_message = _build_realtime_failure_message(
-                    source_name="新浪",
+                    source_name="Sina",
                     endpoint=SINA_REALTIME_ENDPOINT,
                     stock_code=stock_code,
                     symbol=symbol,
@@ -1136,7 +1136,7 @@ class AkshareFetcher(BaseFetcher):
             
             if len(fields) < 32:
                 failure_message = _build_realtime_failure_message(
-                    source_name="新浪",
+                    source_name="Sina",
                     endpoint=SINA_REALTIME_ENDPOINT,
                     stock_code=stock_code,
                     symbol=symbol,
@@ -1188,7 +1188,7 @@ class AkshareFetcher(BaseFetcher):
             api_elapsed = time.time() - api_start
             category, detail = _classify_realtime_http_error(e)
             failure_message = _build_realtime_failure_message(
-                source_name="新浪",
+                source_name="Sina",
                 endpoint=SINA_REALTIME_ENDPOINT,
                 stock_code=stock_code,
                 symbol=symbol,
@@ -1234,7 +1234,7 @@ class AkshareFetcher(BaseFetcher):
             
             if response.status_code != 200:
                 failure_message = _build_realtime_failure_message(
-                    source_name="腾讯",
+                    source_name="Tencent",
                     endpoint=TENCENT_REALTIME_ENDPOINT,
                     stock_code=stock_code,
                     symbol=symbol,
@@ -1250,7 +1250,7 @@ class AkshareFetcher(BaseFetcher):
             content = response.text.strip()
             if '=""' in content or not content:
                 failure_message = _build_realtime_failure_message(
-                    source_name="腾讯",
+                    source_name="Tencent",
                     endpoint=TENCENT_REALTIME_ENDPOINT,
                     stock_code=stock_code,
                     symbol=symbol,
@@ -1268,7 +1268,7 @@ class AkshareFetcher(BaseFetcher):
             data_end = content.rfind('"')
             if data_start == -1 or data_end == -1:
                 failure_message = _build_realtime_failure_message(
-                    source_name="腾讯",
+                    source_name="Tencent",
                     endpoint=TENCENT_REALTIME_ENDPOINT,
                     stock_code=stock_code,
                     symbol=symbol,
@@ -1286,7 +1286,7 @@ class AkshareFetcher(BaseFetcher):
 
             if len(fields) < 45:
                 failure_message = _build_realtime_failure_message(
-                    source_name="腾讯",
+                    source_name="Tencent",
                     endpoint=TENCENT_REALTIME_ENDPOINT,
                     stock_code=stock_code,
                     symbol=symbol,
@@ -1318,8 +1318,8 @@ class AkshareFetcher(BaseFetcher):
                 volume=_normalize_tencent_volume(fields),
                 amount=amount,
                 open_price=safe_float(fields[5]),
-                high=safe_float(fields[33]) if len(fields) > 33 else None,  # 修正：Field 33 是最高价
-                low=safe_float(fields[34]) if len(fields) > 34 else None,  # 修正：Field 34 是最低价
+                high=safe_float(fields[33]) if len(fields) > 33 else None,  # Correction：Field 33 is the highest price
+                low=safe_float(fields[34]) if len(fields) > 34 else None,  # Correction：Field 34 is the lowest price
                 pre_close=safe_float(fields[4]),
                 turnover_rate=safe_float(fields[38]) if len(fields) > 38 else None,
                 amplitude=safe_float(fields[43]) if len(fields) > 43 else None,
@@ -1341,7 +1341,7 @@ class AkshareFetcher(BaseFetcher):
             api_elapsed = time.time() - api_start
             category, detail = _classify_realtime_http_error(e)
             failure_message = _build_realtime_failure_message(
-                source_name="腾讯",
+                source_name="Tencent",
                 endpoint=TENCENT_REALTIME_ENDPOINT,
                 stock_code=stock_code,
                 symbol=symbol,
@@ -1414,7 +1414,7 @@ class AkshareFetcher(BaseFetcher):
                 return None
             
             # Find specified ETF
-            row = df[df['代码'] == stock_code]
+            row = df[df['code'] == stock_code]
             if row.empty:
                 logger.info(f"[APIreturn] not found ETF {stock_code} real-time quotes")
                 return None
@@ -1425,23 +1425,23 @@ class AkshareFetcher(BaseFetcher):
             # ETF Market data construction
             quote = UnifiedRealtimeQuote(
                 code=stock_code,
-                name=str(row.get('名称', '')),
+                name=str(row.get('Name', '')),
                 source=RealtimeSource.AKSHARE_EM,
-                price=safe_float(row.get('最新价')),
-                change_pct=safe_float(row.get('涨跌幅')),
-                change_amount=safe_float(row.get('涨跌额')),
-                volume=safe_int(row.get('成交量')),
-                amount=safe_float(row.get('成交额')),
-                volume_ratio=safe_float(row.get('量比')),
-                turnover_rate=safe_float(row.get('换手率')),
-                amplitude=safe_float(row.get('振幅')),
-                open_price=safe_float(row.get('开盘价')),
-                high=safe_float(row.get('最高价')),
-                low=safe_float(row.get('最低价')),
-                total_mv=safe_float(row.get('总市值')),
-                circ_mv=safe_float(row.get('流通市值')),
-                high_52w=safe_float(row.get('52周最高')),
-                low_52w=safe_float(row.get('52周最低')),
+                price=safe_float(row.get('latest price')),
+                change_pct=safe_float(row.get('Increase or decrease')),
+                change_amount=safe_float(row.get('Changes')),
+                volume=safe_int(row.get('Volume')),
+                amount=safe_float(row.get('Turnover')),
+                volume_ratio=safe_float(row.get('Quantity ratio')),
+                turnover_rate=safe_float(row.get('turnover rate')),
+                amplitude=safe_float(row.get('Amplitude')),
+                open_price=safe_float(row.get('opening price')),
+                high=safe_float(row.get('highest price')),
+                low=safe_float(row.get('lowest price')),
+                total_mv=safe_float(row.get('Total market capitalization')),
+                circ_mv=safe_float(row.get('Circulation market value')),
+                high_52w=safe_float(row.get('52Weekly highest')),
+                low_52w=safe_float(row.get('52Weekly lowest')),
             )
             
             logger.info(f"[ETFReal-time quotes] {stock_code} {quote.name}: price={quote.price}, ups and downs={quote.change_pct}%, "
@@ -1498,29 +1498,29 @@ class AkshareFetcher(BaseFetcher):
                 circuit_breaker.record_success(em_key)
 
                 # Find designated Hong Kong stocks
-                row = df[df['代码'] == code]
+                row = df[df['code'] == code]
                 if row.empty:
                     logger.info(f"[APIreturn] No Hong Kong stocks found {code} real-time quotes (stock_hk_spot_em)")
                 else:
                     row = row.iloc[0]
                     quote = UnifiedRealtimeQuote(
                         code=stock_code,
-                        name=str(row.get('名称', '')),
+                        name=str(row.get('Name', '')),
                         source=RealtimeSource.AKSHARE_EM,
-                        price=safe_float(row.get('最新价')),
-                        change_pct=safe_float(row.get('涨跌幅')),
-                        change_amount=safe_float(row.get('涨跌额')),
-                        volume=safe_int(row.get('成交量')),
-                        amount=safe_float(row.get('成交额')),
-                        volume_ratio=safe_float(row.get('量比')),
-                        turnover_rate=safe_float(row.get('换手率')),
-                        amplitude=safe_float(row.get('振幅')),
-                        pe_ratio=safe_float(row.get('市盈率')),
-                        pb_ratio=safe_float(row.get('市净率')),
-                        total_mv=safe_float(row.get('总市值')),
-                        circ_mv=safe_float(row.get('流通市值')),
-                        high_52w=safe_float(row.get('52周最高')),
-                        low_52w=safe_float(row.get('52周最低')),
+                        price=safe_float(row.get('latest price')),
+                        change_pct=safe_float(row.get('Increase or decrease')),
+                        change_amount=safe_float(row.get('Changes')),
+                        volume=safe_int(row.get('Volume')),
+                        amount=safe_float(row.get('Turnover')),
+                        volume_ratio=safe_float(row.get('Quantity ratio')),
+                        turnover_rate=safe_float(row.get('turnover rate')),
+                        amplitude=safe_float(row.get('Amplitude')),
+                        pe_ratio=safe_float(row.get('P/E ratio')),
+                        pb_ratio=safe_float(row.get('price to book ratio')),
+                        total_mv=safe_float(row.get('Total market capitalization')),
+                        circ_mv=safe_float(row.get('Circulation market value')),
+                        high_52w=safe_float(row.get('52Weekly highest')),
+                        low_52w=safe_float(row.get('52Weekly lowest')),
                     )
                     logger.info(f"[Hong Kong stock real-time quotes] {stock_code} {quote.name}: price={quote.price}, ups and downs={quote.change_pct}%, "
                                 f"turnover rate={quote.turnover_rate}%")
@@ -1547,7 +1547,7 @@ class AkshareFetcher(BaseFetcher):
             api_elapsed = _time.time() - api_start
             logger.info(f"[APIreturn] ak.stock_hk_spot success: return {len(df_spot)} Only Hong Kong stocks, time consuming {api_elapsed:.2f}s")
 
-            row = df_spot[df_spot['代码'] == code]
+            row = df_spot[df_spot['code'] == code]
             if row.empty:
                 logger.info(f"[APIreturn] No Hong Kong stocks found {code} real-time quotes (stock_hk_spot)")
                 return None
@@ -1555,13 +1555,13 @@ class AkshareFetcher(BaseFetcher):
             row = row.iloc[0]
             quote = UnifiedRealtimeQuote(
                 code=stock_code,
-                name=str(row.get('名称', '')),
+                name=str(row.get('Name', '')),
                 source=RealtimeSource.AKSHARE_EM,
-                price=safe_float(row.get('最新价')),
-                change_pct=safe_float(row.get('涨跌幅')),
-                change_amount=safe_float(row.get('涨跌额')),
-                volume=safe_int(row.get('成交量')),
-                amount=safe_float(row.get('成交额')),
+                price=safe_float(row.get('latest price')),
+                change_pct=safe_float(row.get('Increase or decrease')),
+                change_amount=safe_float(row.get('Changes')),
+                volume=safe_int(row.get('Volume')),
+                amount=safe_float(row.get('Turnover')),
             )
             circuit_breaker.record_success(sina_key)
             logger.info(f"[Hong Kong stock real-time quotes-spare] {stock_code} {quote.name}: price={quote.price}, ups and downs={quote.change_pct}%")
@@ -1630,15 +1630,15 @@ class AkshareFetcher(BaseFetcher):
             # use realtime_types.py Unified conversion function in
             chip = ChipDistribution(
                 code=stock_code,
-                date=str(latest.get('日期', '')),
-                profit_ratio=safe_float(latest.get('获利比例')),
-                avg_cost=safe_float(latest.get('平均成本')),
-                cost_90_low=safe_float(latest.get('90成本-低')),
-                cost_90_high=safe_float(latest.get('90成本-高')),
-                concentration_90=safe_float(latest.get('90集中度')),
-                cost_70_low=safe_float(latest.get('70成本-低')),
-                cost_70_high=safe_float(latest.get('70成本-高')),
-                concentration_70=safe_float(latest.get('70集中度')),
+                date=str(latest.get('Date', '')),
+                profit_ratio=safe_float(latest.get('Profit ratio')),
+                avg_cost=safe_float(latest.get('average cost')),
+                cost_90_low=safe_float(latest.get('90cost-low')),
+                cost_90_high=safe_float(latest.get('90cost-high')),
+                concentration_90=safe_float(latest.get('90Concentration')),
+                cost_70_low=safe_float(latest.get('70cost-low')),
+                cost_70_high=safe_float(latest.get('70cost-high')),
+                concentration_70=safe_float(latest.get('70Concentration')),
             )
             
             logger.info(f"[Chip distribution] {stock_code} date={chip.date}: Profit ratio={chip.profit_ratio:.1%}, "
@@ -1712,17 +1712,17 @@ class AkshareFetcher(BaseFetcher):
             if df is not None and not df.empty:
                 for code, name in indices_map.items():
                     # Find the corresponding index
-                    row = df[df['代码'] == code]
+                    row = df[df['code'] == code]
                     if row.empty:
                         # Try searching with prefix
-                        row = df[df['代码'].str.contains(code)]
+                        row = df[df['code'].str.contains(code)]
 
                     if not row.empty:
                         row = row.iloc[0]
-                        current = safe_float(row.get('最新价', 0))
-                        prev_close = safe_float(row.get('昨收', 0))
-                        high = safe_float(row.get('最高', 0))
-                        low = safe_float(row.get('最低', 0))
+                        current = safe_float(row.get('latest price', 0))
+                        prev_close = safe_float(row.get('Collected yesterday', 0))
+                        high = safe_float(row.get('highest', 0))
+                        low = safe_float(row.get('lowest', 0))
 
                         # Calculate amplitude
                         amplitude = 0.0
@@ -1733,14 +1733,14 @@ class AkshareFetcher(BaseFetcher):
                             'code': code,
                             'name': name,
                             'current': current,
-                            'change': safe_float(row.get('涨跌额', 0)),
-                            'change_pct': safe_float(row.get('涨跌幅', 0)),
-                            'open': safe_float(row.get('今开', 0)),
+                            'change': safe_float(row.get('Changes', 0)),
+                            'change_pct': safe_float(row.get('Increase or decrease', 0)),
+                            'open': safe_float(row.get('Open today', 0)),
                             'high': high,
                             'low': low,
                             'prev_close': prev_close,
-                            'volume': safe_float(row.get('成交量', 0)),
-                            'amount': safe_float(row.get('成交额', 0)),
+                            'volume': safe_float(row.get('Volume', 0)),
+                            'amount': safe_float(row.get('Turnover', 0)),
                             'amplitude': amplitude,
                         })
             return results
@@ -1832,11 +1832,11 @@ class AkshareFetcher(BaseFetcher):
         
         # 1. Extract basic comparison data：latest price、Collected yesterday
         # Compatible with column names returned by different interfaces sina/em efinance tushare xtdata
-        code_col = next((c for c in ['代码', '股票代码', 'ts_code','stock_code'] if c in df.columns), None)
-        name_col = next((c for c in ['名称', '股票名称','name','name'] if c in df.columns), None)
-        close_col = next((c for c in ['最新价', '最新价', 'close','lastPrice'] if c in df.columns), None)
-        pre_close_col = next((c for c in ['昨收', '昨日收盘', 'pre_close','lastClose'] if c in df.columns), None)
-        amount_col = next((c for c in ['成交额', '成交额', 'amount','amount'] if c in df.columns), None) 
+        code_col = next((c for c in ['code', 'Stock code', 'ts_code','stock_code'] if c in df.columns), None)
+        name_col = next((c for c in ['Name', 'Stock name','name','name'] if c in df.columns), None)
+        close_col = next((c for c in ['latest price', 'latest price', 'close','lastPrice'] if c in df.columns), None)
+        pre_close_col = next((c for c in ['Collected yesterday', "Yesterday's closing", 'pre_close','lastClose'] if c in df.columns), None)
+        amount_col = next((c for c in ['Turnover', 'Turnover', 'amount','amount'] if c in df.columns), None) 
         
         limit_up_count = 0
         limit_down_count = 0
@@ -1946,8 +1946,8 @@ class AkshareFetcher(BaseFetcher):
             logger.info("[APIcall] ak.stock_board_industry_name_em() Get section ranking...")
             df = ak.stock_board_industry_name_em()
             if df is not None and not df.empty:
-                change_col = '涨跌幅'
-                name = '板块名称'
+                change_col = 'Increase or decrease'
+                name = 'Section name'
                 return _get_rank_top_n(df, change_col, name, n)
             
         except Exception as e:
@@ -1959,11 +1959,11 @@ class AkshareFetcher(BaseFetcher):
             self._enforce_rate_limit()
 
             logger.info("[APIcall] ak.stock_sector_spot() Get industry sector rankings(Sina)...")
-            df = ak.stock_sector_spot(indicator='行业')
+            df = ak.stock_sector_spot(indicator='Industry')
             if df is None or df.empty:
                 return None
-            change_col = '涨跌幅'
-            name = '板块'
+            change_col = 'Increase or decrease'
+            name = 'plate'
             return _get_rank_top_n(df, change_col, name, n)
         
         except Exception as e:
@@ -1983,8 +1983,8 @@ class AkshareFetcher(BaseFetcher):
             if df is None or df.empty:
                 return None
 
-            change_col = '涨跌幅'
-            name_col = '板块名称'
+            change_col = 'Increase or decrease'
+            name_col = 'Section name'
             if change_col not in df.columns or name_col not in df.columns:
                 return None
 
@@ -2012,9 +2012,9 @@ class AkshareFetcher(BaseFetcher):
         import akshare as ak
 
         fetch_attempts = (
-            ("东方财富人气榜", lambda top_n: self._get_eastmoney_hot_stocks(ak, top_n)),
-            ("东方财富飙升榜", lambda top_n: self._get_eastmoney_hot_up_stocks(ak, top_n)),
-            ("雪球关注榜", lambda top_n: self._get_xueqiu_hot_stocks(ak, top_n)),
+            ("Oriental Fortune Popularity List", lambda top_n: self._get_eastmoney_hot_stocks(ak, top_n)),
+            ("Oriental wealth soaring list", lambda top_n: self._get_eastmoney_hot_up_stocks(ak, top_n)),
+            ("Snowball attention list", lambda top_n: self._get_xueqiu_hot_stocks(ak, top_n)),
         )
         last_error = ""
         for source, fetch in fetch_attempts:
@@ -2042,11 +2042,11 @@ class AkshareFetcher(BaseFetcher):
         rows: List[Dict[str, Any]] = []
         for _, row in df.head(n).iterrows():
             rows.append({
-                'rank': self._safe_int(row.get('当前排名')),
-                'code': str(row.get('代码', '')).strip(),
-                'name': str(row.get('股票名称', '')).strip(),
-                'price': self._safe_float(row.get('最新价')),
-                'change_pct': self._safe_float(row.get('涨跌幅')),
+                'rank': self._safe_int(row.get('Current ranking')),
+                'code': str(row.get('code', '')).strip(),
+                'name': str(row.get('Stock name', '')).strip(),
+                'price': self._safe_float(row.get('latest price')),
+                'change_pct': self._safe_float(row.get('Increase or decrease')),
                 'source': 'Oriental Fortune Popularity List',
             })
         return rows
@@ -2061,11 +2061,11 @@ class AkshareFetcher(BaseFetcher):
         if df is None or df.empty:
             return None
 
-        code_col = self._find_first_column(df, ("代码", "股票代码"))
-        name_col = self._find_first_column(df, ("股票名称", "名称", "股票简称"))
-        rank_col = self._find_first_column(df, ("当前排名", "排名", "序号"))
-        price_col = self._find_first_column(df, ("最新价", "现价"))
-        change_col = self._find_column_containing(df, ("涨跌幅",))
+        code_col = self._find_first_column(df, ("code", "Stock code"))
+        name_col = self._find_first_column(df, ("Stock name", "Name", "stock abbreviation"))
+        rank_col = self._find_first_column(df, ("Current ranking", "Ranking", "serial number"))
+        price_col = self._find_first_column(df, ("latest price", "Current price"))
+        change_col = self._find_column_containing(df, ("Increase or decrease",))
         if not code_col or not name_col:
             return None
 
@@ -2087,7 +2087,7 @@ class AkshareFetcher(BaseFetcher):
         self._enforce_rate_limit()
 
         logger.info("[APIcall] ak.stock_hot_follow_xq() Get snowball attention list...")
-        df = ak.stock_hot_follow_xq(symbol='最热门')
+        df = ak.stock_hot_follow_xq(symbol='Most popular')
         if df is None or df.empty:
             return None
 
@@ -2095,9 +2095,9 @@ class AkshareFetcher(BaseFetcher):
         for idx, (_, row) in enumerate(df.head(n).iterrows(), 1):
             rows.append({
                 'rank': idx,
-                'code': str(row.get('股票代码', '')).strip(),
-                'name': str(row.get('股票简称', '')).strip(),
-                'price': self._safe_float(row.get('最新价')),
+                'code': str(row.get('Stock code', '')).strip(),
+                'name': str(row.get('stock abbreviation', '')).strip(),
+                'price': self._safe_float(row.get('latest price')),
                 'change_pct': None,
                 'source': 'Snowball attention list',
             })
@@ -2122,33 +2122,33 @@ class AkshareFetcher(BaseFetcher):
                 return None
 
             df = df.copy()
-            for col in ('连板数', '封板资金', '成交额', '换手率', '涨跌幅'):
+            for col in ('Number of connected boards', 'Closing funds', 'Turnover', 'turnover rate', 'Increase or decrease'):
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors='coerce')
-            if '首次封板时间' in df.columns:
-                df['首次封板时间'] = df['首次封板时间'].map(self._normalize_limit_time_value)
-                df['_首次封板时间排序'] = df['首次封板时间'].where(df['首次封板时间'] != '', '999999')
-            sort_cols = [col for col in ('连板数', '_首次封板时间排序') if col in df.columns]
+            if 'First blocking time' in df.columns:
+                df['First blocking time'] = df['First blocking time'].map(self._normalize_limit_time_value)
+                df['_Sort by first block time'] = df['First blocking time'].where(df['First blocking time'] != '', '999999')
+            sort_cols = [col for col in ('Number of connected boards', '_Sort by first block time') if col in df.columns]
             if sort_cols:
-                ascending = [False if col == '连板数' else True for col in sort_cols]
+                ascending = [False if col == 'Number of connected boards' else True for col in sort_cols]
                 df = df.sort_values(sort_cols, ascending=ascending)
 
             rows: List[Dict[str, Any]] = []
             for _, row in df.head(n).iterrows():
                 rows.append({
-                    'code': str(row.get('代码', '')).strip(),
-                    'name': str(row.get('名称', '')).strip(),
-                    'change_pct': self._safe_float(row.get('涨跌幅')),
-                    'price': self._safe_float(row.get('最新价')),
-                    'amount': self._safe_float(row.get('成交额')),
-                    'turnover_rate': self._safe_float(row.get('换手率')),
-                    'seal_amount': self._safe_float(row.get('封板资金')),
-                    'first_limit_time': str(row.get('首次封板时间', '')).strip(),
-                    'last_limit_time': self._normalize_limit_time_value(row.get('最后封板时间')),
-                    'break_count': self._safe_int(row.get('炸板次数')),
-                    'limit_stat': str(row.get('涨停统计', '')).strip(),
-                    'consecutive_boards': self._safe_int(row.get('连板数')),
-                    'industry': str(row.get('所属行业', '')).strip(),
+                    'code': str(row.get('code', '')).strip(),
+                    'name': str(row.get('Name', '')).strip(),
+                    'change_pct': self._safe_float(row.get('Increase or decrease')),
+                    'price': self._safe_float(row.get('latest price')),
+                    'amount': self._safe_float(row.get('Turnover')),
+                    'turnover_rate': self._safe_float(row.get('turnover rate')),
+                    'seal_amount': self._safe_float(row.get('Closing funds')),
+                    'first_limit_time': str(row.get('First blocking time', '')).strip(),
+                    'last_limit_time': self._normalize_limit_time_value(row.get('Last closing time')),
+                    'break_count': self._safe_int(row.get('Number of fried boards')),
+                    'limit_stat': str(row.get('Daily limit statistics', '')).strip(),
+                    'consecutive_boards': self._safe_int(row.get('Number of connected boards')),
+                    'industry': str(row.get('Industry', '')).strip(),
                 })
             return rows
         except Exception as e:
@@ -2230,7 +2230,7 @@ if __name__ == "__main__":
     print("Test common stock data acquisition")
     print("=" * 50)
     try:
-        df = fetcher.get_daily_data('600519')  # 茅台
+        df = fetcher.get_daily_data('600519')  # Moutai
         print(f"[stock] get success，common {len(df)} piece of data")
         print(df.tail())
     except Exception as e:
@@ -2241,7 +2241,7 @@ if __name__ == "__main__":
     print("test ETF Fund data acquisition")
     print("=" * 50)
     try:
-        df = fetcher.get_daily_data('512400')  # 有色龙头ETF
+        df = fetcher.get_daily_data('512400')  # Colored faucetETF
         print(f"[ETF] get success，common {len(df)} piece of data")
         print(df.tail())
     except Exception as e:
@@ -2252,7 +2252,7 @@ if __name__ == "__main__":
     print("test ETF Get real-time quotes")
     print("=" * 50)
     try:
-        quote = fetcher.get_realtime_quote('512880')  # 证券ETF
+        quote = fetcher.get_realtime_quote('512880')  # securitiesETF
         if quote:
             print(f"[ETFreal time] {quote.name}: price={quote.price}, Increase or decrease={quote.change_pct}%")
         else:
@@ -2306,7 +2306,7 @@ if __name__ == "__main__":
     print("Test chip distribution data acquisition")
     print("=" * 50)
     try:
-        chip = fetcher.get_chip_distribution('600519')  # 茅台
+        chip = fetcher.get_chip_distribution('600519')  # Moutai
     except Exception as e:
         print(f"[Chip distribution] Failed to obtain: {e}")
 

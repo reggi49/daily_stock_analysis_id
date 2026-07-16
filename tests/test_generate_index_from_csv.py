@@ -145,19 +145,19 @@ class TestGetStockName:
 
     def test_cn_stock_name(self):
         """Test A-share uses the name field"""
-        row = {'name': '平安银行', 'enname': 'Ping An Bank'}
+        row = {'name': 'Ping An Bank', 'enname': 'Ping An Bank'}
         result = get_stock_name(row, 'CN')
-        assert result == '平安银行'
+        assert result == 'Ping An Bank'
 
     def test_hk_stock_name(self):
         """Test HK stock uses the name field"""
-        row = {'name': '腾讯控股', 'enname': 'Tencent'}
+        row = {'name': 'Tencent Holdings', 'enname': 'Tencent'}
         result = get_stock_name(row, 'HK')
-        assert result == '腾讯控股'
+        assert result == 'Tencent Holdings'
 
     def test_us_stock_name(self):
         """Test US stock uses the enname field"""
-        row = {'name': '苹果', 'enname': 'Apple Inc.'}
+        row = {'name': 'apple', 'enname': 'Apple Inc.'}
         result = get_stock_name(row, 'US')
         assert result == 'Apple Inc.'
 
@@ -169,15 +169,15 @@ class TestGetStockName:
 
     def test_cn_stock_name_strips_ex_rights_prefix(self):
         """Test A-share ex-rights/ex-dividend short prefixes are not written into the long-term index name"""
-        row = {'name': 'XD西藏药', 'enname': ''}
+        row = {'name': 'XDtibetan medicine', 'enname': ''}
         result = get_stock_name(row, 'CN')
-        assert result == '西藏药'
+        assert result == 'tibetan medicine'
 
     def test_cn_stock_name_preserves_new_stock_prefix(self):
         """Test A-share new-stock prefix is retained, then naturally disappears when later data refreshes"""
-        row = {'name': 'N惠康', 'enname': ''}
+        row = {'name': 'NWellcome', 'enname': ''}
         result = get_stock_name(row, 'CN')
-        assert result == 'N惠康'
+        assert result == 'NWellcome'
 
 
 class TestDataCleaning:
@@ -188,34 +188,34 @@ class TestDataCleaning:
         row = {
             'ts_code': '000001.SZ',
             'symbol': '000001',
-            'name': '平安银行'
+            'name': 'Ping An Bank'
         }
         result = parse_stock_row(row, 'CN')
         assert result is not None
         assert result['ts_code'] == '000001.SZ'
         assert result['symbol'] == '000001'
-        assert result['name'] == '平安银行'
+        assert result['name'] == 'Ping An Bank'
         assert result['market'] == 'CN'
 
     def test_valid_hk_stock(self):
         """Test a valid HK stock record"""
         row = {
             'ts_code': '00700.HK',
-            'name': '腾讯控股',
+            'name': 'Tencent Holdings',
             'enname': 'Tencent'
         }
         result = parse_stock_row(row, 'HK')
         assert result is not None
         assert result['ts_code'] == '00700.HK'
         assert result['symbol'] == '00700'
-        assert result['name'] == '腾讯控股'
+        assert result['name'] == 'Tencent Holdings'
         assert result['market'] == 'HK'
 
     def test_valid_us_stock(self):
         """Test a valid US stock record"""
         row = {
             'ts_code': 'AAPL',
-            'name': '苹果',
+            'name': 'apple',
             'enname': 'Apple Inc.'
         }
         result = parse_stock_row(row, 'US')
@@ -243,39 +243,39 @@ class TestDataCleaning:
         """Test a valid JP seed record"""
         row = {
             'ts_code': '7203.T',
-            'name': '丰田汽车',
+            'name': 'Toyota Motor',
             'enname': 'Toyota Motor Corporation',
-            'aliases': 'Toyota|Toyota Motor|丰田'
+            'aliases': 'Toyota|Toyota Motor|toyota'
         }
         result = parse_stock_row(row, 'JP')
         assert result is not None
         assert result['ts_code'] == '7203.T'
         assert result['symbol'] == '7203.T'
-        assert result['name'] == '丰田汽车'
+        assert result['name'] == 'Toyota Motor'
         assert result['market'] == 'JP'
-        assert result['aliases'] == ['Toyota', 'Toyota Motor', '丰田']
+        assert result['aliases'] == ['Toyota', 'Toyota Motor', 'toyota']
 
     def test_valid_kr_stock_with_seed_aliases(self):
         """Test a valid KR seed record"""
         row = {
             'ts_code': '005930.KS',
-            'name': '三星电子',
+            'name': 'Samsung Electronics',
             'enname': 'Samsung Electronics',
-            'aliases': 'Samsung|Samsung Electronics|三星'
+            'aliases': 'Samsung|Samsung Electronics|Samsung'
         }
         result = parse_stock_row(row, 'KR')
         assert result is not None
         assert result['ts_code'] == '005930.KS'
         assert result['symbol'] == '005930.KS'
-        assert result['name'] == '三星电子'
+        assert result['name'] == 'Samsung Electronics'
         assert result['market'] == 'KR'
-        assert result['aliases'] == ['Samsung', 'Samsung Electronics', '三星']
+        assert result['aliases'] == ['Samsung', 'Samsung Electronics', 'Samsung']
 
     def test_us_dummy_filtered(self):
         """Test US DUMMY record is filtered out"""
         row = {
             'ts_code': 'DUMMY001',
-            'name': '测试',
+            'name': 'test',
             'enname': 'DUMMY Test Stock'
         }
         result = parse_stock_row(row, 'US')
@@ -285,7 +285,7 @@ class TestDataCleaning:
         """Test DUMMY filtering is case-insensitive"""
         row = {
             'ts_code': 'DUMMY002',
-            'name': '测试',
+            'name': 'test',
             'enname': 'dummy test stock'
         }
         result = parse_stock_row(row, 'US')
@@ -296,7 +296,7 @@ class TestDataCleaning:
         row = {
             'ts_code': '',
             'symbol': '000001',
-            'name': '平安银行'
+            'name': 'Ping An Bank'
         }
         result = parse_stock_row(row, 'CN')
         assert result is None
@@ -315,7 +315,7 @@ class TestDataCleaning:
         """Test US empty enname is filtered out"""
         row = {
             'ts_code': 'AAPL',
-            'name': '苹果',
+            'name': 'apple',
             'enname': ''
         }
         result = parse_stock_row(row, 'US')
@@ -332,20 +332,20 @@ class TestNormalizeStockNameForIndex:
     """Test index-name normalization"""
 
     def test_strips_a_share_ex_rights_prefixes(self):
-        assert normalize_stock_name_for_index('XD西藏药', 'CN') == '西藏药'
-        assert normalize_stock_name_for_index('XR示例股', 'CN') == '示例股'
-        assert normalize_stock_name_for_index('DR罗曼股', 'CN') == '罗曼股'
-        assert normalize_stock_name_for_index('XD朱老六', 'BSE') == '朱老六'
+        assert normalize_stock_name_for_index('XDtibetan medicine', 'CN') == 'tibetan medicine'
+        assert normalize_stock_name_for_index('XRExample stocks', 'CN') == 'Example stocks'
+        assert normalize_stock_name_for_index('DRRoman shares', 'CN') == 'Roman shares'
+        assert normalize_stock_name_for_index('XDZhu Laoliu', 'BSE') == 'Zhu Laoliu'
 
     def test_preserves_a_share_new_stock_and_st_prefixes(self):
-        assert normalize_stock_name_for_index('N惠康', 'CN') == 'N惠康'
-        assert normalize_stock_name_for_index('C天海', 'CN') == 'C天海'
-        assert normalize_stock_name_for_index('ST海王', 'CN') == 'ST海王'
-        assert normalize_stock_name_for_index('*ST美丽', 'CN') == '*ST美丽'
+        assert normalize_stock_name_for_index('NWellcome', 'CN') == 'NWellcome'
+        assert normalize_stock_name_for_index('CTianhai', 'CN') == 'CTianhai'
+        assert normalize_stock_name_for_index('STNeptune', 'CN') == 'STNeptune'
+        assert normalize_stock_name_for_index('*STbeauty', 'CN') == '*STbeauty'
 
     def test_does_not_strip_other_markets(self):
         assert normalize_stock_name_for_index('DRAGONFLY ENERGY', 'US') == 'DRAGONFLY ENERGY'
-        assert normalize_stock_name_for_index('XD港股示例', 'HK') == 'XD港股示例'
+        assert normalize_stock_name_for_index('XDHong Kong Stock Example', 'HK') == 'XDHong Kong Stock Example'
 
 
 class TestAliases:
@@ -353,13 +353,13 @@ class TestAliases:
 
     def test_cn_aliases(self):
         """Test A-share alias"""
-        result = generate_aliases('贵州茅台', 'CN')
-        assert '茅台' in result
+        result = generate_aliases('Kweichow Moutai', 'CN')
+        assert 'Moutai' in result
 
     def test_hk_aliases(self):
         """Test HK stock alias"""
-        result = generate_aliases('腾讯控股', 'HK')
-        assert '腾讯' in result or 'Tencent' in result
+        result = generate_aliases('Tencent Holdings', 'HK')
+        assert 'Tencent' in result or 'Tencent' in result
 
     def test_us_aliases(self):
         """Test US stock alias"""
@@ -368,7 +368,7 @@ class TestAliases:
 
     def test_no_aliases(self):
         """Test the no-alias case"""
-        result = generate_aliases('未知股票', 'CN')
+        result = generate_aliases('unknown stock', 'CN')
         assert result == []
 
 
@@ -380,10 +380,10 @@ class TestOutputFormat:
         index = [{
             "canonicalCode": "000001.SZ",
             "displayCode": "000001",
-            "nameZh": "平安银行",
+            "nameZh": "Ping An Bank",
             "pinyinFull": "pinganyinhang",
             "pinyinAbbr": "pyyh",
-            "aliases": ["平银"],
+            "aliases": ["flat silver"],
             "market": "CN",
             "assetType": "stock",
             "active": True,
@@ -398,10 +398,10 @@ class TestOutputFormat:
         # Verify field order
         assert item[0] == "000001.SZ"      # canonicalCode
         assert item[1] == "000001"         # displayCode
-        assert item[2] == "平安银行"       # nameZh
+        assert item[2] == "Ping An Bank"       # nameZh
         assert item[3] == "pinganyinhang"  # pinyinFull
         assert item[4] == "pyyh"           # pinyinAbbr
-        assert item[5] == ["平银"]         # aliases
+        assert item[5] == ["flat silver"]         # aliases
         assert item[6] == "CN"             # market
         assert item[7] == "stock"          # assetType
         assert item[8] == True             # active
@@ -423,17 +423,17 @@ class TestOutputFormat:
         }]
 
         compressed = compress_index(index)
-        assert len(compressed[0]) == 10  # 10个字段
+        assert len(compressed[0]) == 10  # 10fields
 
     def test_json_serialization(self):
         """Test JSON serialization"""
         index = [{
             "canonicalCode": "00700.HK",
             "displayCode": "00700",
-            "nameZh": "腾讯控股",
+            "nameZh": "Tencent Holdings",
             "pinyinFull": "xunxiongkonggu",
             "pinyinAbbr": "xxkg",
-            "aliases": ["腾讯"],
+            "aliases": ["Tencent"],
             "market": "HK",
             "assetType": "stock",
             "active": True,
@@ -464,7 +464,7 @@ class TestIntegration:
             writer.writerow({
                 'ts_code': '000001.SZ',
                 'symbol': '000001',
-                'name': '平安银行'
+                'name': 'Ping An Bank'
             })
 
         hk_csv = tmp_path / 'stock_list_hk.csv'
@@ -473,7 +473,7 @@ class TestIntegration:
             writer.writeheader()
             writer.writerow({
                 'ts_code': '00700.HK',
-                'name': '腾讯控股',
+                'name': 'Tencent Holdings',
                 'enname': 'Tencent'
             })
 
@@ -483,7 +483,7 @@ class TestIntegration:
             writer.writeheader()
             writer.writerow({
                 'ts_code': 'AAPL',
-                'name': '苹果',
+                'name': 'apple',
                 'enname': 'Apple Inc.'
             })
 
@@ -493,9 +493,9 @@ class TestIntegration:
             writer.writeheader()
             writer.writerow({
                 'ts_code': '7203.T',
-                'name': '丰田汽车',
+                'name': 'Toyota Motor',
                 'enname': 'Toyota Motor Corporation',
-                'aliases': 'Toyota|丰田'
+                'aliases': 'Toyota|toyota'
             })
 
         kr_csv = tmp_path / 'stock_list_kr.csv'
@@ -504,9 +504,9 @@ class TestIntegration:
             writer.writeheader()
             writer.writerow({
                 'ts_code': '005930.KS',
-                'name': '三星电子',
+                'name': 'Samsung Electronics',
                 'enname': 'Samsung Electronics',
-                'aliases': 'Samsung|三星'
+                'aliases': 'Samsung|Samsung'
             })
 
         # Load data
@@ -520,8 +520,8 @@ class TestIntegration:
 
         # Verify the index
         assert len(index) == 5
-        assert next(item for item in index if item['canonicalCode'] == '7203.T')['aliases'] == ['Toyota', '丰田']
-        assert next(item for item in index if item['canonicalCode'] == '005930.KS')['aliases'] == ['Samsung', '三星']
+        assert next(item for item in index if item['canonicalCode'] == '7203.T')['aliases'] == ['Toyota', 'toyota']
+        assert next(item for item in index if item['canonicalCode'] == '005930.KS')['aliases'] == ['Samsung', 'Samsung']
 
         # Compress the index
         compressed = compress_index(index)
@@ -540,9 +540,9 @@ class TestIntegration:
         with open(csv_file, 'w', encoding='utf-8-sig', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=['ts_code', 'symbol', 'name'])
             writer.writeheader()
-            writer.writerow({'ts_code': '000001.SZ', 'symbol': '000001', 'name': '平安银行'})
-            writer.writerow({'ts_code': '600519.SH', 'symbol': '600519', 'name': '贵州茅台'})
-            writer.writerow({'ts_code': '832566.BJ', 'symbol': '832566', 'name': '梓撞科技'})
+            writer.writerow({'ts_code': '000001.SZ', 'symbol': '000001', 'name': 'Ping An Bank'})
+            writer.writerow({'ts_code': '600519.SH', 'symbol': '600519', 'name': 'Kweichow Moutai'})
+            writer.writerow({'ts_code': '832566.BJ', 'symbol': '832566', 'name': 'Zicheng Technology'})
 
         stocks = load_tushare_data(tmp_path)
         index = build_stock_index(stocks)
@@ -624,16 +624,16 @@ class TestPinyin:
     def test_normalize_name(self):
         """Test name normalization"""
         # Test ST prefix removal
-        result = normalize_name_for_pinyin('*ST平安')
+        result = normalize_name_for_pinyin('*STSafety')
         assert 'ST' not in result
 
         # Test N prefix removal
-        result = normalize_name_for_pinyin('N平安银行')
+        result = normalize_name_for_pinyin('NPing An Bank')
         assert 'N' not in result
 
     def test_generate_pinyin(self):
         """Test pinyin generation"""
-        pinyin_full, pinyin_abbr = generate_pinyin('平安银行')
+        pinyin_full, pinyin_abbr = generate_pinyin('Ping An Bank')
         assert pinyin_full == 'pinganyinhang'
         assert pinyin_abbr == 'payh'
 
@@ -644,7 +644,7 @@ class TestPinyin:
         monkeypatch.setattr(generate_index_from_csv, 'PYPINYIN_AVAILABLE', False)
 
         with pytest.raises(RuntimeError, match='pypinyin is required'):
-            generate_index_from_csv.generate_pinyin('平安银行')
+            generate_index_from_csv.generate_pinyin('Ping An Bank')
 
     def test_main_fails_without_pypinyin(self, monkeypatch):
         """Test that pypinyin is required before formally generating the index"""

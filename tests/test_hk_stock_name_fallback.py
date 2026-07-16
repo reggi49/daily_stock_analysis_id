@@ -41,41 +41,41 @@ class _DummyCircuitBreaker:
 def _make_spot_em_df():
     """Simulate stock_hk_spot_em() return value."""
     return pd.DataFrame([{
-        '代码': '00700',
-        '名称': '腾讯控股',
-        '最新价': 370.0,
-        '涨跌幅': 1.5,
-        '涨跌额': 5.5,
-        '成交量': 10000,
-        '成交额': 3700000.0,
-        '量比': 1.2,
-        '换手率': 0.3,
-        '振幅': 2.0,
-        '市盈率': 20.0,
-        '市净率': 3.5,
-        '总市值': 3.5e12,
-        '流通市值': 3.5e12,
-        '52周最高': 400.0,
-        '52周最低': 280.0,
+        'code': '00700',
+        'Name': 'Tencent Holdings',
+        'latest price': 370.0,
+        'Increase or decrease': 1.5,
+        'Changes': 5.5,
+        'Volume': 10000,
+        'Turnover': 3700000.0,
+        'Quantity ratio': 1.2,
+        'turnover rate': 0.3,
+        'Amplitude': 2.0,
+        'P/E ratio': 20.0,
+        'price to book ratio': 3.5,
+        'Total market capitalization': 3.5e12,
+        'Circulation market value': 3.5e12,
+        '52Weekly highest': 400.0,
+        '52Weekly lowest': 280.0,
     }])
 
 
 def _make_spot_df():
     """Simulate stock_hk_spot() return value (sina source)."""
     return pd.DataFrame([{
-        '代码': '00700',
-        '名称': '腾讯控股',
-        '最新价': 368.0,
-        '涨跌额': 3.5,
-        '涨跌幅': 0.96,
-        '买入': 367.8,
-        '卖出': 368.2,
-        '昨收': 364.5,
-        '今开': 365.0,
-        '最高': 370.0,
-        '最低': 364.0,
-        '成交量': 9800,
-        '成交额': 3606400.0,
+        'code': '00700',
+        'Name': 'Tencent Holdings',
+        'latest price': 368.0,
+        'Changes': 3.5,
+        'Increase or decrease': 0.96,
+        'Buy': 367.8,
+        'sell': 368.2,
+        'Collected yesterday': 364.5,
+        'Open today': 365.0,
+        'highest': 370.0,
+        'lowest': 364.0,
+        'Volume': 9800,
+        'Turnover': 3606400.0,
     }])
 
 
@@ -99,7 +99,7 @@ class TestHKRealtimeFallback(unittest.TestCase):
             quote = self.fetcher._get_hk_realtime_quote("HK00700")
 
         self.assertIsNotNone(quote)
-        self.assertEqual(quote.name, "腾讯控股")
+        self.assertEqual(quote.name, "Tencent Holdings")
         self.assertAlmostEqual(quote.price, 370.0)
 
     @patch("data_provider.akshare_fetcher.get_realtime_circuit_breaker")
@@ -107,14 +107,14 @@ class TestHKRealtimeFallback(unittest.TestCase):
         """When stock_hk_spot_em raises, it should fall back to stock_hk_spot and return the name."""
         mock_cb.return_value = _DummyCircuitBreaker()
         ak_mock = MagicMock()
-        ak_mock.stock_hk_spot_em.side_effect = Exception("接口异常：数据源不可用")
+        ak_mock.stock_hk_spot_em.side_effect = Exception("Interface exception：Data source is not available")
         ak_mock.stock_hk_spot.return_value = _make_spot_df()
 
         with patch.dict(sys.modules, {"akshare": ak_mock}):
             quote = self.fetcher._get_hk_realtime_quote("HK00700")
 
         self.assertIsNotNone(quote)
-        self.assertEqual(quote.name, "腾讯控股")
+        self.assertEqual(quote.name, "Tencent Holdings")
         self.assertAlmostEqual(quote.price, 368.0)
         ak_mock.stock_hk_spot.assert_called_once()
 
@@ -123,8 +123,8 @@ class TestHKRealtimeFallback(unittest.TestCase):
         """When both stock_hk_spot_em and stock_hk_spot fail, return None without raising."""
         mock_cb.return_value = _DummyCircuitBreaker()
         ak_mock = MagicMock()
-        ak_mock.stock_hk_spot_em.side_effect = Exception("东方财富接口超时")
-        ak_mock.stock_hk_spot.side_effect = Exception("新浪接口超时")
+        ak_mock.stock_hk_spot_em.side_effect = Exception("Oriental Fortune interface timeout")
+        ak_mock.stock_hk_spot.side_effect = Exception("Sina interface timeout")
 
         with patch.dict(sys.modules, {"akshare": ak_mock}):
             quote = self.fetcher._get_hk_realtime_quote("HK00700")
@@ -136,14 +136,14 @@ class TestHKRealtimeFallback(unittest.TestCase):
         """When stock_hk_spot_em returns an empty DataFrame it should fall back to stock_hk_spot."""
         mock_cb.return_value = _DummyCircuitBreaker()
         ak_mock = MagicMock()
-        ak_mock.stock_hk_spot_em.return_value = pd.DataFrame(columns=['代码', '名称', '最新价'])
+        ak_mock.stock_hk_spot_em.return_value = pd.DataFrame(columns=['code', 'Name', 'latest price'])
         ak_mock.stock_hk_spot.return_value = _make_spot_df()
 
         with patch.dict(sys.modules, {"akshare": ak_mock}):
             quote = self.fetcher._get_hk_realtime_quote("HK00700")
 
         self.assertIsNotNone(quote)
-        self.assertEqual(quote.name, "腾讯控股")
+        self.assertEqual(quote.name, "Tencent Holdings")
 
     @patch("data_provider.akshare_fetcher.get_realtime_circuit_breaker")
     def test_circuit_breaker_open_returns_none(self, mock_cb):

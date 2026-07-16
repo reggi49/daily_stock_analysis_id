@@ -402,7 +402,7 @@ class SystemConfigApiTestCase(unittest.TestCase):
         run_warning = next(
             warning
             for warning in payload["warnings"]
-            if "RUN_IMMEDIATELY 已写入 .env" in warning
+            if "RUN_IMMEDIATELY has been written .env" in warning
         )
         schedule_warning = next(
             warning
@@ -410,11 +410,11 @@ class SystemConfigApiTestCase(unittest.TestCase):
             if "SCHEDULE_RUN_IMMEDIATELY" in warning
         )
 
-        self.assertIn("非 schedule 模式", run_warning)
-        self.assertNotIn("以 schedule 模式", run_warning)
-        self.assertIn("不会因为本次保存启动、停止或重建 scheduler", schedule_warning)
-        self.assertIn("以 schedule 模式重新启动后生效", schedule_warning)
-        self.assertNotIn("它属于启动期单次运行配置", schedule_warning)
+        self.assertIn("Not schedule mode", run_warning)
+        self.assertNotIn("to schedule mode", run_warning)
+        self.assertIn("It will not be started due to this save.、stop or rebuild scheduler", schedule_warning)
+        self.assertIn("to schedule Effective after mode restart", schedule_warning)
+        self.assertNotIn("It belongs to the single-run configuration during startup", schedule_warning)
 
     def test_put_config_returns_schedule_time_runtime_rebind_warning(self) -> None:
         current = system_config.get_system_config(include_schema=False, service=self.service).model_dump()
@@ -433,13 +433,13 @@ class SystemConfigApiTestCase(unittest.TestCase):
         schedule_time_warning = next(
             warning
             for warning in payload["warnings"]
-            if "SCHEDULE_TIME=09:30 已写入 .env" in warning
+            if "SCHEDULE_TIME=09:30 has been written .env" in warning
         )
 
-        self.assertIn("已经以 schedule 模式运行", schedule_time_warning)
-        self.assertIn("自动重建 daily job", schedule_time_warning)
-        self.assertIn("不会启动 scheduler", schedule_time_warning)
-        self.assertNotIn("重启当前进程", schedule_time_warning)
+        self.assertIn("Already with schedule mode run", schedule_time_warning)
+        self.assertIn("automatic rebuild daily job", schedule_time_warning)
+        self.assertIn("won't start scheduler", schedule_time_warning)
+        self.assertNotIn("Restart the current process", schedule_time_warning)
 
     def test_export_system_config_returns_raw_env_content(self) -> None:
         self.env_path.write_text(
@@ -819,7 +819,7 @@ class SystemConfigApiTestCase(unittest.TestCase):
                 request=TestNotificationChannelRequest(
                     channel="wechat",
                     items=[{"key": "WECHAT_WEBHOOK_URL", "value": "https://example.com/hook"}],
-                    title="DSA 通知测试",
+                    title="DSA Notification test",
                     content="hello",
                     timeout_seconds=5,
                 ),
@@ -837,7 +837,7 @@ class SystemConfigApiTestCase(unittest.TestCase):
         ntfy_request = TestNotificationChannelRequest(
             channel="ntfy",
             items=[{"key": "NTFY_URL", "value": "https://ntfy.sh/dsa-topic"}],
-            title="DSA 通知测试",
+            title="DSA Notification test",
             content="hello",
             timeout_seconds=5,
         )
@@ -847,7 +847,7 @@ class SystemConfigApiTestCase(unittest.TestCase):
                 {"key": "GOTIFY_URL", "value": "https://gotify.example"},
                 {"key": "GOTIFY_TOKEN", "value": "app-token"},
             ],
-            title="DSA 通知测试",
+            title="DSA Notification test",
             content="hello",
             timeout_seconds=5,
         )

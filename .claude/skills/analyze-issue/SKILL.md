@@ -1,6 +1,6 @@
 # Analyze Issue
 
-分析 GitHub Issue，判断其真实性、优先级、仓库责任边界与建议动作。
+analysis GitHub Issue，judge its authenticity、priority、Warehouse responsibility boundaries and recommended actions。
 
 **Repository**: https://github.com/ZhuLinsen/daily_stock_analysis/issues
 
@@ -12,68 +12,68 @@
 
 ## Instructions
 
-分析时使用简洁中文，优先遵循仓库根目录 `AGENTS.md`。
+Use concise Chinese when analyzing，Prioritize the warehouse root directory `AGENTS.md`。
 
-### Step 1: 同步最新代码基线
+### Step 1: Synchronize the latest code baseline
 
-分析 issue 前必须先刷新远端状态，并尽量把本地安全推进到最新基线：
+analysis issue The remote status must be refreshed before，And try to push local security to the latest baseline：
 
 ```bash
 git status --short
 git fetch --all --prune
-# 仅当工作区干净且当前分支可 fast-forward 时执行：
+# Only if the workspace is clean and the current branch is available fast-forward executed when：
 git pull --ff-only
 ```
 
-- 只有在工作区干净、当前分支有可 fast-forward 的上游时，才执行并接受 `git pull --ff-only` 的结果。
-- 如存在本地改动、冲突状态、未跟踪风险文件、无上游分支或无法 fast-forward，不要执行 `stash`、`reset`、强制切分支或覆盖本地状态；改用已 fetch 的 `origin/main` 或相关远端 refs 做分析。
-- 在输出文档的 `Evidence` 中记录同步结果：本地 HEAD、使用的远端基线，以及未更新本地工作树的原因（如有）。
+- Only clean the work area、The current branch is available fast-forward of the upstream，only then execute and accept `git pull --ff-only` the result。
+- If there are local changes、Conflict status、Risk files not tracked、No upstream branch or unable to fast-forward，Don't execute `stash`、`reset`、Force branch cutting or overwrite local state；Used instead fetch of `origin/main` or related remote refs do analysis。
+- In the output document `Evidence` Record synchronization results in：local HEAD、remote baseline used，and the reason why the local working tree is not updated（If any）。
 
-### Step 2: 拉取 Issue 信息
+### Step 2: pull Issue information
 
 ```bash
 gh issue view <issue_number> --repo ZhuLinsen/daily_stock_analysis
 gh issue view <issue_number> --repo ZhuLinsen/daily_stock_analysis --comments
 ```
 
-如为 bug，优先核对 issue 模板中是否提供了以下信息：
+If so bug，Priority check issue Is the following information provided in the template?：
 
-- 是否已同步到最新版本
-- commit hash / 版本基线
-- 运行环境与复现步骤
-- 日志或报错信息
+- Has it been synced to the latest version?
+- commit hash / version baseline
+- Operating environment and reproduction steps
+- Log or error message
 
-### Step 3: 回答 4 个核心问题
+### Step 3: answer 4 core question
 
-1. 版本是否明确
-2. 问题是否真实且可验证
-3. 是否属于仓库责任边界
-4. 是否值得立即处理
+1. Is the version clear?
+2. Is the problem real and verifiable?
+3. Does it fall within the warehouse responsibility boundary?
+4. Is it worth dealing with immediately?
 
-### Step 4: 结合仓库现状做证据检查
+### Step 4: Conduct evidence inspection based on the current situation of the warehouse
 
-- 阅读相关代码、配置、测试、脚本、工作流与文档
-- 如果问题涉及 API、数据源 fallback、报告生成、通知发送、认证、桌面端、发布流程，明确写出影响面
-- 判断是实际 bug、环境配置问题、使用方式问题、还是外部依赖问题
-- 如怀疑已被修复，检查当前代码而不是只看 issue 描述
+- Read the relevant code、Configuration、test、script、Workflow and documentation
+- If the question involves API、data source fallback、Report generation、Notification sent、Certification、Desktop、Release process，Clearly state the impact
+- Judgment is actual bug、Environment configuration issues、Usage issues、Or is it an external dependency issue?
+- If suspected it has been repaired，Check the current code instead of just looking issue Description
 
-### Step 5: 形成结论
+### Step 5: form a conclusion
 
-至少给出以下字段：
+Give at least the following fields：
 
-- `版本基线`：最新 / 非最新 / 未提供
-- `是否合理`：是/否 + 理由
-- `是否是 issue`：是/否 + 理由
-- `是否好解决`：是/否 + 难点
-- `结论`：`成立 / 部分成立 / 不成立`
-- `分类`：`bug / feature / docs / question / external`
-- `优先级`：`P0 / P1 / P2 / P3`
-- `难度`：`easy / medium / hard`
-- `建议动作`：`立即修复 / 排期修复 / 文档澄清 / 关闭`
+- `version baseline`：Latest / Not up to date / Not provided
+- `Is it reasonable?`：Yes/No + Reason
+- `whether it is issue`：Yes/No + Reason
+- `Is it easy to solve`：Yes/No + Difficulty
+- `Conclusion`：`established / Partially established / Not established`
+- `Classification`：`bug / feature / docs / question / external`
+- `priority`：`P0 / P1 / P2 / P3`
+- `difficulty`：`easy / medium / hard`
+- `Recommended action`：`Fix now / Scheduled fixes / Documentation clarification / close`
 
-### Step 6: 生成分析文档
+### Step 6: Generate analysis documents
 
-保存到 `.claude/reviews/issues/issue-<number>.md`
+save to `.claude/reviews/issues/issue-<number>.md`
 
 ## Output Document Format
 
@@ -85,59 +85,59 @@ gh issue view <issue_number> --repo ZhuLinsen/daily_stock_analysis --comments
 
 ## Summary
 
-- 版本基线：
-- 是否合理：
-- 是否是 issue：
-- 是否好解决：
-- 结论：
-- 分类：
-- 优先级：
-- 难度：
-- 建议动作：
+- version baseline：
+- Is it reasonable?：
+- whether it is issue：
+- Is it easy to solve：
+- Conclusion：
+- Classification：
+- priority：
+- difficulty：
+- Recommended action：
 
 ## Evidence
 
-- 代码同步基线：
-- 关键 issue 信息：
-- 关键代码/脚本/工作流证据：
+- Code synchronization baseline：
+- key issue information：
+- key code/script/Workflow evidence：
 
 ## Impact Scope
 
-- 受影响模块：
-- 受影响运行路径（本地 / Docker / GitHub Actions / API / Web / Desktop）：
+- Affected modules：
+- Affected run paths（local / Docker / GitHub Actions / API / Web / Desktop）：
 
 ## Root Cause / Main Reasoning
 
-<根因或主要判断依据>
+<Root cause or main basis for judgment>
 
 ## Proposed Handling
 
-<建议修复、澄清或关闭方式>
+<Suggested fix、clarify or close>
 
-若建议后续创建 PR，给出的 PR title 建议符合 `AGENTS.md`：使用 `<类型>: <修改内容>`，不添加 `[codex]`、`codex`、`autocode`、`copilot` 或其他工具/agent 来源前缀；该约定仅用于协作一致性提醒，不应单独作为 review process blocker。
+If it is recommended to create later PR，given PR title It is recommended to comply with `AGENTS.md`：Use `<Type>: <Modify content>`，Do not add `[codex]`、`codex`、`autocode`、`copilot` or other tools/agent source prefix；This convention is only used for collaborative consistency reminders，should not be used alone review process blocker。
 
 ## Risks And Rollback
 
-- 风险点：
-- 若修复，回滚方式：
+- Risk point：
+- If repaired，Rollback mode：
 
 ## Draft Reply
 
-<建议回复内容>
+<Suggested reply content>
 ```
 
 ## Allowed Auto-Actions (No Confirmation Needed)
 
-- 拉取 issue 详情与评论
-- 执行 `git fetch --all --prune`，并在工作区干净且可 fast-forward 时执行 `git pull --ff-only`
-- 阅读相关代码、配置、脚本、工作流和文档
-- 生成分析文档
+- pull issue Details and comments
+- execute `git fetch --all --prune`，and keep the work area clean and accessible fast-forward executed when `git pull --ff-only`
+- Read the relevant code、Configuration、script、Workflow and documentation
+- Generate analysis documents
 
 ## Actions Requiring Confirmation
 
-执行以下动作前，先询问用户：
+Before performing the following actions，Ask the user first：
 
-1. 添加或修改标签
-2. 在 issue 下评论
-3. 关闭 issue
-4. 开始修复 issue
+1. Add or edit tags
+2. in issue Leave a comment
+3. close issue
+4. Start repair issue

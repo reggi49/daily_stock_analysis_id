@@ -774,14 +774,14 @@ def _is_placeholder_stock_name(value: Any, code: Any = None) -> bool:
     lowered = text.lower()
     if lowered in {"n/a", "na", "none", "null", "unknown"}:
         return True
-    if text in {"-", "—", "未知", "待补充"}:
+    if text in {"-", "—", "unknown", "To be added"}:
         return True
 
     code_text = str(code or "").strip()
     if code_text and lowered == code_text.lower():
         return True
 
-    return text.startswith("股票")
+    return text.startswith("stocks")
 
 
 def _translate_from_map(
@@ -1017,11 +1017,11 @@ def get_sentiment_label(score: int, language: Optional[str]) -> str:
         return "매우 비관"
 
     if score >= 80:
-        return "极度乐观"
+        return "extremely optimistic"
     if score >= 60:
-        return "乐观"
+        return "optimistic"
     if score >= 40:
-        return "中性"
+        return "Neutral"
     if score >= 20:
-        return "悲观"
-    return "极度悲观"
+        return "pessimistic"
+    return "extremely pessimistic"

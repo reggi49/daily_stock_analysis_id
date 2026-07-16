@@ -53,7 +53,7 @@ Requirements:
                 return prompt + "\nAlways answer in English.\n"
             if report_language == "ko":
                 return prompt + "\n항상 한국어로 답변하세요.\n"
-            return prompt + "\n默认使用中文回答。\n"
+            return prompt + "\nAnswer in Chinese by default。\n"
 
         skills = ""
         if self.skill_instructions:
@@ -117,7 +117,7 @@ keys: ``phase_context``, ``action_window``, ``immediate_action``,
 current action, watch conditions, and next check point. For pre-market,
 non-trading, or unknown phases, do not invent today's intraday movement. If
 quote, daily bars, or technical data is stale, fallback, missing, fetch_failed,
-partial, or estimated, ``confidence_level`` must not be High/高 and the
+partial, or estimated, ``confidence_level`` must not be High/high and the
 limitation must be reflected in ``confidence_reason`` or ``data_limitations``.
 
 The nested ``dashboard`` object should include optional ``signal_attribution`` when
@@ -150,10 +150,10 @@ should sum to 100; all-zero means no effective signal and must not be faked.
 """
         return prompt + """
 
-## 输出语言
-- 所有 JSON 键名保持不变。
-- `decision_type` 必须保持为 `buy|hold|sell`。
-- 所有面向用户的人类可读文本值必须使用中文。
+## Output language
+- all JSON Key names remain unchanged。
+- `decision_type` must remain as `buy|hold|sell`。
+- All user-facing human-readable text values must be in Chinese。
 """
 
     def build_user_message(self, ctx: AgentContext) -> str:

@@ -16,17 +16,17 @@ class TestEfinanceMainIndices(unittest.TestCase):
         fetcher = EfinanceFetcher()
         fake_df = pd.DataFrame(
             {
-                "股票代码": ["000001"],
-                "最新价": [3200.0],
-                "涨跌幅": [0.63],
-                "涨跌额": [20.0],
-                "今开": [3188.0],
-                "开盘": [0.0],
-                "最高": [3215.0],
-                "最低": [3170.0],
-                "成交量": [123456789],
-                "成交额": [9876543210.0],
-                "振幅": [1.2],
+                "Stock code": ["000001"],
+                "latest price": [3200.0],
+                "Increase or decrease": [0.63],
+                "Changes": [20.0],
+                "Open today": [3188.0],
+                "Open": [0.0],
+                "highest": [3215.0],
+                "lowest": [3170.0],
+                "Volume": [123456789],
+                "Turnover": [9876543210.0],
+                "Amplitude": [1.2],
             }
         )
         fake_efinance = types.SimpleNamespace(
@@ -42,7 +42,7 @@ class TestEfinanceMainIndices(unittest.TestCase):
         self.assertIsNotNone(data)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]["code"], "sh000001")
-        self.assertEqual(data[0]["name"], "上证指数")
+        self.assertEqual(data[0]["name"], "Shanghai Composite Index")
         self.assertAlmostEqual(data[0]["open"], 3188.0)
         self.assertAlmostEqual(data[0]["current"], 3200.0)
 
@@ -50,17 +50,17 @@ class TestEfinanceMainIndices(unittest.TestCase):
         fetcher = EfinanceFetcher()
         fake_df = pd.DataFrame(
             {
-                "股票代码": ["000001"],
-                "最新价": [3200.0],
-                "涨跌幅": [0.63],
-                "涨跌额": [20.0],
-                "今开": [""],
-                "开盘": [3186.0],
-                "最高": [3215.0],
-                "最低": [3170.0],
-                "成交量": [123456789],
-                "成交额": [9876543210.0],
-                "振幅": [1.2],
+                "Stock code": ["000001"],
+                "latest price": [3200.0],
+                "Increase or decrease": [0.63],
+                "Changes": [20.0],
+                "Open today": [""],
+                "Open": [3186.0],
+                "highest": [3215.0],
+                "lowest": [3170.0],
+                "Volume": [123456789],
+                "Turnover": [9876543210.0],
+                "Amplitude": [1.2],
             }
         )
         fake_efinance = types.SimpleNamespace(

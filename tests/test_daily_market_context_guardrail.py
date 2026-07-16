@@ -10,33 +10,33 @@ from src.daily_market_context_guardrail import apply_daily_market_context_guardr
 def _result() -> AnalysisResult:
     return AnalysisResult(
         code="600519",
-        name="贵州茅台",
+        name="Kweichow Moutai",
         sentiment_score=82,
-        trend_prediction="看多",
-        operation_advice="立即买入并积极加仓",
+        trend_prediction="long",
+        operation_advice="Buy now and actively add positions",
         decision_type="buy",
-        confidence_level="高",
-        analysis_summary="个股信号强势",
+        confidence_level="high",
+        analysis_summary="Strong signal from individual stocks",
         dashboard={
-            "operation_advice": "立即买入并积极加仓",
+            "operation_advice": "Buy now and actively add positions",
             "decision_type": "buy",
             "core_conclusion": {
-                "one_sentence": "立即买入并积极加仓",
+                "one_sentence": "Buy now and actively add positions",
                 "position_advice": {
-                    "no_position": "立即买入并积极加仓",
-                    "has_position": "继续加仓",
+                    "no_position": "Buy now and actively add positions",
+                    "has_position": "Continue to add positions",
                 },
             },
             "battle_plan": {
                 "position_strategy": {
-                    "suggested_position": "满仓买入",
-                    "entry_plan": "突破后立即买入",
-                    "risk_control": "回踩继续加仓",
+                    "suggested_position": "Buy with full position",
+                    "entry_plan": "Buy immediately after a breakout",
+                    "risk_control": "Step back and continue to add positions",
                 },
             },
             "phase_decision": {
                 "data_limitations": [],
-                "confidence_reason": "趋势强",
+                "confidence_reason": "The trend is strong",
             },
         },
     )
@@ -50,7 +50,7 @@ def test_conservative_market_context_softens_aggressive_buy() -> None:
         daily_market_context={
             "region": "cn",
             "trade_date": "2026-06-06",
-            "summary": "大盘退潮，高风险，建议观望，仓位上限30%。",
+            "summary": "The market ebbs，high risk，It is recommended to wait and see，Position limit30%。",
             "risk_tags": ["high_risk", "low_position_cap"],
         },
         report_language="zh",
@@ -58,9 +58,9 @@ def test_conservative_market_context_softens_aggressive_buy() -> None:
 
     assert "daily_market_context_buy_softened" in adjustments
     assert result.decision_type == "hold"
-    assert result.operation_advice == "观望"
+    assert result.operation_advice == "wait and see"
     assert len(result.operation_advice) <= 20
-    assert result.confidence_level == "中"
+    assert result.confidence_level == "in"
     assert result.sentiment_score == 52
     assert result.dashboard["operation_advice"] == result.operation_advice
     assert result.dashboard["decision_type"] == "hold"
@@ -68,23 +68,23 @@ def test_conservative_market_context_softens_aggressive_buy() -> None:
     core = result.dashboard["core_conclusion"]
     assert core["one_sentence"] == result.operation_advice
     assert core["position_advice"] == {
-        "no_position": "大盘环境偏谨慎，暂不开新仓，等待风险缓解或确认信号。",
-        "has_position": "仅保留小仓观察，暂不扩大仓位；若跌破风控位优先降低仓位。",
+        "no_position": "The market environment is cautious，No new positions will be opened at the moment，Waiting for risk mitigation or confirmation signals。",
+        "has_position": "Only Ogura observation is retained，No expansion of positions yet；If it falls below the risk control level, reduce the position first。",
     }
     position_strategy = result.dashboard["battle_plan"]["position_strategy"]
     assert position_strategy == {
-        "suggested_position": "小仓/低仓位",
-        "entry_plan": "大盘环境偏谨慎，暂不开新仓，等待风险缓解或确认信号。",
-        "risk_control": "大盘风险未缓解前不扩大仓位，严格控制回撤。",
+        "suggested_position": "Ogura/low position",
+        "entry_plan": "The market environment is cautious，No new positions will be opened at the moment，Waiting for risk mitigation or confirmation signals。",
+        "risk_control": "Do not expand positions until market risks are alleviated，Strictly control drawdowns。",
     }
     phase_decision = result.dashboard["phase_decision"]
-    assert any("大盘环境" in item for item in phase_decision["data_limitations"])
-    assert "大盘环境" in phase_decision["confidence_reason"]
+    assert any("Market environment" in item for item in phase_decision["data_limitations"])
+    assert "Market environment" in phase_decision["confidence_reason"]
 
 
 def test_position_cap_only_market_context_softens_aggressive_buy() -> None:
     cases = [
-        ("zh", "市场震荡，仓位不超过30%。", "立即买入并积极加仓", "高", "观望"),
+        ("zh", "market shock，The position does not exceed30%。", "Buy now and actively add positions", "high", "wait and see"),
         ("en", "Major indices are mixed. Position limit 30%.", "Buy now and add aggressively.", "High", "Watch"),
     ]
     for language, summary, advice, confidence, expected_advice in cases:
@@ -112,15 +112,15 @@ def test_position_cap_only_market_context_softens_aggressive_buy() -> None:
 def test_neutral_market_context_leaves_hold_unchanged() -> None:
     result = _result()
     result.decision_type = "hold"
-    result.operation_advice = "持有观察"
-    result.confidence_level = "中"
+    result.operation_advice = "hold observation"
+    result.confidence_level = "in"
 
     adjustments = apply_daily_market_context_guardrail(
         result,
         daily_market_context={
             "region": "cn",
             "trade_date": "2026-06-06",
-            "summary": "市场震荡，结构分化。",
+            "summary": "market shock，structural differentiation。",
             "risk_tags": [],
         },
         report_language="zh",
@@ -128,21 +128,21 @@ def test_neutral_market_context_leaves_hold_unchanged() -> None:
 
     assert adjustments == []
     assert result.decision_type == "hold"
-    assert result.operation_advice == "持有观察"
+    assert result.operation_advice == "hold observation"
 
 
 def test_conservative_market_context_does_not_soften_negative_buy_language() -> None:
     result = _result()
     result.decision_type = "buy"
-    result.operation_advice = "暂不加仓，继续持有观察。"
-    result.confidence_level = "高"
+    result.operation_advice = "No additional positions for now，Continue to hold and observe。"
+    result.confidence_level = "high"
 
     adjustments = apply_daily_market_context_guardrail(
         result,
         daily_market_context={
             "region": "cn",
             "trade_date": "2026-06-06",
-            "summary": "大盘退潮，高风险，建议观望，仓位上限30%。",
+            "summary": "The market ebbs，high risk，It is recommended to wait and see，Position limit30%。",
             "risk_tags": ["high_risk", "low_position_cap"],
         },
         report_language="zh",
@@ -150,7 +150,7 @@ def test_conservative_market_context_does_not_soften_negative_buy_language() -> 
 
     assert adjustments == []
     assert result.decision_type == "buy"
-    assert result.operation_advice == "暂不加仓，继续持有观察。"
+    assert result.operation_advice == "No additional positions for now，Continue to hold and observe。"
 
 
 def test_conservative_market_context_does_not_soften_no_action_in_english() -> None:
@@ -176,15 +176,15 @@ def test_conservative_market_context_does_not_soften_no_action_in_english() -> N
 def test_conservative_market_context_does_not_soften_explicit_negative_add_position() -> None:
     result = _result()
     result.decision_type = "buy"
-    result.operation_advice = "不建议加仓，等待窗口更清晰。"
-    result.confidence_level = "高"
+    result.operation_advice = "Not recommended to add positions，Waiting for a clearer window。"
+    result.confidence_level = "high"
 
     adjustments = apply_daily_market_context_guardrail(
         result,
         daily_market_context={
             "region": "cn",
             "trade_date": "2026-06-06",
-            "summary": "大盘退潮，高风险，建议观望，仓位上限30%。",
+            "summary": "The market ebbs，high risk，It is recommended to wait and see，Position limit30%。",
             "risk_tags": ["high_risk", "low_position_cap"],
         },
         report_language="zh",
@@ -192,20 +192,20 @@ def test_conservative_market_context_does_not_soften_explicit_negative_add_posit
 
     assert adjustments == []
     assert result.decision_type == "buy"
-    assert result.operation_advice == "不建议加仓，等待窗口更清晰。"
+    assert result.operation_advice == "Not recommended to add positions，Waiting for a clearer window。"
 
 
 def test_conservative_market_context_softens_generic_buy_advice_phrase() -> None:
     result = _result()
-    result.operation_advice = "回踩买入，强支撑上攻。"
-    result.confidence_level = "高"
+    result.operation_advice = "Buy back，Strong support to attack。"
+    result.confidence_level = "high"
 
     adjustments = apply_daily_market_context_guardrail(
         result,
         daily_market_context={
             "region": "cn",
             "trade_date": "2026-06-06",
-            "summary": "大盘退潮，高风险，建议观望，仓位上限30%。",
+            "summary": "The market ebbs，high risk，It is recommended to wait and see，Position limit30%。",
             "risk_tags": ["high_risk", "low_position_cap"],
         },
         report_language="zh",
@@ -213,21 +213,21 @@ def test_conservative_market_context_softens_generic_buy_advice_phrase() -> None
 
     assert "daily_market_context_buy_softened" in adjustments
     assert result.decision_type == "hold"
-    assert result.operation_advice == "观望"
+    assert result.operation_advice == "wait and see"
 
 
 def test_conservative_market_context_softens_when_risk_warning_then_recommend_buy() -> None:
     result = _result()
     result.decision_type = "buy"
-    result.operation_advice = "风险不能忽视，但建议买入等待确认信号。"
-    result.confidence_level = "高"
+    result.operation_advice = "Risks cannot be ignored，But it is recommended to buy and wait for confirmation signals。"
+    result.confidence_level = "high"
 
     adjustments = apply_daily_market_context_guardrail(
         result,
         daily_market_context={
             "region": "cn",
             "trade_date": "2026-06-06",
-            "summary": "大盘退潮，高风险，建议观望，仓位上限30%。",
+            "summary": "The market ebbs，high risk，It is recommended to wait and see，Position limit30%。",
             "risk_tags": ["high_risk", "low_position_cap"],
         },
         report_language="zh",
@@ -235,21 +235,21 @@ def test_conservative_market_context_softens_when_risk_warning_then_recommend_bu
 
     assert "daily_market_context_buy_softened" in adjustments
     assert result.decision_type == "hold"
-    assert result.operation_advice == "观望"
+    assert result.operation_advice == "wait and see"
 
 
 def test_conservative_market_context_softens_when_negated_chase_then_recommend_buy() -> None:
     result = _result()
     result.decision_type = "buy"
-    result.operation_advice = "不建议追高，但建议分批买入。"
-    result.confidence_level = "高"
+    result.operation_advice = "It is not recommended to chase high，But it is recommended to buy in batches。"
+    result.confidence_level = "high"
 
     adjustments = apply_daily_market_context_guardrail(
         result,
         daily_market_context={
             "region": "cn",
             "trade_date": "2026-06-06",
-            "summary": "大盘退潮，高风险，建议观望，仓位上限30%。",
+            "summary": "The market ebbs，high risk，It is recommended to wait and see，Position limit30%。",
             "risk_tags": ["high_risk", "low_position_cap"],
         },
         report_language="zh",
@@ -257,7 +257,7 @@ def test_conservative_market_context_softens_when_negated_chase_then_recommend_b
 
     assert "daily_market_context_buy_softened" in adjustments
     assert result.decision_type == "hold"
-    assert result.operation_advice == "观望"
+    assert result.operation_advice == "wait and see"
 
 
 def test_conservative_market_context_does_not_soften_buy_when_negated_explicitly_in_english() -> None:
@@ -270,7 +270,7 @@ def test_conservative_market_context_does_not_soften_buy_when_negated_explicitly
         daily_market_context={
             "region": "cn",
             "trade_date": "2026-06-06",
-            "summary": "大盘退潮，高风险，建议观望，仓位上限30%。",
+            "summary": "The market ebbs，high risk，It is recommended to wait and see，Position limit30%。",
             "risk_tags": ["high_risk", "low_position_cap"],
         },
         report_language="en",

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Issue #234 盘中实时技术指标的单元测试。
+Issue #234 Unit testing of intraday real-time technical indicators。
 
-覆盖范围：
-- _augment_historical_with_realtime：追加/更新逻辑和防护条件
-- _compute_ma_status：均线排列文案
-- _enhance_context：使用 realtime + trend_result 覆盖 today
+Coverage：
+- _augment_historical_with_realtime：Append/Update logic and guard conditions
+- _compute_ma_status：Moving average arrangement copywriting
+- _enhance_context：Use realtime + trend_result Cover today
 """
 
 import os
@@ -35,7 +35,7 @@ def _make_realtime_quote(
 ) -> UnifiedRealtimeQuote:
     return UnifiedRealtimeQuote(
         code="600519",
-        name="贵州茅台",
+        name="Kweichow Moutai",
         source=RealtimeSource.TENCENT,
         price=price,
         open_price=open_price,
@@ -163,15 +163,15 @@ class TestComputeMaStatus(unittest.TestCase):
 
     def test_bullish_alignment(self) -> None:
         status = StockAnalysisPipeline._compute_ma_status(11, 10, 9.5, 9)
-        self.assertIn("多头", status)
+        self.assertIn("Long", status)
 
     def test_bearish_alignment(self) -> None:
         status = StockAnalysisPipeline._compute_ma_status(8, 9, 9.5, 10)
-        self.assertIn("空头", status)
+        self.assertIn("short", status)
 
     def test_consolidation(self) -> None:
         status = StockAnalysisPipeline._compute_ma_status(10, 10, 10, 10)
-        self.assertIn("震荡", status)
+        self.assertIn("shock", status)
 
 
 class TestEnhanceContextRealtimeOverride(unittest.TestCase):
@@ -214,13 +214,13 @@ class TestEnhanceContextRealtimeOverride(unittest.TestCase):
             ma20=14.9,
         )
         enhanced = self.pipeline._enhance_context(
-            context, quote, None, trend, "贵州茅台"
+            context, quote, None, trend, "Kweichow Moutai"
         )
         self.assertEqual(enhanced["today"]["close"], 15.72)
         self.assertEqual(enhanced["today"]["ma5"], 15.5)
         self.assertEqual(enhanced["today"]["ma10"], 15.2)
         self.assertEqual(enhanced["today"]["ma20"], 14.9)
-        self.assertIn("多头", enhanced["ma_status"])
+        self.assertIn("Long", enhanced["ma_status"])
         self.assertEqual(enhanced["date"], today.isoformat())
         self.assertEqual(enhanced["today"]["date"], today.isoformat())
         self.assertEqual(enhanced["today"]["data_source"], "realtime:tencent")
@@ -251,7 +251,7 @@ class TestEnhanceContextRealtimeOverride(unittest.TestCase):
         }
         quote = UnifiedRealtimeQuote(
             code="688691",
-            name="灿芯股份",
+            name="Bright Core Shares",
             source=RealtimeSource.TENCENT,
             price=122.70,
             open_price=120.09,
@@ -270,7 +270,7 @@ class TestEnhanceContextRealtimeOverride(unittest.TestCase):
         )
 
         enhanced = self.pipeline._enhance_context(
-            context, quote, None, trend, "灿芯股份"
+            context, quote, None, trend, "Bright Core Shares"
         )
 
         self.assertEqual(enhanced["today"]["volume"], 10931723)
@@ -323,7 +323,7 @@ class TestEnhanceContextRealtimeOverride(unittest.TestCase):
             quote,
             None,
             trend,
-            "贵州茅台",
+            "Kweichow Moutai",
             market_phase_context={"is_partial_bar": True},
         )
 
@@ -376,7 +376,7 @@ class TestEnhanceContextRealtimeOverride(unittest.TestCase):
         )
 
         enhanced = self.pipeline._enhance_context(
-            context, quote, None, trend, "贵州茅台"
+            context, quote, None, trend, "Kweichow Moutai"
         )
 
         self.assertNotIn("amount", enhanced["today"])
@@ -388,7 +388,7 @@ class TestEnhanceContextRealtimeOverride(unittest.TestCase):
     def test_enhance_context_injects_runtime_news_window_days(self) -> None:
         context = {"code": "600519", "today": {"close": 15.0}}
         enhanced = self.pipeline._enhance_context(
-            context, None, None, None, "贵州茅台"
+            context, None, None, None, "Kweichow Moutai"
         )
         self.assertEqual(
             enhanced["news_window_days"],
@@ -399,7 +399,7 @@ class TestEnhanceContextRealtimeOverride(unittest.TestCase):
         context = {"code": "600519", "today": {"close": 15.0}}
         quote = _make_realtime_quote(price=15.72)
         enhanced = self.pipeline._enhance_context(
-            context, quote, None, None, "贵州茅台"
+            context, quote, None, None, "Kweichow Moutai"
         )
         self.assertEqual(enhanced["today"]["close"], 15.0)
 
@@ -407,7 +407,7 @@ class TestEnhanceContextRealtimeOverride(unittest.TestCase):
         context = {"code": "600519", "today": {"close": 15.0}}
         trend = TrendAnalysisResult(code="600519", ma5=15.0, ma10=14.8, ma20=14.5)
         enhanced = self.pipeline._enhance_context(
-            context, None, None, trend, "贵州茅台"
+            context, None, None, trend, "Kweichow Moutai"
         )
         self.assertEqual(enhanced["today"]["close"], 15.0)
 
@@ -415,9 +415,9 @@ class TestEnhanceContextRealtimeOverride(unittest.TestCase):
         """When StockTrendAnalyzer returns early with ma5=0.0 due to insufficient data, it should not overwrite today."""
         context = {"code": "600519", "today": {"close": 15.0, "ma5": 14.8}}
         quote = _make_realtime_quote(price=15.72)
-        trend = TrendAnalysisResult(code="600519")  # 默认 ma5=ma10=ma20=0.0
+        trend = TrendAnalysisResult(code="600519")  # Default ma5=ma10=ma20=0.0
         enhanced = self.pipeline._enhance_context(
-            context, quote, None, trend, "贵州茅台"
+            context, quote, None, trend, "Kweichow Moutai"
         )
         self.assertEqual(enhanced["today"]["close"], 15.0)
         self.assertEqual(enhanced["today"]["ma5"], 14.8)

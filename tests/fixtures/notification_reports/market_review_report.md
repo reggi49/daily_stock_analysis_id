@@ -1,17 +1,17 @@
-# 大盘复盘
+# Market review
 
-## 指数表现
+## Index performance
 
-| 指数 | 涨跌幅 | 量能 |
+| Index | Increase or decrease | Quantity |
 | --- | --- | --- |
-| 上证指数 | +0.8% | 放量 |
-| 创业板指 | -0.2% | 缩量 |
+| Shanghai Composite Index | +0.8% | Increase the volume |
+| GEM Index | -0.2% | shrink |
 
-## 资金方向
+## Funding direction
 
-- 北向资金小幅净流入。
-- 高股息、半导体、消费电子轮动活跃。
+- Slight net inflow of northbound funds。
+- high dividends、Semiconductor、Consumer electronics rotation is active。
 
-## 明日观察
+## Observation tomorrow
 
-关注成交额能否维持在万亿附近，以及权重板块是否继续承接。
+Pay attention to whether the transaction volume can be maintained near one trillion，And whether the weighted sectors will continue to undertake。

@@ -20,7 +20,7 @@ from src.services.analysis_context_builder import (
 
 def _pack() -> AnalysisContextPack:
     return AnalysisContextPack(
-        subject=AnalysisSubject(code="600519", stock_name="贵州茅台", market="cn"),
+        subject=AnalysisSubject(code="600519", stock_name="Kweichow Moutai", market="cn"),
         blocks={
             "quote": AnalysisContextBlock(
                 status=ContextFieldStatus.FALLBACK,
@@ -41,7 +41,7 @@ def _pack() -> AnalysisContextPack:
                 items={
                     "trend_result": AnalysisContextItem(
                         status=ContextFieldStatus.AVAILABLE,
-                        value={"trend_status": "多头排列", "ma5": 1800.0},
+                        value={"trend_status": "multi-head arrangement", "ma5": 1800.0},
                     ),
                     "intraday_overlay": AnalysisContextItem(
                         status=ContextFieldStatus.ESTIMATED,
@@ -54,7 +54,7 @@ def _pack() -> AnalysisContextPack:
                 items={
                     "content": AnalysisContextItem(
                         status=ContextFieldStatus.MISSING,
-                        value="完整新闻正文不应进入摘要",
+                        value="The full news text should not enter the abstract",
                         missing_reason="news_context_missing",
                     )
                 },
@@ -106,7 +106,7 @@ def _pack_with_phase(phase: str) -> AnalysisContextPack:
 
 def _core_available_pack(*, phase: str) -> AnalysisContextPack:
     return AnalysisContextPack(
-        subject=AnalysisSubject(code="600519", stock_name="贵州茅台", market="cn"),
+        subject=AnalysisSubject(code="600519", stock_name="Kweichow Moutai", market="cn"),
         phase={"phase": phase, "is_partial_bar": False},
         blocks={
             "quote": AnalysisContextBlock(status=ContextFieldStatus.AVAILABLE),
@@ -135,7 +135,7 @@ def _core_available_pack(*, phase: str) -> AnalysisContextPack:
 def _builder_artifacts(*, fundamental_context: dict) -> PipelineAnalysisArtifacts:
     return PipelineAnalysisArtifacts(
         code="600519",
-        stock_name="贵州茅台",
+        stock_name="Kweichow Moutai",
         market="cn",
         phase=None,
         base_context={
@@ -148,7 +148,7 @@ def _builder_artifacts(*, fundamental_context: dict) -> PipelineAnalysisArtifact
         trend_result={"trend_status": "available"},
         chip_data={"source": "mock_chip", "date": "2026-03-26"},
         fundamental_context=fundamental_context,
-        news_context="新闻摘要",
+        news_context="news summary",
         news_result_count=1,
         metadata={"trigger_source": "api"},
     )
@@ -163,21 +163,21 @@ def test_empty_or_invalid_pack_returns_empty_section() -> None:
 def test_chinese_summary_renders_low_sensitivity_pack_statuses() -> None:
     section = format_analysis_context_pack_prompt_section(_pack())
 
-    assert "分析上下文包摘要" in section
+    assert "Analysis context package summary" in section
     assert "600519" in section
-    assert "贵州茅台" in section
-    assert "行情: fallback" in section
-    assert "技术: partial" in section
-    assert "告警=realtime_provider_fallback" in section
-    assert "新闻: missing" in section
+    assert "Kweichow Moutai" in section
+    assert "Quotes: fallback" in section
+    assert "technology: partial" in section
+    assert "Alarm=realtime_provider_fallback" in section
+    assert "news: missing" in section
     assert "news_context_missing" in section
-    assert "新闻结果数：3" in section
+    assert "Number of news results：3" in section
     assert "intraday_realtime_overlay" in section
-    assert "数据限制" in section
-    assert "数据质量评分：76/100（可用）" in section
-    assert "已知限制：行情：降级、技术：部分可用" in section
-    assert "confidence_level 不得为高" in section
-    assert "阶段数据规则" not in section
+    assert "Data limits" in section
+    assert "Data quality score：76/100（Available）" in section
+    assert "Known limitations: Market: downgrade, technology: partially available" in section
+    assert "confidence_level Not allowed to be high" in section
+    assert "Stage data rules" not in section
 
 
 def test_english_summary_renders_readable_statuses() -> None:
@@ -187,7 +187,7 @@ def test_english_summary_renders_readable_statuses() -> None:
     )
 
     assert "Analysis Context Pack Summary" in section
-    assert "Subject: 600519 (贵州茅台)" in section
+    assert "Subject: 600519 (Kweichow Moutai)" in section
     assert "quote: fallback" in section
     assert "news: missing" in section
     assert "News result count: 3" in section
@@ -201,11 +201,11 @@ def test_english_summary_renders_readable_statuses() -> None:
 def test_intraday_phase_degraded_core_adds_phase_data_quality_guard() -> None:
     section = format_analysis_context_pack_prompt_section(_pack_with_phase("intraday"))
 
-    assert "阶段数据规则" in section
-    assert "盘中判断受" in section
-    assert "数据质量限制" in section
-    assert "confidence_level 不得为高" in section
-    assert "当前不是盘后复盘" not in section
+    assert "Stage data rules" in section
+    assert "Intraday judgment" in section
+    assert "Data quality limitations" in section
+    assert "confidence_level Not allowed to be high" in section
+    assert "This is not an after-hours review at this time" not in section
 
 
 def test_intraday_phase_data_quality_guard_renders_in_english() -> None:
@@ -225,25 +225,25 @@ def test_lunch_break_and_closing_auction_degraded_core_add_data_guard_only() -> 
     for phase in ("lunch_break", "closing_auction"):
         section = format_analysis_context_pack_prompt_section(_pack_with_phase(phase))
 
-        assert "阶段数据规则" in section
-        assert "盘中判断受" in section
-        assert "当前不是盘后复盘" not in section
+        assert "Stage data rules" in section
+        assert "Intraday judgment" in section
+        assert "This is not an after-hours review at this time" not in section
 
 
 def test_premarket_degraded_quote_limits_opening_plan_without_phase_repetition() -> None:
     section = format_analysis_context_pack_prompt_section(_pack_with_phase("premarket"))
 
-    assert "开盘计划受数据新鲜度或降级状态限制" in section
-    assert "不得把降级行情描述成今日走势已经发生" in section
-    assert "当前尚未开盘" not in section
+    assert "Opening plans are subject to data freshness or downgraded status" in section
+    assert "Do not describe the downgrade as if today’s trend has already occurred" in section
+    assert "Not yet open" not in section
 
 
 def test_non_trading_and_unknown_degraded_core_are_conservative() -> None:
     for phase in ("non_trading", "unknown"):
         section = format_analysis_context_pack_prompt_section(_pack_with_phase(phase))
 
-        assert "只能保守使用当前可用数据" in section
-        assert "不得补全不存在的盘中事实" in section
+        assert "Only use currently available data conservatively" in section
+        assert "Do not complete intraday facts that do not exist" in section
 
 
 def test_phase_cross_guard_is_skipped_for_postmarket_invalid_or_non_dict_phase() -> None:
@@ -260,23 +260,23 @@ def test_phase_cross_guard_is_skipped_for_postmarket_invalid_or_non_dict_phase()
     non_dict["phase"] = "intraday"
     non_dict_section = format_analysis_context_pack_prompt_section(non_dict)
 
-    assert "阶段数据规则" not in postmarket_degraded
-    assert "盘中判断受" not in postmarket_degraded
-    assert "confidence_level 不得为高" in postmarket_degraded
-    assert "阶段数据规则" not in postmarket_available
-    assert "盘中判断受" not in postmarket_available
-    assert "阶段数据规则" not in invalid
-    assert "confidence_level 不得为高" in invalid
-    assert "阶段数据规则" not in non_dict_section
-    assert "confidence_level 不得为高" in non_dict_section
+    assert "Stage data rules" not in postmarket_degraded
+    assert "Intraday judgment" not in postmarket_degraded
+    assert "confidence_level Not allowed to be high" in postmarket_degraded
+    assert "Stage data rules" not in postmarket_available
+    assert "Intraday judgment" not in postmarket_available
+    assert "Stage data rules" not in invalid
+    assert "confidence_level Not allowed to be high" in invalid
+    assert "Stage data rules" not in non_dict_section
+    assert "confidence_level Not allowed to be high" in non_dict_section
 
 
 def test_summary_does_not_dump_values_or_sensitive_payloads() -> None:
     section = format_analysis_context_pack_prompt_section(_pack())
 
     assert "analysis_context_pack" not in section
-    assert "完整新闻正文不应进入摘要" not in section
-    assert "多头排列" not in section
+    assert "The full news text should not enter the abstract" not in section
+    assert "multi-head arrangement" not in section
     assert "secret-token" not in section
     assert "hooks.example.test" not in section
     assert "webhook_url" not in section
@@ -301,8 +301,8 @@ def test_builder_to_prompt_renders_aux_fetch_failed_without_confidence_cap() -> 
     section = format_analysis_context_pack_prompt_section(pack)
 
     assert pack.data_quality.limitations == ["fundamentals: fetch_failed"]
-    assert "数据限制" in section
-    assert "数据质量评分：92/100（良好）" in section
-    assert "已知限制：基本面：抓取失败" in section
-    assert "置信度规则" not in section
+    assert "Data limits" in section
+    assert "Data quality score：92/100（good）" in section
+    assert "Known limitations: Fundamentals: Fetch failed" in section
+    assert "Confidence rules" not in section
     assert "confidence_level" not in section

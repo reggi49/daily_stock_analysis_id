@@ -54,7 +54,7 @@ def test_get_belong_boards_records_successful_provider_run():
         fetchers=[
             _BoardFetcher(
                 "BoardFetcher",
-                [{"name": "白酒", "type": "行业"}],
+                [{"name": "Liquor", "type": "industry"}],
             )
         ]
     )
@@ -79,7 +79,7 @@ def test_get_belong_boards_records_empty_attempt_and_fallback():
     manager = DataFetcherManager(
         fetchers=[
             _BoardFetcher("EmptyBoardFetcher", []),
-            _BoardFetcher("FallbackBoardFetcher", [{"name": "电力设备", "type": "行业"}]),
+            _BoardFetcher("FallbackBoardFetcher", [{"name": "Electrical equipment", "type": "industry"}]),
         ]
     )
 
@@ -99,7 +99,7 @@ def test_get_belong_boards_records_exception_attempt_and_fallback():
     manager = DataFetcherManager(
         fetchers=[
             _FailingBoardFetcher("FailingBoardFetcher", RuntimeError("board source down")),
-            _BoardFetcher("FallbackBoardFetcher", [{"name": "电力设备", "type": "行业"}]),
+            _BoardFetcher("FallbackBoardFetcher", [{"name": "Electrical equipment", "type": "industry"}]),
         ]
     )
 

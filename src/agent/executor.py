@@ -461,10 +461,10 @@ def _build_language_section(report_language: str, *, chat_mode: bool = False) ->
 - If you output JSON, keep the keys unchanged and write every human-readable value in English.
 """
         return """
-## 输出语言
+## Output language
 
-- 默认使用中文回答。
-- 若输出 JSON，键名保持不变，所有面向用户的文本值使用中文。
+- Answer in Chinese by default。
+- If output JSON，Key names remain unchanged，All user-facing text values use Chinese。
 """
 
     if normalized == "en":
@@ -478,11 +478,11 @@ def _build_language_section(report_language: str, *, chat_mode: bool = False) ->
 """
 
     return """
-## 输出语言
+## Output language
 
-- 所有 JSON 键名保持不变。
-- `decision_type` 必须保持为 `buy|hold|sell`。
-- 所有面向用户的人类可读文本值必须使用中文。
+- all JSON Key names remain unchanged。
+- `decision_type` must remain as `buy|hold|sell`。
+- All user-facing human-readable text values must be in Chinese。
 """
 
 

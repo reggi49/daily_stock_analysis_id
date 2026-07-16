@@ -36,8 +36,8 @@ class TestGenerateSingleStockReport:
             "news_sentiment": 25,
             "fundamentals": 20,
             "market_conditions": 20,
-            "strongest_bullish_signal": "MACD金叉",
-            "strongest_bearish_signal": "成交量萎缩",
+            "strongest_bullish_signal": "MACDgolden fork",
+            "strongest_bearish_signal": "Trading volume shrinks",
         }
         dashboard = {"signal_attribution": signal_attr}
         result = self._make_result(dashboard)
@@ -46,9 +46,9 @@ class TestGenerateSingleStockReport:
         report = notification.generate_single_stock_report(result)
 
         # Verify it contains the signal-attribution section
-        assert "信号归因" in report or "Signal Attribution" in report, "Single stock report should contain signal attribution section"
+        assert "signal attribution" in report or "Signal Attribution" in report, "Single stock report should contain signal attribution section"
         assert "35%" in report, "Single stock report should display technical_indicators=35%"
-        assert "MACD金叉" in report, "Single stock report should display strongest_bullish_signal"
+        assert "MACDgolden fork" in report, "Single stock report should display strongest_bullish_signal"
         print("  ✅ generate_single_stock_report() correctly renders signal_attribution")
 
     def test_single_stock_report_without_signal_attribution(self):
@@ -69,11 +69,11 @@ class TestGenerateSingleStockReport:
     def _make_result(self, dashboard: Dict[str, Any]) -> "AnalysisResult":
         return AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=75,
-            operation_advice="持有",
-            analysis_summary="测试分析",
+            operation_advice="hold",
+            analysis_summary="Test analysis",
             decision_type="hold",
             dashboard=dashboard,
         )
@@ -184,13 +184,13 @@ class TestParseResponseIntegration:
         llm_response_text = json.dumps({
             "dashboard": {
                 "signal_attribution": {
-                    "technical_indicators": "35%",  # 字符串百分比
+                    "technical_indicators": "35%",  # string percentage
                     "news_sentiment": 25,
                     "fundamentals": 20,
                     "market_conditions": 20,
-                    "strongest_bullish_signal": "MACD金叉",
+                    "strongest_bullish_signal": "MACDgolden fork",
                 },
-                "core_conclusion": {"one_sentence": "测试"},
+                "core_conclusion": {"one_sentence": "test"},
                 "intelligence": {"risk_alerts": []},
                 "battle_plan": {"sniper_points": {"stop_loss": "100"}},
             }
@@ -222,7 +222,7 @@ class TestParseResponseIntegration:
         analyzer.pre_judge = None
 
         # Call _parse_response()
-        result = analyzer._parse_response(llm_response_text, "600519", "贵州茅台")
+        result = analyzer._parse_response(llm_response_text, "600519", "Kweichow Moutai")
 
         # Verify result.dashboard's signal_attribution has been normalized
         dashboard = result.dashboard

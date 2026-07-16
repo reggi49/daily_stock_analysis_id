@@ -69,13 +69,13 @@ class _TrackingNotifier:
 def _make_result(code: str, success: bool = True) -> AnalysisResult:
     return AnalysisResult(
         code=code,
-        name=f"股票{code}",
+        name=f"stocks{code}",
         sentiment_score=80,
-        trend_prediction="看多",
-        operation_advice="持有",
-        analysis_summary="测试结果",
+        trend_prediction="long",
+        operation_advice="hold",
+        analysis_summary="Test results",
         success=success,
-        error_message=None if success else "JSON解析失败",
+        error_message=None if success else "JSONParsing failed",
     )
 
 

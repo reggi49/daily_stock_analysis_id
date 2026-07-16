@@ -842,7 +842,7 @@ class HistoryService:
                 trend_prediction=raw_result.get("trend_prediction", record.trend_prediction or ""),
                 operation_advice=raw_result.get("operation_advice", record.operation_advice or ""),
                 decision_type=raw_result.get("decision_type", "hold"),
-                confidence_level=raw_result.get("confidence_level", "中"),
+                confidence_level=raw_result.get("confidence_level", "in"),
                 report_language=normalize_report_language(raw_result.get("report_language")),
                 action=raw_result.get("action"),
                 action_label=raw_result.get("action_label"),
@@ -1057,9 +1057,9 @@ class HistoryService:
                     raw_chip_health = chip_data.get('chip_health', 'N/A')
                     chip_health = localize_chip_health(raw_chip_health, report_language)
                     normalized_chip_health = str(raw_chip_health or "").strip().lower()
-                    if normalized_chip_health in {"健康", "healthy"}:
+                    if normalized_chip_health in {"health", "healthy"}:
                         chip_emoji = "✅"
-                    elif normalized_chip_health in {"一般", "average"}:
+                    elif normalized_chip_health in {"Average", "average"}:
                         chip_emoji = "⚠️"
                     else:
                         chip_emoji = "🚨"

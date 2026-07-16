@@ -23,11 +23,11 @@ from src.core.pipeline import StockAnalysisPipeline
 def _make_result(code: str) -> AnalysisResult:
     return AnalysisResult(
         code=code,
-        name=f"股票{code}",
+        name=f"stocks{code}",
         sentiment_score=80,
-        trend_prediction="看多",
-        operation_advice="持有",
-        analysis_summary="测试结果",
+        trend_prediction="long",
+        operation_advice="hold",
+        analysis_summary="Test results",
     )
 
 

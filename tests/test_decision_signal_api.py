@@ -98,7 +98,7 @@ def client_and_db(tmp_path):
 def _payload(**overrides):
     payload = {
         "stock_code": "SH600519",
-        "stock_name": "贵州茅台",
+        "stock_name": "Kweichow Moutai",
         "market": "cn",
         "source_type": "analysis",
         "source_agent": "api-test",
@@ -112,7 +112,7 @@ def _payload(**overrides):
         "horizon": "3d",
         "entry_low": 1680,
         "stop_loss": 1600,
-        "reason": "突破平台",
+        "reason": "Breakthrough platform",
         "evidence": {"source": "unit-test"},
         "metadata": {"task_id": "task-3001", "alert_trigger_id": "alert-1"},
     }
@@ -178,13 +178,13 @@ def test_create_duplicate_list_detail_latest_and_status_update(client_and_db) ->
 
     duplicate_resp = client.post(
         "/api/v1/decision-signals",
-        json=_payload(reason="重复报告里不同文案不应覆盖旧信号"),
+        json=_payload(reason="Different copy in duplicate reports should not overwrite old signals"),
     )
     assert duplicate_resp.status_code == 200, duplicate_resp.text
     duplicate = duplicate_resp.json()
     assert duplicate["created"] is False
     assert duplicate["item"]["id"] == signal_id
-    assert duplicate["item"]["reason"] == "突破平台"
+    assert duplicate["item"]["reason"] == "Breakthrough platform"
 
     list_resp = client.get(
         "/api/v1/decision-signals",
@@ -1225,7 +1225,7 @@ def _save_reassess_history(
     *,
     code: str = "600519",
     report_type: str = "full",
-    operation_advice: str | None = "买入",
+    operation_advice: str | None = "Buy",
     raw_result: dict | str | None = None,
     context_snapshot: dict | str | None = None,
     sentiment_score: int | None = 72,
@@ -1242,12 +1242,12 @@ def _save_reassess_history(
         row = AnalysisHistory(
             query_id="query-reassess-test",
             code=code,
-            name="贵州茅台",
+            name="Kweichow Moutai",
             report_type=report_type,
             sentiment_score=sentiment_score,
             operation_advice=operation_advice,
-            trend_prediction="震荡上行",
-            analysis_summary="趋势改善但需要风控。",
+            trend_prediction="Fluctuate upward",
+            analysis_summary="The trend is improving but risk control is needed。",
             raw_result=raw_payload,
             context_snapshot=context_payload,
             ideal_buy=1680,
@@ -1263,11 +1263,11 @@ def _save_reassess_history(
 def _valid_reassess_raw(**overrides) -> dict:
     raw = {
         "action": "buy",
-        "operation_advice": "买入",
+        "operation_advice": "Buy",
         "sentiment_score": 72,
-        "confidence_level": "中",
-        "analysis_summary": "趋势改善但需要确认。",
-        "risk_warning": "跌破关键支撑需退出。",
+        "confidence_level": "in",
+        "analysis_summary": "Trend improving but needs confirmation。",
+        "risk_warning": "If it falls below key support, exit is required。",
         "dashboard": {
             "battle_plan": {
                 "sniper_points": {
@@ -1276,10 +1276,10 @@ def _valid_reassess_raw(**overrides) -> dict:
                     "stop_loss": 1600,
                     "take_profit": 1850,
                 },
-                "action_checklist": ["放量突破", "资金流转正"],
+                "action_checklist": ["Heavy volume breakthrough", "Positive capital flow"],
             },
             "phase_decision": {
-                "watch_conditions": ["量能维持"],
+                "watch_conditions": ["capacity to maintain"],
             },
         },
     }
@@ -1394,7 +1394,7 @@ def test_reassess_error_mapping(client_and_db) -> None:
         db,
         code="600519",
         operation_advice=None,
-        raw_result={"analysis_summary": "仅有摘要，不能推断动作"},
+        raw_result={"analysis_summary": "abstract only，Cannot infer actions"},
         context_snapshot=_valid_reassess_context(),
     )
     insufficient = client.post(
@@ -1465,14 +1465,14 @@ def test_reassess_preview_prefers_stability_adjusted_score(client_and_db) -> Non
     raw_result = _valid_reassess_raw(
         action=None,
         sentiment_score=72,
-        operation_advice="观望",
+        operation_advice="wait and see",
     )
     dashboard = raw_result["dashboard"]
     dashboard["decision_score_calibration"] = {
         "raw_score": 72,
         "adjusted_score": 59,
         "final_action": "watch",
-        "guardrail_reason": "资金流偏弱，先观望回撤到 45-59。",
+        "guardrail_reason": "Fund flow is weak，Wait and see the retracement to 45-59。",
     }
     raw_result["dashboard"] = dashboard
     record_id = _save_reassess_history(

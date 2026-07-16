@@ -67,20 +67,20 @@ class FeishuDocManager:
             # Will Markdown Convert to SDK needed Block object list
             blocks = self._markdown_to_sdk_blocks(content_md)
 
-            # Feishu API quantity Block quantity（suggestion 50 about），分批写入
+            # Feishu API quantity Block quantity（suggestion 50 about），Write in batches
             batch_size = 50
-            doc_block_id = doc_id  # 文档本身也是一个 block
+            doc_block_id = doc_id  # The document itself is also a block
 
             for i in range(0, len(blocks), batch_size):
                 batch_blocks = blocks[i:i + batch_size]
 
-                # 构造批量添加块的请求
+                # Construct a request to add chunks in batches
                 batch_add_request = CreateDocumentBlockChildrenRequest.builder() \
                     .document_id(doc_id) \
                     .block_id(doc_block_id) \
                     .request_body(CreateDocumentBlockChildrenRequestBody.builder()
-                                  .children(batch_blocks)  # SDK 需要 Block object list
-                                  .index(-1)  # 追加到末尾
+                                  .children(batch_blocks)  # SDK need Block object list
+                                  .index(-1)  # Append to the end
                                   .build()) \
                     .build()
 
@@ -100,7 +100,7 @@ class FeishuDocManager:
 
     def _markdown_to_sdk_blocks(self, md_text: str) -> List[Block]:
         """
-        将简单的 Markdown Convert to Feishu SDK of Block object
+        will be simple Markdown Convert to Feishu SDK of Block object
         """
         blocks = []
         lines = md_text.split('\n')
@@ -125,7 +125,7 @@ class FeishuDocManager:
                 block_type = 5  # H3
                 text_content = line[4:]
             elif line.startswith('---'):
-                # 分割线
+                # dividing line
                 blocks.append(Block.builder()
                               .block_type(22)
                               .divider(Divider.builder().build())

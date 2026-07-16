@@ -211,25 +211,25 @@ def format_public_phase_pack_excerpt(
             if phase_summary.get("is_partial_bar") is True:
                 lines.append("- partial-bar warning: intraday data may be incomplete")
         else:
-            parts = [f"阶段：{phase}"]
+            parts = [f"stage：{phase}"]
             if market:
-                parts.append(f"市场：{market}")
+                parts.append(f"market：{market}")
             if trigger_source:
-                parts.append(f"触发来源：{trigger_source}")
+                parts.append(f"trigger source：{trigger_source}")
             if source_label:
-                parts.append(f"摘要来源：{source_label}")
+                parts.append(f"Summary source：{source_label}")
             lines.append("- " + " | ".join(parts))
             if phase_summary.get("is_partial_bar") is True:
-                lines.append("- 盘中数据提示：当前 K 线可能未完结")
+                lines.append("- Intraday data tips：current K The line may not be completed")
 
     quality = overview.get("data_quality") if isinstance(overview, Mapping) else None
     if isinstance(quality, Mapping):
         level = _safe_text(quality.get("level"))
         if level:
-            lines.append(f"- {'data quality' if lang == 'en' else '数据质量'}: {level}")
+            lines.append(f"- {'data quality' if lang == 'en' else 'Data quality'}: {level}")
         limitations = _list_strings(quality.get("limitations"), limit=2)
         for item in limitations:
-            lines.append(f"- {'limitation' if lang == 'en' else '限制'}: {item}")
+            lines.append(f"- {'limitation' if lang == 'en' else 'Limit'}: {item}")
 
     return "\n".join(lines)
 

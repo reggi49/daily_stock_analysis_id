@@ -36,7 +36,7 @@ def isolated_db(tmp_path):
 def _fields(**overrides):
     fields = {
         "stock_code": "600519",
-        "stock_name": "贵州茅台",
+        "stock_name": "Kweichow Moutai",
         "market": "cn",
         "source_type": "analysis",
         "source_agent": "test-agent",
@@ -45,7 +45,7 @@ def _fields(**overrides):
         "market_phase": "intraday",
         "trigger_source": "api",
         "action": "buy",
-        "action_label": "买入",
+        "action_label": "Buy",
         "confidence": 0.8,
         "score": 88,
         "horizon": "3d",
@@ -53,11 +53,11 @@ def _fields(**overrides):
         "entry_high": 1700.0,
         "stop_loss": 1600.0,
         "target_price": 1850.0,
-        "invalidation": "跌破 1600",
-        "watch_conditions": "量能继续放大",
-        "reason": "趋势增强",
-        "risk_summary": "波动加大",
-        "catalyst_summary": "业绩披露",
+        "invalidation": "fell below 1600",
+        "watch_conditions": "The amount can continue to increase",
+        "reason": "Trend strengthening",
+        "risk_summary": "Increased volatility",
+        "catalyst_summary": "performance disclosure",
         "evidence_json": '{"items":[]}',
         "data_quality_summary_json": '{"level":"good"}',
         "plan_quality": "complete",
@@ -76,7 +76,7 @@ def test_create_if_absent_deduplicates_report_and_trace_keys(isolated_db) -> Non
     assert created1 is True
     assert created2 is False
     assert row2.id == row1.id
-    assert row2.reason == "趋势增强"
+    assert row2.reason == "Trend strengthening"
 
     different_horizon, horizon_created = repo.create_if_absent(_fields(horizon="10d", target_price=1900))
     assert horizon_created is True

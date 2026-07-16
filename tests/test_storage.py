@@ -212,47 +212,47 @@ class TestStorage(unittest.TestCase):
         self.assertEqual(DatabaseManager._parse_sniper_value("100"), 100.0)
         self.assertEqual(DatabaseManager._parse_sniper_value("100.5"), 100.5)
         
-        # 2. Contains Chinese description and "元"
-        self.assertEqual(DatabaseManager._parse_sniper_value("建议在 100 元附近买入"), 100.0)
-        self.assertEqual(DatabaseManager._parse_sniper_value("价格：100.5元"), 100.5)
+        # 2. Contains Chinese description and "Yuan"
+        self.assertEqual(DatabaseManager._parse_sniper_value("It is recommended to 100 Buy near yuan"), 100.0)
+        self.assertEqual(DatabaseManager._parse_sniper_value("price：100.5Yuan"), 100.5)
         
         # 3. Contains interfering numbers (the fixed-bug scenario)
-        # Previously "MA5" was wrongly extracted as 5.0; now it should extract the 100 before "元"
-        text_bug = "无法给出。需等待MA5数据恢复，在股价回踩MA5且乖离率<2%时考虑100元"
+        # Previously "MA5" was wrongly extracted as 5.0; now it should extract the 100 before "Yuan"
+        text_bug = "cannot be given。need to waitMA5data recovery，Trapping back on stock priceMA5And deviation rate<2%consider when100Yuan"
         self.assertEqual(DatabaseManager._parse_sniper_value(text_bug), 100.0)
         
         # 4. More interfering scenarios
-        text_complex = "MA10为20.5，建议在30元买入"
+        text_complex = "MA10for20.5，It is recommended to30yuan buy"
         self.assertEqual(DatabaseManager._parse_sniper_value(text_complex), 30.0)
         
-        text_multiple = "支撑位10元，阻力位20元" # 应该提取最后一个"元"前面的数字，即20，或者更复杂的逻辑？
-        # Current logic finds the last colon, then the first "元" after it, and extracts the number in between.
+        text_multiple = "support level10Yuan，resistance level20Yuan" # should extract the last"Yuan"the previous number，That is20，or more complex logic？
+        # Current logic finds the last colon, then the first "Yuan" after it, and extracts the number in between.
         # Test the no-colon case
-        self.assertEqual(DatabaseManager._parse_sniper_value("30元"), 30.0)
+        self.assertEqual(DatabaseManager._parse_sniper_value("30Yuan"), 30.0)
         
-        # Test multiple numbers before "元"
-        self.assertEqual(DatabaseManager._parse_sniper_value("MA5 10 20元"), 20.0)
+        # Test multiple numbers before "Yuan"
+        self.assertEqual(DatabaseManager._parse_sniper_value("MA5 10 20Yuan"), 20.0)
         
-        # 5. Fallback: no "元" character — extracts last non-MA number
-        self.assertEqual(DatabaseManager._parse_sniper_value("102.10-103.00（MA5附近）"), 103.0)
-        self.assertEqual(DatabaseManager._parse_sniper_value("97.62-98.50（MA10附近）"), 98.5)
-        self.assertEqual(DatabaseManager._parse_sniper_value("93.40下方（MA20支撑）"), 93.4)
-        self.assertEqual(DatabaseManager._parse_sniper_value("108.00-110.00（前期高点阻力）"), 110.0)
+        # 5. Fallback: no "Yuan" character — extracts last non-MA number
+        self.assertEqual(DatabaseManager._parse_sniper_value("102.10-103.00（MA5nearby）"), 103.0)
+        self.assertEqual(DatabaseManager._parse_sniper_value("97.62-98.50（MA10nearby）"), 98.5)
+        self.assertEqual(DatabaseManager._parse_sniper_value("93.40below（MA20support）"), 93.4)
+        self.assertEqual(DatabaseManager._parse_sniper_value("108.00-110.00（Previous high resistance）"), 110.0)
 
         # 6. Invalid input
         self.assertIsNone(DatabaseManager._parse_sniper_value(None))
         self.assertIsNone(DatabaseManager._parse_sniper_value(""))
-        self.assertIsNone(DatabaseManager._parse_sniper_value("没有数字"))
-        self.assertIsNone(DatabaseManager._parse_sniper_value("MA5但没有元"))
+        self.assertIsNone(DatabaseManager._parse_sniper_value("no number"))
+        self.assertIsNone(DatabaseManager._parse_sniper_value("MA5but no yuan"))
 
         # 7. Regression: indicator numbers inside parentheses should not be extracted
-        self.assertNotEqual(DatabaseManager._parse_sniper_value("1.52-1.53 (回踩MA5/10附近)"), 10.0)
-        self.assertNotEqual(DatabaseManager._parse_sniper_value("1.55-1.56(MA5/M20支撑)"), 20.0)
-        self.assertNotEqual(DatabaseManager._parse_sniper_value("1.49-1.50(MA60附近企稳)"), 60.0)
+        self.assertNotEqual(DatabaseManager._parse_sniper_value("1.52-1.53 (DislikeMA5/10nearby)"), 10.0)
+        self.assertNotEqual(DatabaseManager._parse_sniper_value("1.55-1.56(MA5/M20support)"), 20.0)
+        self.assertNotEqual(DatabaseManager._parse_sniper_value("1.49-1.50(MA60Near stabilization)"), 60.0)
         # Verify the correct value is within range
-        self.assertIn(DatabaseManager._parse_sniper_value("1.52-1.53 (回踩MA5/10附近)"), [1.52, 1.53])
-        self.assertIn(DatabaseManager._parse_sniper_value("1.55-1.56(MA5/M20支撑)"), [1.55, 1.56])
-        self.assertIn(DatabaseManager._parse_sniper_value("1.49-1.50(MA60附近企稳)"), [1.49, 1.50])
+        self.assertIn(DatabaseManager._parse_sniper_value("1.52-1.53 (DislikeMA5/10nearby)"), [1.52, 1.53])
+        self.assertIn(DatabaseManager._parse_sniper_value("1.55-1.56(MA5/M20support)"), [1.55, 1.56])
+        self.assertIn(DatabaseManager._parse_sniper_value("1.49-1.50(MA60Near stabilization)"), [1.49, 1.50])
 
     def test_get_chat_sessions_prefix_is_scoped_by_colon_boundary(self):
         DatabaseManager.reset_instance()

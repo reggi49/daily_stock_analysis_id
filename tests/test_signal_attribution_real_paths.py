@@ -90,18 +90,18 @@ class TestParseResponseIntegration:
         # Mock the data dict returned by the LLM
         data = {
             "sentiment_score": 50,
-            "trend_prediction": "震荡",
-            "operation_advice": "持有",
+            "trend_prediction": "shock",
+            "operation_advice": "hold",
             "decision_type": "hold",
-            "confidence_level": "中",
-            "analysis_summary": "测试",
+            "confidence_level": "in",
+            "analysis_summary": "test",
             "dashboard": {
                 "signal_attribution": {
                     "technical_indicators": "70%",
                     "news_sentiment": "0%",
                     "fundamentals": "15%",
                     "market_conditions": "15%",
-                    "strongest_bullish_signal": "MACD金叉",
+                    "strongest_bullish_signal": "MACDgolden fork",
                     "strongest_bearish_signal": None,
                 }
             },
@@ -122,17 +122,17 @@ class TestHistoryServiceDisplay:
 
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             sentiment_score=50,
-            trend_prediction="震荡",
-            operation_advice="持有",
+            trend_prediction="shock",
+            operation_advice="hold",
             dashboard={
                 "signal_attribution": {
                     "technical_indicators": 70,
                     "news_sentiment": 0,
                     "fundamentals": 15,
                     "market_conditions": 15,
-                    "strongest_bullish_signal": "MACD金叉",
+                    "strongest_bullish_signal": "MACDgolden fork",
                     "strongest_bearish_signal": None,
                 }
             },
@@ -143,7 +143,7 @@ class TestHistoryServiceDisplay:
             created_at = None
 
         markdown = HistoryService()._generate_single_stock_markdown(result, MockRecord())
-        assert "信号归因" in markdown or "Signal Attribution" in markdown
+        assert "signal attribution" in markdown or "Signal Attribution" in markdown
         assert "70%" in markdown or "70%" in markdown
 
     def test_no_signal_attribution_no_section(self):
@@ -152,10 +152,10 @@ class TestHistoryServiceDisplay:
 
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             sentiment_score=50,
-            trend_prediction="震荡",
-            operation_advice="持有",
+            trend_prediction="shock",
+            operation_advice="hold",
             dashboard={},
         )
 
@@ -163,7 +163,7 @@ class TestHistoryServiceDisplay:
             created_at = None
 
         markdown = HistoryService()._generate_single_stock_markdown(result, MockRecord())
-        assert "信号归因" not in markdown
+        assert "signal attribution" not in markdown
 
 
 if __name__ == "__main__":

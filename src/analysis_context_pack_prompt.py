@@ -165,18 +165,18 @@ _pack_to_dict = analysis_context_pack_to_dict
 
 
 def _format_zh(payload: Dict[str, Any]) -> str:
-    lines = ["", "## 分析上下文包摘要"]
+    lines = ["", "## Analysis context package summary"]
     lines.extend(_subject_lines(payload, lang="zh"))
     block_lines = _block_lines(payload, lang="zh")
     if block_lines:
-        lines.append("- 数据块状态：")
+        lines.append("- Data block status：")
         lines.extend(f"  - {line}" for line in block_lines)
     metadata_lines = _metadata_lines(payload, lang="zh")
     if metadata_lines:
         lines.extend(metadata_lines)
     warnings = _list_strings(_nested(payload, "data_quality", "warnings"))
     if warnings:
-        lines.append(f"- 数据质量提醒：{_join_text(warnings, lang='zh')}")
+        lines.append(f"- Data quality reminder：{_join_text(warnings, lang='zh')}")
     lines.extend(_data_limitation_lines(payload, lang="zh"))
     return "\n".join(lines) + "\n"
 
@@ -219,13 +219,13 @@ def _subject_lines(payload: Dict[str, Any], *, lang: str) -> List[str]:
             line += f"; {', '.join(details)}"
         return [line]
 
-    label = code or "未知标的"
+    label = code or "unknown target"
     if name:
         label += f"（{name}）"
     line = f"- Target：{label}"
     details = []
     if market:
-        details.append(f"市场={market}")
+        details.append(f"market={market}")
     if version:
         details.append(f"pack_version={version}")
     if details:
@@ -281,7 +281,7 @@ def _metadata_lines(payload: Dict[str, Any], *, lang: str) -> List[str]:
     return [
         f"- News result count: {news_count}"
         if lang == "en"
-        else f"- 新闻结果数：{news_count}"
+        else f"- Number of news results：{news_count}"
     ]
 
 

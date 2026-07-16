@@ -187,7 +187,7 @@ class TestPipelineWechatOnlyImageRouting(unittest.TestCase):
         pipeline.notifier._send_wechat_image.assert_not_called()
         pipeline.notifier.send_to_wechat.assert_called_once_with("dashboard-report")
         self.assertTrue(
-            any("企业微信 Markdown 转图片失败" in str(call.args[0]) for call in mock_warning.call_args_list)
+            any("Enterprise WeChat Markdown Failed to transfer picture" in str(call.args[0]) for call in mock_warning.call_args_list)
         )
 
 
@@ -422,7 +422,7 @@ class TestPipelineReportRouteFiltering(unittest.TestCase):
         self.assertFalse(notification_runs[1]["success"])
         self.assertTrue(
             any(
-                call.args and call.args[0] == "决策仪表盘推送成功"
+                call.args and call.args[0] == "Decision dashboard pushed successfully"
                 for call in mock_info.call_args_list
             )
         )

@@ -1415,7 +1415,7 @@ _COMMON_WORDS: set[str] = {
 }
 
 _LOWERCASE_TICKER_HINTS = re.compile(
-    r"分析|看看|查一?下|研究|诊断|走势|趋势|股价|股票|个股",
+    r"analysis|take a look|Check it out?down|Research|Diagnosis|trend|Trend|stock price|stocks|individual stocks",
 )
 
 

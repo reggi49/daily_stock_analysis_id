@@ -29,12 +29,12 @@ class TestSignalAttributionE2E:
         """Build a dashboard dict containing signal_attribution"""
         return {
             "core_conclusion": {
-                "one_sentence": "测试结论",
+                "one_sentence": "Test conclusion",
                 "signal": "buy",
-                "confidence": "中",
+                "confidence": "in",
             },
             "intelligence": {
-                "risk_alerts": ["测试风险"],
+                "risk_alerts": ["Testing risks"],
             },
             "signal_attribution": signal_attr,
         }
@@ -43,14 +43,14 @@ class TestSignalAttributionE2E:
         """Build an AnalysisResult"""
         return AnalysisResult(
             code="600519",
-            name="测试股票",
+            name="test stocks",
             sentiment_score=50,
-            trend_prediction="震荡",
-            operation_advice="持有",
+            trend_prediction="shock",
+            operation_advice="hold",
             decision_type="hold",
-            confidence_level="中",
+            confidence_level="in",
             dashboard=dashboard,
-            analysis_summary="测试摘要",
+            analysis_summary="Test summary",
         )
 
     # # ========== Test 1: _parse_response() normalization ==========
@@ -70,27 +70,27 @@ class TestSignalAttributionE2E:
         # Mock the JSON returned by the LLM (contributions are strings, sum != 100)
         response_text = json.dumps({
             "sentiment_score": 50,
-            "trend_prediction": "震荡",
-            "operation_advice": "持有",
+            "trend_prediction": "shock",
+            "operation_advice": "hold",
             "decision_type": "hold",
-            "confidence_level": "中",
-            "analysis_summary": "测试",
+            "confidence_level": "in",
+            "analysis_summary": "test",
             "dashboard": {
-                "core_conclusion": {"one_sentence": "测试", "signal": "hold", "confidence": "中"},
+                "core_conclusion": {"one_sentence": "test", "signal": "hold", "confidence": "in"},
                 "intelligence": {"risk_alerts": []},
                 "signal_attribution": {
                     "technical_indicators": "30%",
                     "news_sentiment": 20,
                     "fundamentals": 30,
-                    "market_conditions": 10,  # 总和=90，且有一个是字符串
-                    "strongest_bullish_signal": "测试看涨",
-                    "strongest_bearish_signal": "测试看空",
+                    "market_conditions": 10,  # sum=90，And one of them is a string
+                    "strongest_bullish_signal": "Test bullish",
+                    "strongest_bearish_signal": "Test bearish",
                 },
             },
         })
 
         # Call _parse_response()
-        result = analyzer._parse_response(response_text, "600519", "测试")
+        result = analyzer._parse_response(response_text, "600519", "test")
 
         # Verify normalization was executed
         dash = result.dashboard
@@ -127,8 +127,8 @@ class TestSignalAttributionE2E:
             "news_sentiment": 25,
             "fundamentals": 20,
             "market_conditions": 20,
-            "strongest_bullish_signal": "MACD金叉",
-            "strongest_bearish_signal": "成交量萎缩",
+            "strongest_bullish_signal": "MACDgolden fork",
+            "strongest_bearish_signal": "Trading volume shrinks",
         }
         dashboard = self._make_dashboard_with_signal_attr(signal_attr)
         result = self._make_result(dashboard)
@@ -138,12 +138,12 @@ class TestSignalAttributionE2E:
         report = notification.generate_dashboard_report([result], [dashboard])
 
         # Verify it contains the signal-attribution section
-        assert "信号归因" in report or "Signal Attribution" in report, "Notification should contain signal attribution section"
+        assert "signal attribution" in report or "Signal Attribution" in report, "Notification should contain signal attribution section"
         assert "35%" in report, "Notification should display technical_indicators=35%"
         assert "25%" in report, "Notification should display news_sentiment=25%"
         assert "20%" in report, "Notification should display fundamentals=20%"
         assert "20%" in report, "Notification should display market_conditions=20%"
-        assert "MACD金叉" in report, "Notification should display strongest_bullish_signal"
+        assert "MACDgolden fork" in report, "Notification should display strongest_bullish_signal"
 
     # # ========== Test 3: Jinja2 template rendering ==========
     def test_jinja2_template_renders_signal_attribution(self):
@@ -159,7 +159,7 @@ class TestSignalAttributionE2E:
             "news_sentiment": 25,
             "fundamentals": 20,
             "market_conditions": 20,
-            "strongest_bullish_signal": "MACD金叉",
+            "strongest_bullish_signal": "MACDgolden fork",
         }
         result = self._make_result(self._make_dashboard_with_signal_attr(signal_attr))
 
@@ -167,7 +167,7 @@ class TestSignalAttributionE2E:
 
         assert out is not None
         assert "35%" in out
-        assert "MACD金叉" in out
+        assert "MACDgolden fork" in out
 
     def test_parse_dashboard_json_normalizes_nested_dashboard_payload(self):
         """Agent JSON can return a full report object with nested dashboard."""
@@ -207,7 +207,7 @@ class TestSignalAttributionE2E:
             "news_sentiment": None,
             "fundamentals": None,
             "market_conditions": 0,
-            "strongest_bullish_signal": "MACD金叉",
+            "strongest_bullish_signal": "MACDgolden fork",
         })
         result = self._make_result(dashboard)
         notification = NotificationService()
@@ -254,7 +254,7 @@ class TestSignalAttributionE2E:
 
         for output in [dashboard_report, single_report, history_report, template_report]:
             assert output is not None
-            assert "信号归因" not in output
+            assert "signal attribution" not in output
             assert "Signal Attribution" not in output
 
     def test_non_finite_signal_attribution_is_hidden_across_real_paths(self):
@@ -275,20 +275,20 @@ class TestSignalAttributionE2E:
 
         response_text = json.dumps({
             "sentiment_score": 50,
-            "trend_prediction": "震荡",
-            "operation_advice": "持有",
+            "trend_prediction": "shock",
+            "operation_advice": "hold",
             "decision_type": "hold",
-            "confidence_level": "中",
-            "analysis_summary": "测试",
+            "confidence_level": "in",
+            "analysis_summary": "test",
             "dashboard": {
-                "core_conclusion": {"one_sentence": "测试", "signal": "hold", "confidence": "中"},
+                "core_conclusion": {"one_sentence": "test", "signal": "hold", "confidence": "in"},
                 "intelligence": {"risk_alerts": []},
                 "signal_attribution": non_finite_signal_attr(),
             },
         })
 
         analyzer = GeminiAnalyzer.__new__(GeminiAnalyzer)
-        result = analyzer._parse_response(response_text, "600519", "测试")
+        result = analyzer._parse_response(response_text, "600519", "test")
         dashboard = result.dashboard
         signal_attr = dashboard["signal_attribution"]
 
@@ -318,7 +318,7 @@ class TestSignalAttributionE2E:
 
         for output in [dashboard_report, single_report, history_report, template_report]:
             assert output is not None
-            assert "信号归因" not in output
+            assert "signal attribution" not in output
             assert "Signal Attribution" not in output
             assert "NaN" not in output
             assert "Infinity" not in output
@@ -339,8 +339,8 @@ class TestSignalAttributionE2E:
             "news_sentiment": 25,
             "fundamentals": 20,
             "market_conditions": 20,
-            "strongest_bullish_signal": "MACD金叉",
-            "strongest_bearish_signal": "成交量萎缩",
+            "strongest_bullish_signal": "MACDgolden fork",
+            "strongest_bearish_signal": "Trading volume shrinks",
         }
         dashboard = self._make_dashboard_with_signal_attr(signal_attr)
         result = self._make_result(dashboard)
@@ -354,9 +354,9 @@ class TestSignalAttributionE2E:
         markdown = history_service._generate_single_stock_markdown(result, MockRecord())
 
         # Verify it contains the signal-attribution section
-        assert "信号归因" in markdown or "Signal Attribution" in markdown, "Markdown should contain signal attribution section"
+        assert "signal attribution" in markdown or "Signal Attribution" in markdown, "Markdown should contain signal attribution section"
         assert "35%" in markdown, "Markdown should display technical_indicators=35%"
-        assert "MACD金叉" in markdown, "Markdown should display strongest_bullish_signal"
+        assert "MACDgolden fork" in markdown, "Markdown should display strongest_bullish_signal"
 
     # # ========== Test 5: check_content_integrity() optional contract ==========
     def test_check_content_integrity_treats_signal_attribution_as_optional(self):
@@ -425,14 +425,14 @@ class TestSignalAttributionE2E:
                 "news_sentiment": 20,
                 "fundamentals": "30",
                 "market_conditions": 10,
-                "strongest_bullish_signal": "测试",
+                "strongest_bullish_signal": "test",
             },
         }
         normalize_dashboard_signal_attribution(dashboard)
         attr = dashboard["signal_attribution"]
         # Verify the string was converted to int (the exact value may change due to normalization, but it should be int)
-        assert isinstance(attr["technical_indicators"], int), f"字符串百分比应转为 int: {attr['technical_indicators']}"
-        assert isinstance(attr["fundamentals"], int), f"字符串应转为 int: {attr['fundamentals']}"
+        assert isinstance(attr["technical_indicators"], int), f"String percentage should be converted to int: {attr['technical_indicators']}"
+        assert isinstance(attr["fundamentals"], int), f"The string should be converted to int: {attr['fundamentals']}"
 
         # Verify the sum is 100
         total = sum([
@@ -441,7 +441,7 @@ class TestSignalAttributionE2E:
             attr.get("fundamentals", 0),
             attr.get("market_conditions", 0),
         ])
-        assert total == 100, f"归一化后总和应为 100: {total}"
+        assert total == 100, f"The normalized sum should be 100: {total}"
 
         # Case 2: negative number
         dashboard = {
@@ -454,7 +454,7 @@ class TestSignalAttributionE2E:
         }
         normalize_dashboard_signal_attribution(dashboard)
         attr = dashboard["signal_attribution"]
-        assert attr["technical_indicators"] == 0, f"负数应转为 0: {attr['technical_indicators']}"
+        assert attr["technical_indicators"] == 0, f"Negative numbers should be converted to 0: {attr['technical_indicators']}"
 
         # Case 3: sum=100, no normalization needed
         dashboard = {
@@ -468,7 +468,7 @@ class TestSignalAttributionE2E:
         normalize_dashboard_signal_attribution(dashboard)
         attr = dashboard["signal_attribution"]
         total = sum([attr["technical_indicators"], attr["news_sentiment"], attr["fundamentals"], attr["market_conditions"]])
-        assert total == 100, f"总和应为 100: {total}"
+        assert total == 100, f"The sum should be 100: {total}"
 
         # Case 4: sum != 100 (needs normalization)
         dashboard = {
@@ -476,13 +476,13 @@ class TestSignalAttributionE2E:
                 "technical_indicators": 10,
                 "news_sentiment": 20,
                 "fundamentals": 30,
-                "market_conditions": 30,  # 总和=90
+                "market_conditions": 30,  # sum=90
             },
         }
         normalize_dashboard_signal_attribution(dashboard)
         attr = dashboard["signal_attribution"]
         total = sum([attr["technical_indicators"], attr["news_sentiment"], attr["fundamentals"], attr["market_conditions"]])
-        assert total == 100, f"归一化后总和应为 100: {total}"
+        assert total == 100, f"The normalized sum should be 100: {total}"
 
 
 if __name__ == "__main__":

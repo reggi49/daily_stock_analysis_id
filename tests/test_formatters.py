@@ -180,8 +180,8 @@ class TestChunkContentByMaxBytes(unittest.TestCase):
         self.assertEqual(joined, text)
 
     def test_slice_at_max_bytes_returns_truncated_and_remaining_parts(self):
-        chunk, remaining = slice_at_max_bytes("测试ABC", 7)
-        self.assertEqual(chunk, "测试A")
+        chunk, remaining = slice_at_max_bytes("testABC", 7)
+        self.assertEqual(chunk, "testA")
         self.assertEqual(remaining, "BC")
 
 
@@ -315,32 +315,32 @@ class TestNotificationMarkdownFormatters(unittest.TestCase):
         return text.split("```markdown\n", 1)[1].split("\n```", 1)[0]
 
     def test_markdown_tables_to_key_value_rows(self):
-        text = "| 股票 | 评级 |\n| --- | --- |\n| 600519 | 买入 |\n| AAPL | 观望 |"
+        text = "| stocks | Rating |\n| --- | --- |\n| 600519 | Buy |\n| AAPL | wait and see |"
 
         result = markdown_tables_to_key_value_rows(text)
 
         self.assertNotIn("| --- |", result)
-        self.assertIn("• 600519：买入", result)
-        self.assertIn("• AAPL：观望", result)
+        self.assertIn("• 600519：Buy", result)
+        self.assertIn("• AAPL：wait and see", result)
 
     def test_markdown_tables_to_key_value_rows_compacts_report_metric_tables(self):
         text = (
-            "| 价格指标 | 当前价 |\n"
+            "| price indicator | current price |\n"
             "|---------|------|\n"
             "| MA5 | 1292.85 |\n"
-            "| 支撑位 | 1302.77 |\n\n"
-            "| 板块 | 类型 |\n"
+            "| support level | 1302.77 |\n\n"
+            "| plate | Type |\n"
             "|:-----|:----:|\n"
-            "| 白酒Ⅲ | N/A |"
+            "| LiquorⅢ | N/A |"
         )
 
         result = markdown_tables_to_key_value_rows(text)
 
         self.assertIn("• MA5：1292.85", result)
-        self.assertIn("• 支撑位：1302.77", result)
-        self.assertIn("• 白酒Ⅲ", result)
-        self.assertNotIn("价格指标：MA5", result)
-        self.assertNotIn("类型：N/A", result)
+        self.assertIn("• support level：1302.77", result)
+        self.assertIn("• LiquorⅢ", result)
+        self.assertNotIn("price indicator：MA5", result)
+        self.assertNotIn("Type：N/A", result)
 
     def test_markdown_tables_to_key_value_rows_preserves_empty_cells(self):
         text = (
@@ -360,32 +360,32 @@ class TestNotificationMarkdownFormatters(unittest.TestCase):
     def test_markdown_tables_to_key_value_rows_keeps_fenced_code_tables(self):
         text = (
             "```markdown\n"
-            "| 股票 | 评级 |\n"
+            "| stocks | Rating |\n"
             "| --- | --- |\n"
-            "| 示例 | 不应转换 |\n"
+            "| Example | should not be converted |\n"
             "```\n\n"
-            "| 股票 | 评级 |\n"
+            "| stocks | Rating |\n"
             "| --- | --- |\n"
-            "| 600519 | 买入 |"
+            "| 600519 | Buy |"
         )
 
         result = markdown_tables_to_key_value_rows(text)
 
         fenced = self._first_fenced_code_body(result)
         self.assertIn("| --- |", fenced)
-        self.assertIn("| 示例 | 不应转换 |", fenced)
-        self.assertIn("• 600519：买入", result)
+        self.assertIn("| Example | should not be converted |", fenced)
+        self.assertIn("• 600519：Buy", result)
         self.assertNotIn("@@DSA_FENCED_CODE_BLOCK_", result)
 
     def test_feishu_formatter_keeps_legacy_structure_and_converts_table(self):
-        text = "# 日报\n\n> 风险提示\n\n| 股票 | 信号 |\n| --- | --- |\n| 600519 | 强势 |\n\n- 关注量能"
+        text = "# daily newspaper\n\n> Risk warning\n\n| stocks | signal |\n| --- | --- |\n| 600519 | Strong |\n\n- Pay attention to quantity and energy"
 
         result = format_feishu_markdown(text)
 
-        self.assertIn("**日报**", result)
-        self.assertIn("💬 风险提示", result)
-        self.assertIn("• 股票：600519 | 信号：强势", result)
-        self.assertIn("• 关注量能", result)
+        self.assertIn("**daily newspaper**", result)
+        self.assertIn("💬 Risk warning", result)
+        self.assertIn("• stocks：600519 | signal：Strong", result)
+        self.assertIn("• Pay attention to quantity and energy", result)
 
     def test_feishu_formatter_preserves_empty_table_cells(self):
         text = (
@@ -401,60 +401,60 @@ class TestNotificationMarkdownFormatters(unittest.TestCase):
         self.assertNotIn(f"Header2{colon}Value3", result)
 
     def test_telegram_formatter_uses_supported_markdown(self):
-        text = "## 日报\n\n| 股票 | 信号 |\n| --- | --- |\n| 600519 | 强势 |\n\n[详情](https://example.com/report)"
+        text = "## daily newspaper\n\n| stocks | signal |\n| --- | --- |\n| 600519 | Strong |\n\n[Details](https://example.com/report)"
 
         result = format_telegram_markdown(text)
 
-        self.assertIn("*日报*", result)
-        self.assertIn("- 600519：强势", result)
-        self.assertIn("[详情](https://example.com/report)", result)
+        self.assertIn("*daily newspaper*", result)
+        self.assertIn("- 600519：Strong", result)
+        self.assertIn("[Details](https://example.com/report)", result)
 
     def test_telegram_formatter_escapes_non_link_metacharacters(self):
         text = (
-            "## [P4] 日报\n\n"
-            "| 股票 | 信号 |\n"
+            "## [P4] daily newspaper\n\n"
+            "| stocks | signal |\n"
             "| --- | --- |\n"
-            "| 600519 | [P4] 强势 (观察) |\n\n"
-            "详见 [详情](https://example.com/report)"
+            "| 600519 | [P4] Strong (observe) |\n\n"
+            "See details [Details](https://example.com/report)"
         )
 
         result = format_telegram_markdown(text)
 
-        self.assertIn("*\\[P4\\] 日报*", result)
-        self.assertIn("- 600519：\\[P4\\] 强势 \\(观察\\)", result)
-        self.assertIn("[详情](https://example.com/report)", result)
+        self.assertIn("*\\[P4\\] daily newspaper*", result)
+        self.assertIn("- 600519：\\[P4\\] Strong \\(observe\\)", result)
+        self.assertIn("[Details](https://example.com/report)", result)
 
     def test_slack_formatter_uses_mrkdwn_links_and_tables(self):
-        text = "## 日报\n\n| 股票 | 信号 |\n| --- | --- |\n| 600519 | 强势 |\n\n[详情](https://example.com/report)"
+        text = "## daily newspaper\n\n| stocks | signal |\n| --- | --- |\n| 600519 | Strong |\n\n[Details](https://example.com/report)"
 
         result = format_slack_mrkdwn(text)
 
-        self.assertIn("*日报*", result)
-        self.assertIn("• 600519：强势", result)
-        self.assertIn("<https://example.com/report|详情>", result)
+        self.assertIn("*daily newspaper*", result)
+        self.assertIn("• 600519：Strong", result)
+        self.assertIn("<https://example.com/report|Details>", result)
 
     def test_wechat_formatter_keeps_markdown_but_converts_tables(self):
-        text = "## 日报\n\n| 股票 | 信号 |\n| --- | --- |\n| 600519 | 强势 |"
+        text = "## daily newspaper\n\n| stocks | signal |\n| --- | --- |\n| 600519 | Strong |"
 
         result = format_wechat_markdown(text)
 
-        self.assertIn("## 日报", result)
-        self.assertIn("• 600519：强势", result)
+        self.assertIn("## daily newspaper", result)
+        self.assertIn("• 600519：Strong", result)
         self.assertNotIn("| --- |", result)
 
     def test_platform_formatters_do_not_rewrite_fenced_code_blocks(self):
         text = (
-            "## 日报\n\n"
+            "## daily newspaper\n\n"
             "```markdown\n"
-            "| 股票 | 信号 |\n"
+            "| stocks | signal |\n"
             "| --- | --- |\n"
-            "| 示例 | 不应转换 |\n"
+            "| Example | should not be converted |\n"
             "# not heading\n"
-            "[详情](https://example.com/raw)\n"
+            "[Details](https://example.com/raw)\n"
             "```\n\n"
-            "| 股票 | 信号 |\n"
+            "| stocks | signal |\n"
             "| --- | --- |\n"
-            "| 600519 | 强势 |"
+            "| 600519 | Strong |"
         )
 
         for formatter in (
@@ -466,8 +466,8 @@ class TestNotificationMarkdownFormatters(unittest.TestCase):
                 result = formatter(text)
                 fenced = self._first_fenced_code_body(result)
                 self.assertIn("| --- |", fenced)
-                self.assertIn("| 示例 | 不应转换 |", fenced)
+                self.assertIn("| Example | should not be converted |", fenced)
                 self.assertIn("# not heading", fenced)
-                self.assertIn("[详情](https://example.com/raw)", fenced)
-                self.assertIn("600519：强势", result)
+                self.assertIn("[Details](https://example.com/raw)", fenced)
+                self.assertIn("600519：Strong", result)
                 self.assertNotIn("@@DSA_FENCED_CODE_BLOCK_", result)

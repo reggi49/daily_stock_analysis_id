@@ -10,7 +10,7 @@ Trading Philosophy Core Principles：
 3. Efficiency first - Pay attention to stocks with good chip structure
 4. Buy some preferences - exist MA5/MA10 Buy nearby
 
-技术标准：
+technical standards：
 - multi-head arrangement：MA5 > MA10 > MA20
 - Quantitative energy analysis：(Close - MA5) / MA5 < 5%（Don't chase high）
 - energy form：Shrink callback priority
@@ -32,37 +32,37 @@ logger = logging.getLogger(__name__)
 
 class TrendStatus(Enum):
     """Trend status enum"""
-    STRONG_BULL = "Strong bull"      # MA5 > MA10 > MA20，且间距扩大
+    STRONG_BULL = "Strong bull"      # MA5 > MA10 > MA20，And the distance is expanded
     BULL = "multi-head arrangement"             # MA5 > MA10 > MA20
     WEAK_BULL = "Weak bulls"        # MA5 > MA10，but MA10 < MA20
     CONSOLIDATION = "consolidation"        # moving average wrapping
     WEAK_BEAR = "Weak short"        # MA5 < MA10，but MA10 > MA20
     BEAR = "Short arrangement"             # MA5 < MA10 < MA20
-    STRONG_BEAR = "Strong short position"      # MA5 < MA10 < MA20，且间距扩大
+    STRONG_BEAR = "Strong short position"      # MA5 < MA10 < MA20，And the distance is expanded
 
 
 class VolumeStatus(Enum):
     """Energy status enumeration"""
-    HEAVY_VOLUME_UP = "Rising on heavy volume"       # 量价齐升
-    HEAVY_VOLUME_DOWN = "Falling on heavy volume"     # 放量杀跌
-    SHRINK_VOLUME_UP = "Shrinking and rising"      # 无量上涨
+    HEAVY_VOLUME_UP = "Rising on heavy volume"       # Both volume and price rise
+    HEAVY_VOLUME_DOWN = "Falling on heavy volume"     # Heavy volume kills the price
+    SHRINK_VOLUME_UP = "Shrinking and rising"      # Infinite rise
     SHRINK_VOLUME_DOWN = "Taper callback"    # Taper callback（good）
     NORMAL = "Energy is normal"
 
 
 class BuySignal(Enum):
     """Buy signal enum"""
-    STRONG_BUY = "Strong buy"       # 多条件满足
-    BUY = "Buy"                  # 基本条件满足
-    HOLD = "hold"                 # 已持有可继续
-    WAIT = "观望"                 # 等待更好时机
+    STRONG_BUY = "Strong buy"       # Multiple conditions met
+    BUY = "Buy"                  # Basic conditions are met
+    HOLD = "hold"                 # Already held can continue
+    WAIT = "wait and see"                 # Waiting for a better time
     SELL = "sell"                 # trend weakening
-    STRONG_SELL = "Strong Sell"      # 趋势破坏
+    STRONG_SELL = "Strong Sell"      # trend breaking
 
 
 class MACDStatus(Enum):
     """MACDStatus enum"""
-    GOLDEN_CROSS_ZERO = "Strongest buy signal"      # DIFWear it on topDEA，且在零轴上方
+    GOLDEN_CROSS_ZERO = "Strongest buy signal"      # DIFWear it on topDEA，and above the zero axis
     GOLDEN_CROSS = "golden fork"                # DIFWear it on topDEA
     BULLISH = "long"                    # DIF>DEA>0
     CROSSING_UP = "Pass through the zero axis"             # DIFPass through the zero axis
@@ -87,7 +87,7 @@ class TrendAnalysisResult:
     
     # Quantitative energy analysis
     trend_status: TrendStatus = TrendStatus.CONSOLIDATION
-    ma_alignment: str = ""           # 均线排列描述
+    ma_alignment: str = ""           # Moving average arrangement description
     trend_strength: float = 0.0      # trend strength 0-100
     
     # Quantitative energy analysis
@@ -104,28 +104,28 @@ class TrendAnalysisResult:
     
     # Quantitative energy analysis
     volume_status: VolumeStatus = VolumeStatus.NORMAL
-    volume_ratio_5d: float = 0.0     # 当日成交量/5日均量
-    volume_trend: str = ""           # 量能趋势描述
+    volume_ratio_5d: float = 0.0     # Trading volume of the day/5average daily volume
+    volume_trend: str = ""           # Description of energy trends
     
     # support pressure
-    support_ma5: bool = False        # MA5 是否构成支撑
-    support_ma10: bool = False       # MA10 是否构成支撑
+    support_ma5: bool = False        # MA5 Does it constitute support?
+    support_ma10: bool = False       # MA10 Does it constitute support?
     resistance_levels: List[float] = field(default_factory=list)
     support_levels: List[float] = field(default_factory=list)
 
     # MACD index
-    macd_dif: float = 0.0          # DIF 快线
-    macd_dea: float = 0.0          # DEA 慢线
-    macd_bar: float = 0.0           # MACD 柱状图
+    macd_dif: float = 0.0          # DIF Express
+    macd_dea: float = 0.0          # DEA slow line
+    macd_bar: float = 0.0           # MACD bar chart
     macd_status: MACDStatus = MACDStatus.BULLISH
-    macd_signal: str = ""            # MACD 信号描述
+    macd_signal: str = ""            # MACD Signal description
 
     # RSI index
-    rsi_6: float = 0.0              # RSI(6) 短期
-    rsi_12: float = 0.0             # RSI(12) 中期
-    rsi_24: float = 0.0             # RSI(24) 长期
+    rsi_6: float = 0.0              # RSI(6) short term
+    rsi_12: float = 0.0             # RSI(12) medium term
+    rsi_24: float = 0.0             # RSI(24) long term
     rsi_status: RSIStatus = RSIStatus.NEUTRAL
-    rsi_signal: str = ""              # RSI 信号描述
+    rsi_signal: str = ""              # RSI Signal description
 
     # buy signal
     buy_signal: BuySignal = BuySignal.WAIT
@@ -183,21 +183,21 @@ class StockTrendAnalyzer:
     """
     
     # Transaction parameter configuration（BIAS_THRESHOLD from Config read，See _generate_signal）
-    VOLUME_SHRINK_RATIO = 0.7   # 缩量判断阈值（当日量/5日均量）
-    VOLUME_HEAVY_RATIO = 1.5    # 放量判断阈值
-    MA_SUPPORT_TOLERANCE = 0.02  # MA 支撑判断容忍度（2%）
+    VOLUME_SHRINK_RATIO = 0.7   # Shrinkage judgment threshold（Quantity of the day/5average daily volume）
+    VOLUME_HEAVY_RATIO = 1.5    # Volume judgment threshold
+    MA_SUPPORT_TOLERANCE = 0.02  # MA Support judgment tolerance（2%）
 
     # MACD parameter（standard12/26/9）
-    MACD_FAST = 12              # 快线周期
-    MACD_SLOW = 26             # 慢线周期
-    MACD_SIGNAL = 9             # 信号线周期
+    MACD_FAST = 12              # fast line cycle
+    MACD_SLOW = 26             # slow line cycle
+    MACD_SIGNAL = 9             # signal line period
 
     # RSI parameter
-    RSI_SHORT = 6               # 短期RSI周期
-    RSI_MID = 12               # 中期RSI周期
-    RSI_LONG = 24              # 长期RSI周期
-    RSI_OVERBOUGHT = 70        # 超买阈值
-    RSI_OVERSOLD = 30          # 超卖阈值
+    RSI_SHORT = 6               # short termRSIcycle
+    RSI_MID = 12               # medium termRSIcycle
+    RSI_LONG = 24              # long termRSIcycle
+    RSI_OVERBOUGHT = 70        # overbought threshold
+    RSI_OVERSOLD = 30          # oversold threshold
     
     def __init__(self):
         """Initialize analyzer"""
@@ -218,10 +218,10 @@ class StockTrendAnalyzer:
         
         if df is None or df.empty or len(df) < 20:
             logger.warning(f"{code} Not enough data，Unable to perform trend analysis")
-            result.risk_factors.append("数据不足，无法完成分析")
+            result.risk_factors.append("Not enough data，Unable to complete analysis")
             return result
         
-        # 确保数据按日期排序
+        # Make sure the data is sorted by date
         df = df.sort_values('date').reset_index(drop=True)
         
         # Calculate moving average
@@ -271,7 +271,7 @@ class StockTrendAnalyzer:
         if len(df) >= 60:
             df['MA60'] = df['close'].rolling(window=60).mean()
         else:
-            df['MA60'] = df['MA20']  # 数据不足时使用 MA20 替代
+            df['MA60'] = df['MA20']  # Used when data is insufficient MA20 substitute
         return df
 
     def _calculate_macd(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -330,7 +330,7 @@ class StockTrendAnalyzer:
             rsi = 100 - (100 / (1 + rs))
 
             # filling NaN value
-            rsi = rsi.fillna(50)  # 默认中性值
+            rsi = rsi.fillna(50)  # Default neutral value
 
             # add to DataFrame
             col_name = f'RSI_{period}'
@@ -448,7 +448,7 @@ class StockTrendAnalyzer:
     
     def _analyze_support_resistance(self, df: pd.DataFrame, result: TrendAnalysisResult) -> None:
         """
-        分析支撑压力位
+        Analyze support pressure levels
         
         Buy some preferences：Dislike MA5/MA10 get support
         """
@@ -525,7 +525,7 @@ class StockTrendAnalyzer:
             result.macd_signal = "⚡ DIFPass through the zero axis，Trend getting stronger"
         elif is_golden_cross:
             result.macd_status = MACDStatus.GOLDEN_CROSS
-            result.macd_signal = "✅ golden fork，趋势向上"
+            result.macd_signal = "✅ golden fork，Trending up"
         elif is_death_cross:
             result.macd_status = MACDStatus.DEATH_CROSS
             result.macd_signal = "❌ Sicha，trending down"
@@ -612,9 +612,9 @@ class StockTrendAnalyzer:
         score += trend_score
 
         if result.trend_status in [TrendStatus.STRONG_BULL, TrendStatus.BULL]:
-            reasons.append(f"✅ {result.trend_status.value}，顺势做多")
+            reasons.append(f"✅ {result.trend_status.value}，Go long with the trend")
         elif result.trend_status in [TrendStatus.BEAR, TrendStatus.STRONG_BEAR]:
-            risks.append(f"⚠️ {result.trend_status.value}，不宜做多")
+            risks.append(f"⚠️ {result.trend_status.value}，Not suitable for doing long")
 
         # === Strong trend compensation（20point，Strong trend compensation）===
         bias = result.bias_ma5
@@ -635,19 +635,19 @@ class StockTrendAnalyzer:
             # Price below MA5 (pullback)
             if bias > -3:
                 score += 20
-                reasons.append(f"✅ 价格略低于MA5({bias:.1f}%)，回踩买点")
+                reasons.append(f"✅ The price is slightly lower thanMA5({bias:.1f}%)，Go back and buy some")
             elif bias > -5:
                 score += 16
-                reasons.append(f"✅ 价格回踩MA5({bias:.1f}%)，观察支撑")
+                reasons.append(f"✅ Price falls backMA5({bias:.1f}%)，Observe support")
             else:
                 score += 8
-                risks.append(f"⚠️ 乖离率过大({bias:.1f}%)，可能破位")
+                risks.append(f"⚠️ Deviation rate is too large({bias:.1f}%)，Possibly out of position")
         elif bias < 2:
             score += 18
-            reasons.append(f"✅ 价格贴近MA5({bias:.1f}%)，介入好时机")
+            reasons.append(f"✅ Price is closeMA5({bias:.1f}%)，Good time to intervene")
         elif bias < base_threshold:
             score += 14
-            reasons.append(f"⚡ 价格略高于MA5({bias:.1f}%)，可小仓介入")
+            reasons.append(f"⚡ The price is slightly higher thanMA5({bias:.1f}%)，But Ogura intervened")
         elif bias > effective_threshold:
             score += 4
             risks.append(
@@ -666,31 +666,31 @@ class StockTrendAnalyzer:
 
         # === capacity rating（15point）===
         volume_scores = {
-            VolumeStatus.SHRINK_VOLUME_DOWN: 15,  # 缩量回调最佳
-            VolumeStatus.HEAVY_VOLUME_UP: 12,     # 放量上涨次之
+            VolumeStatus.SHRINK_VOLUME_DOWN: 15,  # Retracement is the best
+            VolumeStatus.HEAVY_VOLUME_UP: 12,     # Heavy volume followed
             VolumeStatus.NORMAL: 10,
-            VolumeStatus.SHRINK_VOLUME_UP: 6,     # 无量上涨较差
-            VolumeStatus.HEAVY_VOLUME_DOWN: 0,    # 放量下跌最差
+            VolumeStatus.SHRINK_VOLUME_UP: 6,     # Infinite rise is poor
+            VolumeStatus.HEAVY_VOLUME_DOWN: 0,    # Heavy volume decline is the worst
         }
         vol_score = volume_scores.get(result.volume_status, 8)
         score += vol_score
 
         if result.volume_status == VolumeStatus.SHRINK_VOLUME_DOWN:
-            reasons.append("✅ 缩量回调，主力洗盘")
+            reasons.append("✅ Taper callback，Main force washing dishes")
         elif result.volume_status == VolumeStatus.HEAVY_VOLUME_DOWN:
-            risks.append("⚠️ 放量下跌，注意风险")
+            risks.append("⚠️ Falling on heavy volume，Be aware of risks")
 
         # === Support score（10point）===
         if result.support_ma5:
             score += 5
-            reasons.append("✅ MA5支撑有效")
+            reasons.append("✅ MA5Support is effective")
         if result.support_ma10:
             score += 5
-            reasons.append("✅ MA10支撑有效")
+            reasons.append("✅ MA10Support is effective")
 
         # === MACD score（15point）===
         macd_scores = {
-            MACDStatus.GOLDEN_CROSS_ZERO: 15,  # 零轴上金叉最强
+            MACDStatus.GOLDEN_CROSS_ZERO: 15,  # The golden fork on the zero axis is the strongest
             MACDStatus.GOLDEN_CROSS: 12,      # golden fork
             MACDStatus.CROSSING_UP: 10,       # Pass through the zero axis
             MACDStatus.BULLISH: 8,            # long
@@ -710,11 +710,11 @@ class StockTrendAnalyzer:
 
         # === RSI score（10point）===
         rsi_scores = {
-            RSIStatus.OVERSOLD: 10,       # 超卖最佳
+            RSIStatus.OVERSOLD: 10,       # Oversold is best
             RSIStatus.STRONG_BUY: 8,     # Strong
             RSIStatus.NEUTRAL: 5,        # neutral
             RSIStatus.WEAK: 3,            # Weak
-            RSIStatus.OVERBOUGHT: 0,       # 超买最差
+            RSIStatus.OVERBOUGHT: 0,       # Overbought is the worst
         }
         rsi_score = rsi_scores.get(result.rsi_status, 5)
         score += rsi_score
@@ -798,13 +798,13 @@ class StockTrendAnalyzer:
 
         if result.signal_reasons:
             lines.append(f"")
-            lines.append(f"✅ 买入理由:")
+            lines.append(f"✅ Reasons to buy:")
             for reason in result.signal_reasons:
                 lines.append(f"   {reason}")
 
         if result.risk_factors:
             lines.append(f"")
-            lines.append(f"⚠️ 风险因素:")
+            lines.append(f"⚠️ risk factors:")
             for risk in result.risk_factors:
                 lines.append(f"   {risk}")
 
@@ -840,7 +840,7 @@ if __name__ == "__main__":
     base_price = 10.0
     prices = [base_price]
     for i in range(59):
-        change = np.random.randn() * 0.02 + 0.003  # 轻微上涨趋势
+        change = np.random.randn() * 0.02 + 0.003  # slight uptrend
         prices.append(prices[-1] * (1 + change))
     
     df = pd.DataFrame({

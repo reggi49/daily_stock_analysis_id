@@ -24,13 +24,13 @@ from src.services.task_service import TaskService
 def _make_failed_result(code: str) -> AnalysisResult:
     return AnalysisResult(
         code=code,
-        name=f"股票{code}",
+        name=f"stocks{code}",
         sentiment_score=80,
-        trend_prediction="看多",
-        operation_advice="持有",
-        analysis_summary="解析失败",
+        trend_prediction="long",
+        operation_advice="hold",
+        analysis_summary="Parsing failed",
         success=False,
-        error_message="JSON 解析失败",
+        error_message="JSON Parsing failed",
     )
 
 
@@ -58,11 +58,11 @@ class TestTaskService(unittest.TestCase):
             result = service._run_analysis(code="600519", task_id="task-1")
 
         self.assertFalse(result["success"])
-        self.assertEqual(result["error"], "JSON 解析失败")
+        self.assertEqual(result["error"], "JSON Parsing failed")
         task = service.get_task_status("task-1")
         self.assertIsNotNone(task)
         self.assertEqual(task["status"], "failed")
-        self.assertEqual(task["error"], "JSON 解析失败")
+        self.assertEqual(task["error"], "JSON Parsing failed")
         self.assertIsNone(task["result"])
 
     def test_submit_analysis_resolves_bare_jp_kr_code_before_submit(self):

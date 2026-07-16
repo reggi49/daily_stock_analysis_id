@@ -46,7 +46,7 @@ class NewsIntelStorageTestCase(unittest.TestCase):
     def _build_response(self, results) -> SearchResponse:
         """Helper to build a SearchResponse"""
         return SearchResponse(
-            query="贵州茅台 最新消息",
+            query="Kweichow Moutai latest news",
             results=results,
             provider="Bocha",
             success=True,
@@ -55,8 +55,8 @@ class NewsIntelStorageTestCase(unittest.TestCase):
     def test_save_news_intel_with_url_dedup(self) -> None:
         """Same URL is deduplicated, keeping only one record"""
         result = SearchResult(
-            title="茅台发布新产品",
-            snippet="公司发布新品...",
+            title="Moutai releases new products",
+            snippet="The company releases new products...",
             url="https://news.example.com/a",
             source="example.com",
             published_date="2025-01-02"
@@ -68,7 +68,7 @@ class NewsIntelStorageTestCase(unittest.TestCase):
             "query_source": "bot",
             "requester_platform": "feishu",
             "requester_user_id": "u_123",
-            "requester_user_name": "测试用户",
+            "requester_user_name": "test user",
             "requester_chat_id": "c_456",
             "requester_message_id": "m_789",
             "requester_query": "/analyze 600519",
@@ -76,7 +76,7 @@ class NewsIntelStorageTestCase(unittest.TestCase):
 
         saved_first = self.db.save_news_intel(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             dimension="latest_news",
             query=response.query,
             response=response,
@@ -84,7 +84,7 @@ class NewsIntelStorageTestCase(unittest.TestCase):
         )
         saved_second = self.db.save_news_intel(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             dimension="latest_news",
             query=response.query,
             response=response,
@@ -99,15 +99,15 @@ class NewsIntelStorageTestCase(unittest.TestCase):
             row = session.query(NewsIntel).first()
         self.assertEqual(total, 1)
         if row is None:
-            self.fail("未找到保存的新闻记录")
+            self.fail("No saved news record found")
         self.assertEqual(row.query_id, "task_001")
-        self.assertEqual(row.requester_user_name, "测试用户")
+        self.assertEqual(row.requester_user_name, "test user")
 
     def test_save_news_intel_without_url_fallback_key(self) -> None:
         """When no URL, dedup using the fallback key"""
         result = SearchResult(
-            title="茅台业绩预告",
-            snippet="业绩大幅增长...",
+            title="Moutai performance forecast",
+            snippet="Significant growth in performance...",
             url="",
             source="example.com",
             published_date="2025-01-03"
@@ -116,14 +116,14 @@ class NewsIntelStorageTestCase(unittest.TestCase):
 
         saved_first = self.db.save_news_intel(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             dimension="earnings",
             query=response.query,
             response=response
         )
         saved_second = self.db.save_news_intel(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             dimension="earnings",
             query=response.query,
             response=response
@@ -135,15 +135,15 @@ class NewsIntelStorageTestCase(unittest.TestCase):
         with self.db.get_session() as session:
             row = session.query(NewsIntel).first()
             if row is None:
-                self.fail("未找到保存的新闻记录")
+                self.fail("No saved news record found")
             self.assertTrue(row.url.startswith("no-url:"))
 
     def test_get_recent_news(self) -> None:
         """Can query the latest news by time range"""
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         result = SearchResult(
-            title="茅台股价震荡",
-            snippet="盘中波动较大...",
+            title="Moutai stock price fluctuates",
+            snippet="Large intraday fluctuations...",
             url="https://news.example.com/b",
             source="example.com",
             published_date=now
@@ -152,7 +152,7 @@ class NewsIntelStorageTestCase(unittest.TestCase):
 
         self.db.save_news_intel(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             dimension="market_analysis",
             query=response.query,
             response=response
@@ -160,12 +160,12 @@ class NewsIntelStorageTestCase(unittest.TestCase):
 
         recent_news = self.db.get_recent_news(code="600519", days=7, limit=10)
         self.assertEqual(len(recent_news), 1)
-        self.assertEqual(recent_news[0].title, "茅台股价震荡")
+        self.assertEqual(recent_news[0].title, "Moutai stock price fluctuates")
 
     def test_save_news_intel_retries_on_sqlite_locked_execute(self) -> None:
         result = SearchResult(
-            title="茅台锁竞争重试",
-            snippet="模拟 SQLite locked...",
+            title="Moutai lock competition retry",
+            snippet="Simulation SQLite locked...",
             url="https://news.example.com/retry",
             source="example.com",
             published_date="2025-01-05",
@@ -185,7 +185,7 @@ class NewsIntelStorageTestCase(unittest.TestCase):
                 with patch("src.storage.time.sleep") as mock_sleep:
                     saved_count = self.db.save_news_intel(
                         code="600519",
-                        name="贵州茅台",
+                        name="Kweichow Moutai",
                         dimension="latest_news",
                         query=response.query,
                         response=response,

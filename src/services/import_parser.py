@@ -22,8 +22,8 @@ from src.services.stock_code_utils import is_code_like, normalize_code
 logger = logging.getLogger(__name__)
 
 # Column name mappings (case-insensitive)
-_CODE_ALIASES = frozenset({"code", "股票代码", "代码", "stock_code", "symbol"})
-_NAME_ALIASES = frozenset({"name", "股票名称", "名称", "stock_name"})
+_CODE_ALIASES = frozenset({"code", "Stock code", "code", "stock_code", "symbol"})
+_NAME_ALIASES = frozenset({"name", "Stock name", "Name", "stock_name"})
 
 MAX_FILE_BYTES = 2 * 1024 * 1024  # 2MB
 MAX_TEXT_BYTES = 100 * 1024  # 100KB

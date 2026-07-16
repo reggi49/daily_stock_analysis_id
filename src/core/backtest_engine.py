@@ -54,17 +54,17 @@ class BacktestEngine:
 
     # Operation advice keywords (Chinese + English)
     _BULLISH_KEYWORDS = (
-        "买入",
-        "加仓",
+        "Buy",
+        "Add to position",
         "Reduce positions",
-        "增持",
-        "建仓",
+        "Overweight",
+        "Open a position",
         "strong buy",
         "buy",
         "add",
     )
     _BEARISH_KEYWORDS = (
-        "卖出",
+        "sell",
         "Reduce positions",
         "Strong Sell",
         "Clearance",
@@ -73,9 +73,9 @@ class BacktestEngine:
         "reduce",
     )
     _HOLD_KEYWORDS = (
-        "持有",
-        "震荡观望",
-        "洗盘观察",
+        "hold",
+        "Wait and see in shock",
+        "Washing dishes and observing",
         "hold observation",
         "hold",
         "range-bound watch",
@@ -83,7 +83,7 @@ class BacktestEngine:
         "hold and watch",
     )
     _WAIT_KEYWORDS = (
-        "观望",
+        "wait and see",
         "wait",
         "wait",
     )
@@ -93,20 +93,20 @@ class BacktestEngine:
     # applied during matching so "do not" matches prefix "do not " or "do not".
     _NEGATION_PATTERNS = (
         "not", "don't", "do not", "no", "never", "avoid",  # English
-        "don't want", "No", "Don't", "勿", "No",  # Chinese
+        "don't want", "No", "Don't", "Don't", "No",  # Chinese
     )
 
     _NEGATION_CONNECTOR_WORDS = (
-        "建议",
-        "应",
-        "应当",
-        "宜",
-        "先",
-        "再",
+        "Suggestions",
+        "Should",
+        "should",
+        "appropriate",
+        "first",
+        "Again",
         "temporarily",
-        "不必",
-        "必须",
-        "无需",
+        "No need",
+        "Must",
+        "No need",
     )
 
     @classmethod
@@ -486,7 +486,7 @@ class BacktestEngine:
     def _matches_intent(cls, text: str, keywords: Sequence[str]) -> bool:
         """Check if text expresses the intent of any keyword, accounting for negation.
 
-        Tier 1: exact match (covers clean labels like "买入", "hold").
+        Tier 1: exact match (covers clean labels like "Buy", "hold").
         Tier 2: substring match with negation guard.
         Keywords are assumed to be lowercase (matching _normalize_text output).
         """

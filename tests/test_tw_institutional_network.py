@@ -107,7 +107,7 @@ class TestTwInstitutionalLiveNetwork(unittest.TestCase):
             self.skipTest("2330.TW None and absent from the raw feed (transient / suspended)")
         if row is None:
             self.skipTest("2330 not in the raw T86 snapshot (cross-check unavailable)")
-        self._assert_record_shape(rec, "上市")
+        self._assert_record_shape(rec, "Listed")
         self.assertEqual(rec["foreign_net"], _to_int(row[idx[_T86_FOREIGN]]))
         self.assertEqual(rec["trust_net"], _to_int(row[idx[_T86_TRUST]]))
         self.assertEqual(rec["dealer_net"], _to_int(row[idx[_T86_DEALER]]))
@@ -141,7 +141,7 @@ class TestTwInstitutionalLiveNetwork(unittest.TestCase):
             self.skipTest("5483.TWO None and absent from the raw feed (transient / suspended)")
         if raw is None:
             self.skipTest("5483 not in the raw TPEx snapshot (cross-check unavailable)")
-        self._assert_record_shape(rec, "上櫃")
+        self._assert_record_shape(rec, "On the counter")
         self.assertEqual(rec["foreign_net"], _to_int(raw.get(_TPEX_FOREIGN_EXCL)))
         self.assertEqual(rec["trust_net"], _to_int(raw.get(_TPEX_TRUST)))
         self.assertEqual(rec["dealer_net"], _to_int(raw.get(_TPEX_DEALER)))

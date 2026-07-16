@@ -2893,14 +2893,14 @@ class SystemConfigService:
             ntfy_server_url, ntfy_topic = resolve_ntfy_endpoint(ntfy_url)
             if ntfy_server_url and ntfy_topic:
                 return None
-            return "NTFY_URL 必须包含 topic path，例如 https://ntfy.sh/my-topic。"
+            return "NTFY_URL must contain topic path，For example https://ntfy.sh/my-topic。"
         if channel == "gotify":
             gotify_url = (effective_map.get("GOTIFY_URL") or "").strip()
             if not gotify_url:
                 return None
             if resolve_gotify_message_endpoint(gotify_url):
                 return None
-            return "GOTIFY_URL 必须是 Gotify server base URL，不包含 /message。"
+            return "GOTIFY_URL must be Gotify server base URL，Not included /message。"
         return None
 
     def _build_notification_test_config(self, effective_map: Dict[str, str]) -> Config:
@@ -2971,11 +2971,11 @@ class SystemConfigService:
             total_count = len(attempts)
             success = success_count > 0
             if success_count == total_count and total_count > 0:
-                message = f"自定义 Webhook 通知测试成功（{success_count}/{total_count}）"
+                message = f"Customize Webhook Notification test successful（{success_count}/{total_count}）"
             elif success_count > 0:
-                message = f"自定义 Webhook 通知测试部分成功（{success_count}/{total_count}）"
+                message = f"Customize Webhook Notification that the test was partially successful（{success_count}/{total_count}）"
             else:
-                message = f"自定义 Webhook 通知测试失败（{success_count}/{total_count}）"
+                message = f"Customize Webhook Notification test failed（{success_count}/{total_count}）"
             return self._build_notification_test_result(
                 success=success,
                 message=message,
@@ -3007,7 +3007,7 @@ class SystemConfigService:
         attempt = {
             "channel": channel,
             "success": ok,
-            "message": "通知测试发送成功" if ok else "通知测试发送失败",
+            "message": "Notification test sent successfully" if ok else "Notification test delivery failed",
             "target": target,
             "error_code": None if ok else "send_failed",
             "stage": "notification_send",
@@ -3016,7 +3016,7 @@ class SystemConfigService:
         }
         return self._build_notification_test_result(
             success=ok,
-            message=f"{channel} 通知测试成功" if ok else f"{channel} 通知测试失败",
+            message=f"{channel} Notification test successful" if ok else f"{channel} Notification test failed",
             error_code=None if ok else "send_failed",
             stage="notification_send",
             retryable=False,
@@ -3440,12 +3440,12 @@ class SystemConfigService:
                 return explicit_model, "explicit"
             has_direct_source = self._has_setup_runtime_source_for_model(explicit_model, effective_map)
             if yaml_models and explicit_model not in set(yaml_models):
-                return "", "主模型未出现在当前 LiteLLM YAML model_list 中"
+                return "", "The main model does not appear in the current LiteLLM YAML model_list in"
             if channel_models and explicit_model not in set(channel_models):
-                return "", "主模型未出现在当前启用渠道模型列表中"
+                return "", "The master model does not appear in the list of currently enabled channel models"
             if yaml_models or channel_models or has_direct_source:
                 return explicit_model, "explicit"
-            return "", "主模型缺少可用渠道或匹配的 API Key"
+            return "", "Master model is missing available channels or matching API Key"
 
         if yaml_models:
             return yaml_models[0], "yaml"
@@ -3456,7 +3456,7 @@ class SystemConfigService:
         if legacy_model:
             return legacy_model, "legacy"
 
-        return "", "尚未检测到主模型配置"
+        return "", "Master model configuration not detected yet"
 
     def _build_setup_primary_llm_check(self, effective_map: Dict[str, str]) -> Dict[str, Any]:
         generation_backend = normalize_backend_id(
@@ -3468,56 +3468,56 @@ class SystemConfigService:
             if shutil.which(preset.executable):
                 return self._setup_check(
                     "llm_primary",
-                    "LLM 主渠道",
+                    "LLM main channel",
                     "ai_model",
                     True,
                     "configured",
-                    f"已启用 {preset.display_name} 本地生成 Backend（experimental/limited）。",
+                    f"Enabled {preset.display_name} locally generated Backend（experimental/limited）。",
                 )
             return self._setup_check(
                 "llm_primary",
-                "LLM 主渠道",
+                "LLM main channel",
                 "ai_model",
                 True,
                 "needs_action",
                 (
-                    "已选择 codex_cli，但 DSA 后端进程当前 PATH 中找不到 codex 可执行文件。"
+                    "Selected codex_cli，But DSA The backend process is currently PATH not found in codex executable file。"
                     if generation_backend == CODEX_CLI_BACKEND_ID
-                    else f"已选择 {generation_backend}，但未找到 {preset.executable} 可执行文件。"
+                    else f"Selected {generation_backend}，but not found {preset.executable} executable file。"
                 ),
                 (
-                    "请确认 Codex CLI 已安装到后端 PATH 可见目录；桌面端请完全退出并重开。"
-                    "打开 Codex CLI 交互窗口不会改变已运行后端的 PATH；若找到后仍失败，再检查 Codex CLI 登录态，"
-                    "或将 GENERATION_BACKEND 设回 litellm。"
+                    "Please confirm Codex CLI Installed to backend PATH Visible directory；Please exit completely and reopen on desktop。"
+                    "open Codex CLI The interactive window does not change the running backend PATH；If it still fails after finding，Check again Codex CLI Login status，"
+                    "or will GENERATION_BACKEND Set back litellm。"
                     if generation_backend == CODEX_CLI_BACKEND_ID
-                    else "请先安装并登录对应 CLI，或将 GENERATION_BACKEND 设回 litellm。"
+                    else "Please install and log in first CLI，or will GENERATION_BACKEND Set back litellm。"
                 ),
             )
 
         model, source = self._resolve_setup_primary_model(effective_map)
         if model:
             source_label = {
-                "explicit": "显式主模型",
+                "explicit": "explicit master model",
                 "yaml": "LiteLLM YAML",
-                "channel": "LLM 渠道",
+                "channel": "LLM channel",
                 "legacy": "legacy provider",
             }.get(source, source)
             return self._setup_check(
                 "llm_primary",
-                "LLM 主渠道",
+                "LLM main channel",
                 "ai_model",
                 True,
                 "configured",
-                f"已检测到 {source_label}: {model}",
+                f"Detected {source_label}: {model}",
             )
         return self._setup_check(
             "llm_primary",
-            "LLM 主渠道",
+            "LLM main channel",
             "ai_model",
             True,
             "needs_action",
             source,
-            "请配置 LITELLM_MODEL、LLM_CHANNELS、LITELLM_CONFIG 或 legacy provider API Key。",
+            "Please configure LITELLM_MODEL、LLM_CHANNELS、LITELLM_CONFIG or legacy provider API Key。",
         )
 
     def _build_setup_agent_llm_check(
@@ -3536,12 +3536,12 @@ class SystemConfigService:
         if agent_backend in GENERATION_ONLY_BACKEND_IDS:
             return self._setup_check(
                 "llm_agent",
-                "Agent 渠道",
+                "Agent channel",
                 "agent",
                 True,
                 "needs_action",
-                f"Agent 工具调用暂不支持 {agent_backend} text-only backend。",
-                "请将 AGENT_GENERATION_BACKEND 设为 auto 或 litellm，并配置 LiteLLM 工具调用渠道。",
+                f"Agent Tool calling is not supported yet {agent_backend} text-only backend。",
+                "please change AGENT_GENERATION_BACKEND set to auto or litellm，and configure LiteLLM Tool calling channel。",
             )
 
         agent_model_raw = (effective_map.get("AGENT_LITELLM_MODEL") or "").strip()
@@ -3554,70 +3554,70 @@ class SystemConfigService:
                     if litellm_model in hermes_routes and litellm_model not in non_hermes_routes:
                         return self._setup_check(
                             "llm_agent",
-                            "Agent 渠道",
+                            "Agent channel",
                             "agent",
                             True,
                             "needs_action",
-                            "普通分析使用 Codex CLI；但当前 LiteLLM Agent 路径继承的是 Hermes-only 模型，"
-                            "Hermes Phase 3 不支持 Agent 工具调用。",
-                            "如需使用 Ask-Stock Agent，请配置非 Hermes 的 AGENT_LITELLM_MODEL，"
-                            "或配置包含非 Hermes deployment 的 mixed Agent route。",
+                            "General analysis use Codex CLI；But currently LiteLLM Agent The path is inherited from Hermes-only model，"
+                            "Hermes Phase 3 Not supported Agent Tool call。",
+                            "If you need to use Ask-Stock Agent，Please configure non- Hermes of AGENT_LITELLM_MODEL，"
+                            "or the configuration contains a non- Hermes deployment of mixed Agent route。",
                         )
                     return self._setup_check(
                         "llm_agent",
-                        "Agent 渠道",
+                        "Agent channel",
                         "agent",
                         True,
                         "configured",
-                        f"普通分析使用 Codex CLI；Agent 工具调用仍使用 LiteLLM 主模型: {litellm_model}",
+                        f"General analysis use Codex CLI；Agent Tool calls still use LiteLLM master model: {litellm_model}",
                     )
                 if agent_backend == LITELLM_BACKEND_ID:
                     return self._setup_check(
                         "llm_agent",
-                        "Agent 渠道",
+                        "Agent channel",
                         "agent",
                         True,
                         "needs_action",
-                        "AGENT_GENERATION_BACKEND 已选择 litellm，但未检测到可用 LiteLLM 模型配置。",
-                        "如需使用 Ask-Stock Agent，请配置 AGENT_LITELLM_MODEL、LITELLM_MODEL、LLM_CHANNELS 或 LITELLM_CONFIG。",
+                        "AGENT_GENERATION_BACKEND Selected litellm，but not detected as available LiteLLM Model configuration。",
+                        "If you need to use Ask-Stock Agent，Please configure AGENT_LITELLM_MODEL、LITELLM_MODEL、LLM_CHANNELS or LITELLM_CONFIG。",
                     )
                 return self._setup_check(
                     "llm_agent",
-                    "Agent 渠道",
+                    "Agent channel",
                     "agent",
                     True,
                     "needs_action",
-                    "Agent 工具调用需要 LiteLLM 模型配置；local CLI 主生成方式不会被自动继承。",
-                    "如需使用 Ask-Stock Agent，请配置 LiteLLM 模型，或将 AGENT_GENERATION_BACKEND 固定为 litellm 后补齐模型配置。",
+                    "Agent Tool calling requires LiteLLM Model configuration；local CLI The main generation method will not be automatically inherited。",
+                    "If you need to use Ask-Stock Agent，Please configure LiteLLM model，or will AGENT_GENERATION_BACKEND fixed to litellm Post-complete model configuration。",
                 )
             if primary_check["status"] == "configured":
                 primary_model, _source = self._resolve_setup_primary_model(effective_map)
                 if primary_model in hermes_routes and primary_model not in non_hermes_routes:
                     return self._setup_check(
                         "llm_agent",
-                        "Agent 渠道",
+                        "Agent channel",
                         "agent",
                         True,
                         "needs_action",
-                        "Hermes Phase 3 不支持 Agent 工具调用，且当前继承的主模型没有非 Hermes deployment。",
-                        "请选择非 Hermes Agent 模型，或配置包含非 Hermes deployment 的 mixed Agent route。",
+                        "Hermes Phase 3 Not supported Agent Tool call，And the currently inherited main model has no non- Hermes deployment。",
+                        "Please select non Hermes Agent model，or the configuration contains a non- Hermes deployment of mixed Agent route。",
                     )
                 return self._setup_check(
                     "llm_agent",
-                    "Agent 渠道",
+                    "Agent channel",
                     "agent",
                     True,
                     "inherited",
-                    "未单独配置 Agent 主模型，将继承 LLM 主渠道。",
+                    "Not configured separately Agent master model，will inherit LLM main channel。",
                 )
             return self._setup_check(
                 "llm_agent",
-                "Agent 渠道",
+                "Agent channel",
                 "agent",
                 True,
                 "needs_action",
-                "Agent 未配置独立模型，且 LLM 主渠道尚不可用。",
-                "请先补齐 LLM 主渠道配置。",
+                "Agent Standalone model not configured，and LLM Main channel is not available yet。",
+                "Please complete it first LLM Main channel configuration。",
             )
 
         configured_models = set(
@@ -3628,22 +3628,22 @@ class SystemConfigService:
         if agent_model in hermes_routes and agent_model not in non_hermes_routes:
             return self._setup_check(
                 "llm_agent",
-                "Agent 渠道",
+                "Agent channel",
                 "agent",
                 True,
                 "needs_action",
-                f"Agent 主模型 {agent_model} 只有 Hermes deployment，Phase 3 不支持 Agent 工具调用。",
-                "请选择非 Hermes Agent 模型，或配置 mixed route 中的非 Hermes deployment。",
+                f"Agent master model {agent_model} only Hermes deployment，Phase 3 Not supported Agent Tool call。",
+                "Please select non Hermes Agent model，or configure mixed route in the non Hermes deployment。",
             )
-        configured_agent_message = f"已配置 Agent 主模型: {agent_model}"
+        configured_agent_message = f"configured Agent master model: {agent_model}"
         if generation_backend == CODEX_CLI_BACKEND_ID:
             configured_agent_message = (
-                f"普通分析使用 Codex CLI；Agent 工具调用仍使用 LiteLLM 主模型: {agent_model}"
+                f"General analysis use Codex CLI；Agent Tool calls still use LiteLLM master model: {agent_model}"
             )
         if _uses_direct_env_provider(agent_model):
             return self._setup_check(
                 "llm_agent",
-                "Agent 渠道",
+                "Agent channel",
                 "agent",
                 True,
                 "configured",
@@ -3655,7 +3655,7 @@ class SystemConfigService:
         ) or agent_model in configured_models:
             return self._setup_check(
                 "llm_agent",
-                "Agent 渠道",
+                "Agent channel",
                 "agent",
                 True,
                 "configured",
@@ -3664,12 +3664,12 @@ class SystemConfigService:
 
         return self._setup_check(
             "llm_agent",
-            "Agent 渠道",
+            "Agent channel",
             "agent",
             True,
             "needs_action",
-            f"Agent 主模型 {agent_model} 缺少可用渠道或匹配的 API Key。",
-            "请调整 AGENT_LITELLM_MODEL 或补齐对应渠道配置。",
+            f"Agent master model {agent_model} Missing available channel or matching API Key。",
+            "Please adjust AGENT_LITELLM_MODEL Or complete the corresponding channel configuration。",
         )
 
     def _build_setup_stock_list_check(self, effective_map: Dict[str, str]) -> Dict[str, Any]:
@@ -3677,20 +3677,20 @@ class SystemConfigService:
         if stocks:
             return self._setup_check(
                 "stock_list",
-                "自选股",
+                "Optional stocks",
                 "base",
                 True,
                 "configured",
-                f"已配置 {len(stocks)} 只股票。",
+                f"configured {len(stocks)} only stocks。",
             )
         return self._setup_check(
             "stock_list",
-            "自选股",
+            "Optional stocks",
             "base",
             True,
             "needs_action",
-            "当前 STOCK_LIST 为空。",
-            "请至少添加 1 只股票用于首次试跑。",
+            "current STOCK_LIST is empty。",
+            "Please add at least 1 Only stock for first test run。",
         )
 
     def _build_setup_notification_check(self, effective_map: Dict[str, str]) -> Dict[str, Any]:
@@ -3738,20 +3738,20 @@ class SystemConfigService:
         if configured:
             return self._setup_check(
                 "notification",
-                "通知渠道",
+                "notification channel",
                 "notification",
                 False,
                 "configured",
-                "已检测到至少一个通知渠道配置。",
+                "At least one notification channel configuration has been detected。",
             )
         return self._setup_check(
             "notification",
-            "通知渠道",
+            "notification channel",
             "notification",
             False,
             "optional",
-            "通知为可选项，未配置也不影响首次跑通。",
-            "需要推送时可稍后配置飞书、钉钉、Telegram、邮件或其他通知渠道。",
+            "Notifications are optional，If it is not configured, it will not affect the first run-through.。",
+            "You can configure Feishu later when you need to push、DingTalk、Telegram、Email or other notification channels。",
         )
 
     def _build_setup_storage_check(self, effective_map: Dict[str, str]) -> Dict[str, Any]:
@@ -3764,21 +3764,21 @@ class SystemConfigService:
         if not probe.exists() or not probe.is_dir():
             return self._setup_check(
                 "storage",
-                "数据库 / 本地存储",
+                "database / local storage",
                 "system",
                 True,
                 "needs_action",
-                f"数据库路径父目录不可用: {parent}",
-                "请检查 DATABASE_PATH 或上级目录权限。",
+                f"Database path parent directory is not available: {parent}",
+                "please check DATABASE_PATH or parent directory permissions。",
             )
 
         if os.access(probe, os.W_OK):
-            detail = f"数据库路径可用: {db_path}"
+            detail = f"Database path available: {db_path}"
             if not parent.exists():
-                detail = f"数据库上级目录可创建: {parent}"
+                detail = f"The upper-level directory of the database can be created: {parent}"
             return self._setup_check(
                 "storage",
-                "数据库 / 本地存储",
+                "database / local storage",
                 "system",
                 True,
                 "configured",
@@ -3787,12 +3787,12 @@ class SystemConfigService:
 
         return self._setup_check(
             "storage",
-            "数据库 / 本地存储",
+            "database / local storage",
             "system",
             True,
             "needs_action",
-            f"数据库路径上级目录不可写: {probe}",
-            "请调整 DATABASE_PATH 或目录权限。",
+            f"The upper-level directory of the database path is not writable: {probe}",
+            "Please adjust DATABASE_PATH or directory permissions。",
         )
 
     @staticmethod
@@ -4134,7 +4134,7 @@ class SystemConfigService:
             "blocked due to policy",
             "moderation_blocked",
             "policy_blocked",
-            "请求被拦截",
+            "Request blocked",
         )
         return any(token in lowered for token in blocked_tokens)
 
@@ -4399,10 +4399,10 @@ class SystemConfigService:
                     "key": "FEISHU_CHAT_ID",
                     "code": "feishu_mode_mismatch",
                     "message": (
-                        "仅配置 FEISHU_APP_ID / FEISHU_APP_SECRET 不会开启飞书静态通知；"
-                        "App Bot 主动推送需要同时配置 FEISHU_CHAT_ID，"
-                        "Webhook 推送请填写 FEISHU_WEBHOOK_URL；"
-                        "事件订阅请使用 FEISHU_STREAM_ENABLED=true 并完成应用发布与权限配置。"
+                        "Configuration only FEISHU_APP_ID / FEISHU_APP_SECRET Feishu static notifications will not be enabled；"
+                        "App Bot Active push needs to be configured at the same time FEISHU_CHAT_ID，"
+                        "Webhook Please fill in the push FEISHU_WEBHOOK_URL；"
+                        "Please use event subscription FEISHU_STREAM_ENABLED=true And complete application publishing and permission configuration。"
                     ),
                     "severity": "warning",
                     "expected": (

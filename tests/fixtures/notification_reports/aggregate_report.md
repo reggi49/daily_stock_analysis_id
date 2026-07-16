@@ -1,21 +1,21 @@
-# A股智能分析日报
+# AStock Intelligent Analysis Daily
 
-## 今日结论
+## Today's conclusion
 
-- 市场风险偏好回升，短线资金偏向高股息与 AI 算力。
-- 默认仍发送完整报告，本样例用于验证不同通知渠道的格式化保真。
+- Market risk appetite picks up，Short-term funds tend to favor high dividends and AI Computing power。
+- Still sends full report by default，This sample is used to verify the formatting fidelity of different notification channels.。
 
-| 股票 | 信号 | 建议 |
+| stocks | signal | Suggestions |
 | --- | --- | --- |
-| 600519 | 趋势强势 | 逢低关注 |
-| AAPL | 震荡整理 | 等待放量 |
+| 600519 | Trend is strong | Pay attention to dips |
+| AAPL | Shock finishing | Waiting for heavy volume |
 
-## 风险提示
+## Risk warning
 
-> 样例不构成投资建议。
+> Samples do not constitute investment advice。
 
 ```text
 volume_signal = "watch"
 ```
 
-[查看完整报告](https://example.com/reports/daily-stock-analysis)
+[View full report](https://example.com/reports/daily-stock-analysis)

@@ -176,26 +176,26 @@ def _phase_aware_quote_labels(context: Dict[str, Any]) -> Tuple[str, str]:
     """Choose Chinese quote-table labels that do not conflict with phase context."""
     phase_context = context.get("market_phase_context")
     if not isinstance(phase_context, dict):
-        return "今日行情", "收盘价"
+        return "Today's Quote", "closing price"
 
     phase = str(phase_context.get("phase") or "").strip()
     if phase in {"premarket", "non_trading"}:
         today = context.get("today")
         if _today_looks_complete_daily_bar(context, phase_context):
-            return "上一完整交易日行情", "上一完整交易日收盘价"
+            return "Quotes from the last full trading day", "Last full trading day's closing price"
         if _today_has_realtime_overlay(today):
-            return "最新行情", "实时估算价"
+            return "Latest Quotes", "Real-time price estimate"
         if isinstance(today, dict) and today.get("close") not in (None, ""):
-            return "最新行情", "最新价"
-        return "今日行情", "收盘价"
+            return "Latest Quotes", "latest price"
+        return "Today's Quote", "closing price"
 
     if (
         phase in {"intraday", "lunch_break", "closing_auction"}
         and phase_context.get("is_partial_bar") is True
     ):
-        return "最新行情", "盘中估算价"
+        return "Latest Quotes", "Intraday estimated price"
 
-    return "今日行情", "收盘价"
+    return "Today's Quote", "closing price"
 
 
 def _should_hide_regular_session_ohlc(context: Dict[str, Any]) -> bool:
@@ -400,25 +400,25 @@ def apply_placeholder_fill(result: "AnalysisResult", missing_fields: List[str]) 
         "dashboard.phase_decision.action_window": _localized_text(
             report_language,
             en="Model did not provide a phase action window",
-            zh="模型未提供阶段化行动窗口",
+            zh="The model does not provide a staged action window",
             ko="모델이 단계별 행동 구간을 제공하지 않았습니다",
         ),
         "dashboard.phase_decision.immediate_action": _localized_text(
             report_language,
             en="Model did not provide a phase-aware immediate action",
-            zh="模型未提供阶段化即时动作",
+            zh="The model does not provide staged instant actions",
             ko="모델이 단계 인식 즉시 동작을 제공하지 않았습니다",
         ),
         "dashboard.phase_decision.next_check_time": _localized_text(
             report_language,
             en="Model did not provide a next check point",
-            zh="模型未提供下一次检查点",
+            zh="The model does not provide the next checkpoint",
             ko="모델이 다음 점검 시점을 제공하지 않았습니다",
         ),
         "dashboard.phase_decision.confidence_reason": _localized_text(
             report_language,
             en="Model did not provide a phase confidence rationale",
-            zh="模型未提供阶段化置信度理由",
+            zh="Model does not provide staged confidence reasons",
             ko="모델이 단계별 신뢰도 근거를 제공하지 않았습니다",
         ),
     }
@@ -613,7 +613,7 @@ _BULLISH_TREND_HINTS: Tuple[str, ...] = (
     "bullish",
     "uptrend",
 )
-_WEAK_BULLISH_TREND_HINTS: Tuple[str, ...] = ("弱势多头",)
+_WEAK_BULLISH_TREND_HINTS: Tuple[str, ...] = ("Weak bulls",)
 _BEARISH_TREND_HINTS: Tuple[str, ...] = (
     "Short arrangement",
     "Continued decline",
@@ -623,7 +623,7 @@ _BEARISH_TREND_HINTS: Tuple[str, ...] = (
     "bearish",
     "downtrend",
 )
-_WEAK_BEARISH_TREND_HINTS: Tuple[str, ...] = ("弱势空头",)
+_WEAK_BEARISH_TREND_HINTS: Tuple[str, ...] = ("Weak short",)
 _NEGATION_TOKENS: Tuple[str, ...] = (
     "no",
     "Not",
@@ -702,7 +702,7 @@ def _contains_trend_hint(text: str, hints: Tuple[str, ...]) -> bool:
     def _is_valid_negation_gap(token: str, gap: str) -> bool:
         if not gap:
             return True
-        if token not in {"未", "无", "非"}:
+        if token not in {"Not yet", "None", "Not"}:
             return True
         return any(gap.startswith(prefix) for prefix in _SINGLE_CHAR_NEGATION_GAP_PREFIXES)
 
@@ -795,7 +795,7 @@ def _sanitize_trend_analysis_for_prompt(
             _BULLISH_TREND_HINTS + _WEAK_BULLISH_TREND_HINTS,
         )
         if len(filtered_signal_reasons) != len(signal_reasons):
-            prompt_notes.append("当前技术结构偏空，已剔除与空头主判断直接冲突的看多结构理由。")
+            prompt_notes.append("The current technical structure is bearish，Structural reasons for bullish positions that directly conflict with the primary judgment of short sellers have been eliminated.。")
         signal_reasons = filtered_signal_reasons
         prompt_notes.append(
             "If news、Performance or policy catalysts are too high，can only be expressed as“Event first、Technology to be confirmed”or“Fundamentals are bullish，But the technical aspects have not yet been confirmed”，It is strictly prohibited to write a deterministic buying point。"
@@ -806,14 +806,14 @@ def _sanitize_trend_analysis_for_prompt(
             _BEARISH_TREND_HINTS + _WEAK_BEARISH_TREND_HINTS,
         )
         if len(filtered_signal_reasons) != len(signal_reasons):
-            prompt_notes.append("当前技术结构偏多，已剔除与多头主判断直接冲突的空头结构理由。")
+            prompt_notes.append("The current technical structure is too much，Reasons for short positions that directly conflict with the long-term main judgment have been eliminated.。")
         signal_reasons = filtered_signal_reasons
         filtered_risk_factors = _filter_conflicting_trend_items(
             risk_factors,
             _BEARISH_TREND_HINTS + _WEAK_BEARISH_TREND_HINTS,
         )
         if len(filtered_risk_factors) != len(risk_factors):
-            prompt_notes.append("当前技术结构偏多，已剔除与多头主判断直接冲突的空头结构风险表述。")
+            prompt_notes.append("The current technical structure is too much，Short structural risk statements that directly conflict with the long primary judgment have been eliminated.。")
         risk_factors = filtered_risk_factors
 
     parsed_volume_change = _safe_float(volume_change_ratio, default=math.nan)
@@ -832,12 +832,12 @@ def _sanitize_trend_analysis_for_prompt(
 def _derive_chip_health(profit_ratio: float, concentration_90: float, language: str = "zh") -> str:
     """Derive chip_health from profit_ratio and concentration_90."""
     if profit_ratio >= 0.9:
-        return localize_chip_health("警惕", language)  # 获利盘极高
+        return localize_chip_health("Be alert", language)  # Extremely high profit margin
     if concentration_90 >= 0.25:
-        return localize_chip_health("警惕", language)  # 筹码分散
+        return localize_chip_health("Be alert", language)  # Chips scattered
     if concentration_90 < 0.15 and 0.3 <= profit_ratio < 0.9:
-        return localize_chip_health("健康", language)  # 集中且获利比例适中
-    return localize_chip_health("一般", language)
+        return localize_chip_health("health", language)  # Concentrated and moderate profit ratio
+    return localize_chip_health("Average", language)
 
 
 def _build_chip_structure_from_data(chip_data: Any, language: str = "zh") -> Dict[str, Any]:
@@ -1201,7 +1201,7 @@ def _is_significant_structural_risk(value: Any) -> bool:
     if any(keyword in normalized for keyword in _STRUCTURAL_RISK_PHRASE_HINTS):
         return True
 
-    return "重大" in text and "风险" in normalized
+    return "significant" in text and "risk" in normalized
 
 
 def _sync_stability_dashboard_fields(result: "AnalysisResult") -> None:
@@ -1538,7 +1538,7 @@ def _set_structural_hold_wording(
             "hold": "보유 관찰",
         },
     }
-    advice_default = {"zh": "持有观察", "en": "Hold and watch", "ko": "보유 관찰"}.get(language, "Hold and watch")
+    advice_default = {"zh": "hold observation", "en": "Hold and watch", "ko": "보유 관찰"}.get(language, "Hold and watch")
     advice = advice_map.get(language, advice_map["en"]).get(advice_key, advice_default)
     reason_templates = {
         "zh": {
@@ -1630,7 +1630,7 @@ def get_stock_name_multi_source(
         # Get from data source stock_name Get from data source
         if context.get('stock_name'):
             name = context['stock_name']
-            if name and not name.startswith('股票'):
+            if name and not name.startswith('stocks'):
                 return name
 
         # Get from data source realtime Get from data source
@@ -1660,7 +1660,7 @@ def get_stock_name_multi_source(
             logger.debug(f"Failed to get stock name from data source: {e}")
 
     # 4. core indicators
-    return f'股票{stock_code}'
+    return f'stocks{stock_code}'
 
 
 @dataclass
@@ -1674,62 +1674,62 @@ class AnalysisResult:
     name: str
 
     # ========== core indicators ==========
-    sentiment_score: int  # 综合评分 0-100 (>70Strongly bullish, >60long, 40-60shock, <40bearish)
-    trend_prediction: str  # 趋势预测：Strongly bullish/long/shock/bearish/Strongly bearish
-    operation_advice: str  # 操作建议：Buy/Add to position/hold/Reduce positions/sell/wait and see
-    decision_type: str = "hold"  # 决策类型：buy/hold/sell（用于统计）
-    confidence_level: str = "middle"  # 置信度：high/middle/Low
-    report_language: str = "zh"  # 报告输出语言：zh/en
-    action: Optional[str] = None  # 建议动作 taxonomy：buy/add/hold/reduce/sell/watch/avoid/alert
-    action_label: Optional[str] = None  # 本地化建议动作标签
+    sentiment_score: int  # Overall rating 0-100 (>70Strongly bullish, >60long, 40-60shock, <40bearish)
+    trend_prediction: str  # Trend forecast：Strongly bullish/long/shock/bearish/Strongly bearish
+    operation_advice: str  # Operation suggestions：Buy/Add to position/hold/Reduce positions/sell/wait and see
+    decision_type: str = "hold"  # Decision type：buy/hold/sell（for statistics）
+    confidence_level: str = "middle"  # Confidence：high/middle/Low
+    report_language: str = "zh"  # Report output language：zh/en
+    action: Optional[str] = None  # Recommended action taxonomy：buy/add/hold/reduce/sell/watch/avoid/alert
+    action_label: Optional[str] = None  # Localized suggested action tags
 
     # ========== Decision dashboard (New) ==========
-    dashboard: Optional[Dict[str, Any]] = None  # 完整的决策仪表盘数据
+    dashboard: Optional[Dict[str, Any]] = None  # Complete decision dashboard data
 
     # ========== Technical analysis ==========
-    trend_analysis: str = ""  # Trend pattern analysis（支撑位、pressure level、趋势线等）
-    short_term_outlook: str = ""  # 短期展望（1-3日）
-    medium_term_outlook: str = ""  # 中期展望（1-2周）
+    trend_analysis: str = ""  # Trend pattern analysis（support level、pressure level、trend lines etc.）
+    short_term_outlook: str = ""  # short term outlook（1-3day）
+    medium_term_outlook: str = ""  # medium term outlook（1-2week）
 
     # ========== Technical analysis ==========
-    technical_analysis: str = ""  # 技术指标综合分析
-    ma_analysis: str = ""  # 均线分析（long/Short arrangement，金叉/死叉等）
-    volume_analysis: str = ""  # Quantitative energy analysis（Increase the volume/shrink，主力动向等）
+    technical_analysis: str = ""  # Comprehensive analysis of technical indicators
+    ma_analysis: str = ""  # Moving average analysis（long/Short arrangement，golden fork/Sicha et al.）
+    volume_analysis: str = ""  # Quantitative energy analysis（Increase the volume/shrink，Main trends, etc.）
     pattern_analysis: str = ""  # KLine shape analysis
 
     # ========== fundamental analysis ==========
-    fundamental_analysis: str = ""  # 基本面综合分析
-    sector_position: str = ""  # 板块地位和行业趋势
+    fundamental_analysis: str = ""  # Comprehensive analysis of fundamentals
+    sector_position: str = ""  # Sector status and industry trends
     company_highlights: str = ""  # risk/Risk point
 
     # ========== Emotional side/News analysis ==========
-    news_summary: str = ""  # 近期重要新闻/公告摘要
-    market_sentiment: str = ""  # 市场情绪分析
-    hot_topics: str = ""  # 相关热点话题
+    news_summary: str = ""  # Recent important news/Announcement summary
+    market_sentiment: str = ""  # Market Sentiment Analysis
+    hot_topics: str = ""  # Related hot topics
 
     # ========== comprehensive analysis ==========
-    analysis_summary: str = ""  # 综合分析摘要
-    key_points: str = ""  # 核心看点（3-5个要点）
+    analysis_summary: str = ""  # Comprehensive analysis summary
+    key_points: str = ""  # Core highlights（3-5points）
     risk_warning: str = ""  # Risk warning
-    buy_reason: str = ""  # Buy/卖出理由
+    buy_reason: str = ""  # Buy/Reasons to sell
 
     # ========== metadata ==========
-    market_snapshot: Optional[Dict[str, Any]] = None  # 当日行情快照（for display）
-    raw_response: Optional[str] = None  # 原始响应（调试用）
-    search_performed: bool = False  # 是否执行了联网搜索
+    market_snapshot: Optional[Dict[str, Any]] = None  # Snapshot of the day's market trends（for display）
+    raw_response: Optional[str] = None  # original response（for debugging）
+    search_performed: bool = False  # Whether a web search was performed
     data_sources: str = ""  # Data source description
     success: bool = True
     error_message: Optional[str] = None
 
     # ========== price data（model markup）==========
-    current_price: Optional[float] = None  # 分析时的股价
-    change_pct: Optional[float] = None     # 分析时的涨跌幅(%)
+    current_price: Optional[float] = None  # Stock price at time of analysis
+    change_pct: Optional[float] = None     # Increase and decrease at the time of analysis(%)
 
     # ========== model markup（Issue #528）==========
-    model_used: Optional[str] = None  # 分析使用的 LLM Model（完整名，like gemini/gemini-2.0-flash）
+    model_used: Optional[str] = None  # used for analysis LLM Model（full name，like gemini/gemini-2.0-flash）
 
     # ========== Historical comparison（Report Engine P0）==========
-    query_id: Optional[str] = None  # 本次分析 query_id，用于历史对比时排除本次记录
+    query_id: Optional[str] = None  # This analysis query_id，Exclude this record for historical comparison
 
     # ========== fundamental context（Runtime only，Used for notification assembly；not persisted to to_dict）==========
     fundamental_context: Optional[Dict[str, Any]] = None
@@ -1747,7 +1747,7 @@ class AnalysisResult:
             'report_language': self.report_language,
             'action': self.action,
             'action_label': self.action_label,
-            'dashboard': self.dashboard,  # 决策仪表盘数据
+            'dashboard': self.dashboard,  # Decision dashboard data
             'trend_analysis': self.trend_analysis,
             'short_term_outlook': self.short_term_outlook,
             'medium_term_outlook': self.medium_term_outlook,
@@ -1893,7 +1893,7 @@ Please strictly follow the following JSON format output，this is a complete【D
 ```json
 {
     "stock_name": "Stock Chinese name",
-    "sentiment_score": 0-100整数,
+    "sentiment_score": 0-100integer,
     "trend_prediction": "Strongly bullish/long/shock/bearish/Strongly bearish",
     "operation_advice": "Buy/Add to position/hold/Reduce positions/sell/wait and see",
     "decision_type": "buy/hold/sell",
@@ -1919,25 +1919,25 @@ Please strictly follow the following JSON format output，this is a complete【D
                 "trend_score": 0-100
             },
             "price_position": {
-                "current_price": 当前价格数值,
-                "ma5": MA5数值,
-                "ma10": MA10数值,
-                "ma20": MA20数值,
-                "bias_ma5": 乖离率百分比数值,
+                "current_price": Current price value,
+                "ma5": MA5numerical value,
+                "ma10": MA10numerical value,
+                "ma20": MA20numerical value,
+                "bias_ma5": Deviation rate percentage value,
                 "bias_status": "Safety/alert/Danger",
-                "support_level": 支撑位价格,
-                "resistance_level": 压力位价格
+                "support_level": support price,
+                "resistance_level": Pressure level price
             },
             "volume_analysis": {
-                "volume_ratio": 量比数值,
+                "volume_ratio": quantity ratio value,
                 "volume_status": "Increase the volume/shrink/equal amount",
-                "turnover_rate": 换手率百分比,
+                "turnover_rate": Turnover percentage,
                 "volume_meaning": "Interpretation of the meaning of quantity and energy（like：A shrinkage pullback indicates a reduction in selling pressure）"
             },
             "chip_structure": {
-                "profit_ratio": 获利比例,
-                "avg_cost": 平均成本,
-                "concentration": 筹码集中度,
+                "profit_ratio": Profit ratio,
+                "avg_cost": average cost,
+                "concentration": Chip concentration,
                 "chip_health": "healthy/generally/alert"
             }
         },
@@ -1983,10 +1983,10 @@ Please strictly follow the following JSON format output，this is a complete【D
         },
 
         "signal_attribution": {
-            "technical_indicators": 技术指标贡献度(0-100),
-            "news_sentiment": 新闻舆情贡献度(0-100),
-            "fundamentals": 基本面贡献度(0-100),
-            "market_conditions": 市场环境贡献度(0-100),
+            "technical_indicators": Contribution of technical indicators(0-100),
+            "news_sentiment": News and public opinion contribution(0-100),
+            "fundamentals": Fundamental contribution(0-100),
+            "market_conditions": Market environment contribution(0-100),
             "strongest_bullish_signal": "The name of the strongest bullish signal",
             "strongest_bearish_signal": "The name of the strongest bearish signal"
         }
@@ -2081,7 +2081,7 @@ Please strictly follow the following JSON format output，this is a complete【D
 ```json
 {
     "stock_name": "Stock Chinese name",
-    "sentiment_score": 0-100整数,
+    "sentiment_score": 0-100integer,
     "trend_prediction": "Strongly bullish/long/shock/bearish/Strongly bearish",
     "operation_advice": "Buy/Add to position/hold/Reduce positions/sell/wait and see",
     "decision_type": "buy/hold/sell",
@@ -2107,25 +2107,25 @@ Please strictly follow the following JSON format output，this is a complete【D
                 "trend_score": 0-100
             },
             "price_position": {
-                "current_price": 当前价格数值,
-                "ma5": MA5数值,
-                "ma10": MA10数值,
-                "ma20": MA20数值,
-                "bias_ma5": 乖离率百分比数值,
+                "current_price": Current price value,
+                "ma5": MA5numerical value,
+                "ma10": MA10numerical value,
+                "ma20": MA20numerical value,
+                "bias_ma5": Deviation rate percentage value,
                 "bias_status": "Safety/alert/Danger",
-                "support_level": 支撑位价格,
-                "resistance_level": 压力位价格
+                "support_level": support price,
+                "resistance_level": Pressure level price
             },
             "volume_analysis": {
-                "volume_ratio": 量比数值,
+                "volume_ratio": quantity ratio value,
                 "volume_status": "Increase the volume/shrink/equal amount",
-                "turnover_rate": 换手率百分比,
+                "turnover_rate": Turnover percentage,
                 "volume_meaning": "Interpretation of the meaning of quantity and energy（like：A shrinkage pullback indicates a reduction in selling pressure）"
             },
             "chip_structure": {
-                "profit_ratio": 获利比例,
-                "avg_cost": 平均成本,
-                "concentration": 筹码集中度,
+                "profit_ratio": Profit ratio,
+                "avg_cost": average cost,
+                "concentration": Chip concentration,
                 "chip_health": "healthy/generally/alert"
             }
         },
@@ -2171,10 +2171,10 @@ Please strictly follow the following JSON format output，this is a complete【D
         },
 
         "signal_attribution": {
-            "technical_indicators": 技术指标贡献度(0-100),
-            "news_sentiment": 新闻舆情贡献度(0-100),
-            "fundamentals": 基本面贡献度(0-100),
-            "market_conditions": 市场环境贡献度(0-100),
+            "technical_indicators": Contribution of technical indicators(0-100),
+            "news_sentiment": News and public opinion contribution(0-100),
+            "fundamentals": Fundamental contribution(0-100),
+            "market_conditions": Market environment contribution(0-100),
             "strongest_bullish_signal": "The name of the strongest bullish signal",
             "strongest_bearish_signal": "The name of the strongest bearish signal"
         }
@@ -3385,18 +3385,18 @@ Please strictly follow the following JSON format output，this is a complete【D
         request_delay = config.gemini_request_delay
         if request_delay > 0:
             logger.debug(f"[LLM] wait before requesting {request_delay:.1f} Second...")
-            _emit_progress(65, f"{code}：LLM 请求前等待 {request_delay:.1f} 秒")
+            _emit_progress(65, f"{code}：LLM wait before requesting {request_delay:.1f} seconds")
             time.sleep(request_delay)
         
         # Get stock name from context first（Depend on main.py incoming）
         name = context.get('stock_name')
-        if not name or name.startswith('股票'):
+        if not name or name.startswith('stocks'):
             # alternative：from realtime Get in
             if 'realtime' in context and context['realtime'].get('name'):
                 name = context['realtime']['name']
             else:
                 # Finally get from the mapping table
-                name = STOCK_NAME_MAP.get(code, f'股票{code}')
+                name = STOCK_NAME_MAP.get(code, f'stocks{code}')
 
         backend_error = self.get_generation_backend_config_error()
         if backend_error is not None and not self._can_use_generation_fallback(backend_error):
@@ -3435,9 +3435,9 @@ Please strictly follow the following JSON format output，this is a complete【D
                 code=code,
                 name=name,
                 sentiment_score=50,
-                trend_prediction=localize_trend_prediction('震荡', report_language),
-                operation_advice=localize_operation_advice('持有', report_language),
-                confidence_level=localize_confidence_level('低', report_language),
+                trend_prediction=localize_trend_prediction('shock', report_language),
+                operation_advice=localize_operation_advice('hold', report_language),
+                confidence_level=localize_confidence_level('low', report_language),
                 analysis_summary=summary,
                 risk_warning=risk_warning,
                 success=False,
@@ -3454,26 +3454,26 @@ Please strictly follow the following JSON format output，this is a complete【D
                 code=code,
                 name=name,
                 sentiment_score=50,
-                trend_prediction=localize_trend_prediction('震荡', report_language),
-                operation_advice=localize_operation_advice('持有', report_language),
-                confidence_level=localize_confidence_level('低', report_language),
+                trend_prediction=localize_trend_prediction('shock', report_language),
+                operation_advice=localize_operation_advice('hold', report_language),
+                confidence_level=localize_confidence_level('low', report_language),
                 analysis_summary=_localized_text(
                     report_language,
                     en='AI analysis is unavailable because no API key is configured.',
-                    zh='AI 分析功能未启用（未配置 API Key）',
+                    zh='AI Analysis is not enabled（Not configured API Key）',
                     ko='API 키가 설정되지 않아 AI 분석을 사용할 수 없습니다.',
                 ),
                 risk_warning=_localized_text(
                     report_language,
                     en='Configure an LLM API key (GEMINI_API_KEY/ANTHROPIC_API_KEY/OPENAI_API_KEY) and retry.',
-                    zh='请配置 LLM API Key（GEMINI_API_KEY/ANTHROPIC_API_KEY/OPENAI_API_KEY）后重试',
+                    zh='Please configure LLM API Key（GEMINI_API_KEY/ANTHROPIC_API_KEY/OPENAI_API_KEY）Try again later',
                     ko='LLM API 키(GEMINI_API_KEY/ANTHROPIC_API_KEY/OPENAI_API_KEY)를 설정한 뒤 다시 시도하세요.',
                 ),
                 success=False,
                 error_message=_localized_text(
                     report_language,
                     en='LLM API key is not configured',
-                    zh='LLM API Key 未配置',
+                    zh='LLM API Key Not configured',
                     ko='LLM API 키가 설정되지 않았습니다',
                 ),
                 model_used=None,
@@ -3519,7 +3519,7 @@ Please strictly follow the following JSON format output，this is a complete【D
             logger.info(f"========== AI analyze {name}({code}) ==========")
             logger.info(f"[LLMConfiguration] Model: {model_name}")
             logger.info(f"[LLMConfiguration] Prompt length: {len(prompt)} character")
-            logger.info(f"[LLMConfiguration] Whether to include news: {'是' if news_context else '否'}")
+            logger.info(f"[LLMConfiguration] Whether to include news: {'Yes' if news_context else 'No'}")
 
             # Is the process execution capability CLI backend Is the process execution capability，Not complete record prompt。
             if backend_id in LOCAL_CLI_GENERATION_BACKEND_IDS:
@@ -3537,7 +3537,7 @@ Please strictly follow the following JSON format output，this is a complete【D
             }
 
             logger.info(f"[LLMcall] Start calling {model_name}...")
-            _emit_progress(68, f"{name}：LLM 已接收请求，等待响应")
+            _emit_progress(68, f"{name}：LLM Request received，Waiting for response")
 
             # use litellm call（Support integrity check retry）
             current_prompt = prompt
@@ -3585,7 +3585,7 @@ Please strictly follow the following JSON format output，this is a complete【D
                     )
                 # Keep parser/retry progress monotonic so task progress/message never "goes backward".
                 parse_progress = min(99, 93 + retry_count * 2)
-                _emit_progress(parse_progress, f"{name}：LLM 返回完成，正在解析 JSON")
+                _emit_progress(parse_progress, f"{name}：LLM Return to completion，Parsing JSON")
 
                 # Parse response
                 result = self._parse_response(response_text, code, name)
@@ -3646,19 +3646,19 @@ Please strictly follow the following JSON format output，this is a complete【D
                 code=code,
                 name=name,
                 sentiment_score=50,
-                trend_prediction=localize_trend_prediction('震荡', report_language),
-                operation_advice=localize_operation_advice('持有', report_language),
-                confidence_level=localize_confidence_level('低', report_language),
+                trend_prediction=localize_trend_prediction('shock', report_language),
+                operation_advice=localize_operation_advice('hold', report_language),
+                confidence_level=localize_confidence_level('low', report_language),
                 analysis_summary=_localized_text(
                     report_language,
                     en=f'Analysis failed: {safe_error[:100]}',
-                    zh=f'分析过程出错: {safe_error[:100]}',
+                    zh=f'An error occurred during analysis: {safe_error[:100]}',
                     ko=f'분석 중 오류가 발생했습니다: {safe_error[:100]}',
                 ),
                 risk_warning=_localized_text(
                     report_language,
                     en='Analysis failed. Please retry later or review manually.',
-                    zh='分析失败，请稍后重试或手动分析',
+                    zh='Analysis failed，Please try again later or analyze manually',
                     ko='분석에 실패했습니다. 잠시 후 다시 시도하거나 수동으로 검토하세요.',
                 ),
                 success=False,
@@ -3691,8 +3691,8 @@ Please strictly follow the following JSON format output，this is a complete【D
         
         # Prefer stock names in context（from realtime_quote get）
         stock_name = context.get('stock_name', name)
-        if not stock_name or stock_name == f'股票{code}':
-            stock_name = STOCK_NAME_MAP.get(code, f'股票{code}')
+        if not stock_name or stock_name == f'stocks{code}':
+            stock_name = STOCK_NAME_MAP.get(code, f'stocks{code}')
             
         today = context.get('today', {})
         unknown_text = get_unknown_text(report_language)
@@ -3950,7 +3950,7 @@ Please strictly follow the following JSON format output，this is a complete【D
             )
             consistency_notes = trend.get('prompt_consistency_notes', [])
             if use_legacy_default_prompt:
-                bias_warning = "🚨 超过5%，严禁追高！" if trend.get('bias_ma5', 0) > 5 else "✅ 安全范围"
+                bias_warning = "🚨 exceed5%，It is strictly forbidden to chase high！" if trend.get('bias_ma5', 0) > 5 else "✅ safety range"
                 prompt += f"""
 ### Trend analysis and prediction（Based on trading concept）
 | index | numerical value | determination |
@@ -3966,10 +3966,10 @@ Please strictly follow the following JSON format output，this is a complete【D
 
 #### Reasons for system analysis
 **Reasons to buy**：
-{chr(10).join('- ' + r for r in trend.get('signal_reasons', ['无'])) if trend.get('signal_reasons') else '- 无'}
+{chr(10).join('- ' + r for r in trend.get('signal_reasons', ['None'])) if trend.get('signal_reasons') else '- None'}
 
 **risk factors**：
-{chr(10).join('- ' + r for r in trend.get('risk_factors', ['无'])) if trend.get('risk_factors') else '- 无'}
+{chr(10).join('- ' + r for r in trend.get('risk_factors', ['None'])) if trend.get('risk_factors') else '- None'}
 """
                 if consistency_notes:
                     prompt += f"""
@@ -3998,10 +3998,10 @@ Please strictly follow the following JSON format output，this is a complete【D
 
 #### Reasons for system analysis
 **Supporting factors**：
-{chr(10).join('- ' + r for r in trend.get('signal_reasons', ['无'])) if trend.get('signal_reasons') else '- 无'}
+{chr(10).join('- ' + r for r in trend.get('signal_reasons', ['None'])) if trend.get('signal_reasons') else '- None'}
 
 **risk factors**：
-{chr(10).join('- ' + r for r in trend.get('risk_factors', ['无'])) if trend.get('risk_factors') else '- 无'}
+{chr(10).join('- ' + r for r in trend.get('risk_factors', ['None'])) if trend.get('risk_factors') else '- None'}
 """
                 if consistency_notes:
                     prompt += f"""
@@ -4169,22 +4169,22 @@ Please output the complete JSON Format Decision Dashboard。"""
         if volume is None:
             return 'N/A'
         if volume >= 1e8:
-            return f"{volume / 1e8:.2f} 亿股"
+            return f"{volume / 1e8:.2f} 100 million shares"
         elif volume >= 1e4:
-            return f"{volume / 1e4:.2f} 万股"
+            return f"{volume / 1e4:.2f} 10,000 shares"
         else:
-            return f"{volume:.0f} 股"
+            return f"{volume:.0f} shares"
     
     def _format_amount(self, amount: Optional[float]) -> str:
         """Formatted turnover display"""
         if amount is None:
             return 'N/A'
         if amount >= 1e8:
-            return f"{amount / 1e8:.2f} 亿元"
+            return f"{amount / 1e8:.2f} billion"
         elif amount >= 1e4:
-            return f"{amount / 1e4:.2f} 万元"
+            return f"{amount / 1e4:.2f} Ten thousand yuan"
         else:
-            return f"{amount:.0f} 元"
+            return f"{amount:.0f} Yuan"
 
     def _format_percent(self, value: Optional[float]) -> str:
         """Format percentage display"""
@@ -4229,7 +4229,7 @@ Please output the complete JSON Format Decision Dashboard。"""
                 change_amount = None
 
         snapshot = {
-            "date": context.get('date', '未知'),
+            "date": context.get('date', 'unknown'),
             "close": self._format_price(close),
             "open": self._format_price(today.get('open')),
             "high": self._format_price(high),
@@ -4295,34 +4295,34 @@ Please output the complete JSON Format Decision Dashboard。"""
                     lines.append("- dashboard.phase_decision.data_limitations: list of phase/data quality limitations")
             return "\n".join(lines)
 
-        lines = ["### 补全要求：请在上方分析基础上补充以下必填内容，并输出完整 JSON："]
+        lines = ["### Completion requirements：Please add the following required content based on the above analysis.，and output complete JSON："]
         for f in missing_fields:
             if f == "sentiment_score":
-                lines.append("- sentiment_score: 0-100 综合评分")
+                lines.append("- sentiment_score: 0-100 Overall rating")
             elif f == "operation_advice":
-                lines.append("- operation_advice: 买入/加仓/持有/减仓/卖出/观望")
+                lines.append("- operation_advice: Buy/Add to position/hold/Reduce positions/sell/wait and see")
             elif f == "analysis_summary":
-                lines.append("- analysis_summary: 综合分析摘要")
+                lines.append("- analysis_summary: Comprehensive analysis summary")
             elif f == "dashboard.core_conclusion.one_sentence":
-                lines.append("- dashboard.core_conclusion.one_sentence: 一句话决策")
+                lines.append("- dashboard.core_conclusion.one_sentence: One sentence decision")
             elif f == "dashboard.intelligence.risk_alerts":
-                lines.append("- dashboard.intelligence.risk_alerts: 风险警报列表（可为空数组）")
+                lines.append("- dashboard.intelligence.risk_alerts: Risk alert list（nullable array）")
             elif f == "dashboard.battle_plan.sniper_points.stop_loss":
-                lines.append("- dashboard.battle_plan.sniper_points.stop_loss: 止损价")
+                lines.append("- dashboard.battle_plan.sniper_points.stop_loss: Stop loss price")
             elif f == "dashboard.phase_decision.phase_context":
-                lines.append("- dashboard.phase_decision.phase_context: 公开低敏市场阶段摘要子集")
+                lines.append("- dashboard.phase_decision.phase_context: Publicly available hypoallergenic market stage summary subsets")
             elif f == "dashboard.phase_decision.action_window":
-                lines.append("- dashboard.phase_decision.action_window: 阶段化行动窗口")
+                lines.append("- dashboard.phase_decision.action_window: Staged action window")
             elif f == "dashboard.phase_decision.immediate_action":
-                lines.append("- dashboard.phase_decision.immediate_action: 立即行动/等待确认/观察/无盘中动作")
+                lines.append("- dashboard.phase_decision.immediate_action: Act now/Waiting for confirmation/observe/No intraday action")
             elif f == "dashboard.phase_decision.watch_conditions":
-                lines.append("- dashboard.phase_decision.watch_conditions: 观察条件数组")
+                lines.append("- dashboard.phase_decision.watch_conditions: Observation condition array")
             elif f == "dashboard.phase_decision.next_check_time":
-                lines.append("- dashboard.phase_decision.next_check_time: 下一次检查点或市场本地时间")
+                lines.append("- dashboard.phase_decision.next_check_time: Next checkpoint or market local time")
             elif f == "dashboard.phase_decision.confidence_reason":
-                lines.append("- dashboard.phase_decision.confidence_reason: 置信度理由与数据限制")
+                lines.append("- dashboard.phase_decision.confidence_reason: Confidence reasons and data limitations")
             elif f == "dashboard.phase_decision.data_limitations":
-                lines.append("- dashboard.phase_decision.data_limitations: 阶段/数据质量限制数组")
+                lines.append("- dashboard.phase_decision.data_limitations: stage/Data quality limit array")
         return "\n".join(lines)
 
     def _build_integrity_retry_prompt(
@@ -4518,14 +4518,14 @@ Please output the complete JSON Format Decision Dashboard。"""
 
             # priority use AI Returned stock name（If the original name is invalid or contains code）
             ai_stock_name = data.get('stock_name')
-            if ai_stock_name and (name.startswith('股票') or name == code or 'Unknown' in name):
+            if ai_stock_name and (name.startswith('stocks') or name == code or 'Unknown' in name):
                 name = ai_stock_name
 
             # Parse all fields，Use default values ​​to prevent missing
             # parse decision_type，If not then based on operation_advice infer
             decision_type = data.get('decision_type', '')
             if not decision_type:
-                op = data.get('operation_advice', localize_operation_advice('持有', report_language))
+                op = data.get('operation_advice', localize_operation_advice('hold', report_language))
                 decision_type = infer_decision_type_from_advice(op, default='hold')
 
             explicit_action = data.get("action")
@@ -4537,11 +4537,11 @@ Please output the complete JSON Format Decision Dashboard。"""
                 name=name,
                 # core indicators
                 sentiment_score=int(data.get('sentiment_score', 50)),
-                trend_prediction=data.get('trend_prediction', localize_trend_prediction('震荡', report_language)),
-                operation_advice=data.get('operation_advice', localize_operation_advice('持有', report_language)),
+                trend_prediction=data.get('trend_prediction', localize_trend_prediction('shock', report_language)),
+                operation_advice=data.get('operation_advice', localize_operation_advice('hold', report_language)),
                 decision_type=decision_type,
                 confidence_level=localize_confidence_level(
-                    data.get('confidence_level', localize_confidence_level('中', report_language)),
+                    data.get('confidence_level', localize_confidence_level('in', report_language)),
                     report_language,
                 ),
                 report_language=report_language,
@@ -4566,14 +4566,14 @@ Please output the complete JSON Format Decision Dashboard。"""
                 hot_topics=data.get('hot_topics', ''),
                 # comprehensive
                 analysis_summary=data.get('analysis_summary', _localized_text(
-                    report_language, en='Analysis completed', zh='分析完成', ko='분석 완료')),
+                    report_language, en='Analysis completed', zh='Analysis completed', ko='분석 완료')),
                 key_points=data.get('key_points', ''),
                 risk_warning=data.get('risk_warning', ''),
                 buy_reason=data.get('buy_reason', ''),
                 # metadata
                 search_performed=data.get('search_performed', False),
                 data_sources=data.get('data_sources', _localized_text(
-                    report_language, en='Technical data', zh='技术面数据', ko='기술적 데이터')),
+                    report_language, en='Technical data', zh='Technical data', ko='기술적 데이터')),
                 success=True,
             )
             return populate_decision_action_fields(
@@ -4658,34 +4658,34 @@ Please output the complete JSON Format Decision Dashboard。"""
         )
         # Try to identify keywords to determine sentiment
         sentiment_score = 50
-        trend = localize_trend_prediction('震荡', report_language)
-        advice = localize_operation_advice('持有', report_language)
+        trend = localize_trend_prediction('shock', report_language)
+        advice = localize_operation_advice('hold', report_language)
         
         text_lower = response_text.lower()
         
         # Simple emotion recognition
-        positive_keywords = ['看多', '买入', '上涨', '突破', '强势', '利好', '加仓', 'bullish', 'buy']
-        negative_keywords = ['看空', '卖出', '下跌', '跌破', '弱势', '利空', '减仓', 'bearish', 'sell']
+        positive_keywords = ['long', 'Buy', 'rise', 'breakthrough', 'Strong', 'good', 'Add to position', 'bullish', 'buy']
+        negative_keywords = ['bearish', 'sell', 'fall', 'fell below', 'Weak', 'Bad', 'Reduce positions', 'bearish', 'sell']
         
         positive_count = sum(1 for kw in positive_keywords if kw in text_lower)
         negative_count = sum(1 for kw in negative_keywords if kw in text_lower)
         
         if positive_count > negative_count + 1:
             sentiment_score = 65
-            trend = localize_trend_prediction('看多', report_language)
-            advice = localize_operation_advice('买入', report_language)
+            trend = localize_trend_prediction('long', report_language)
+            advice = localize_operation_advice('Buy', report_language)
             decision_type = 'buy'
         elif negative_count > positive_count + 1:
             sentiment_score = 35
-            trend = localize_trend_prediction('看空', report_language)
-            advice = localize_operation_advice('卖出', report_language)
+            trend = localize_trend_prediction('bearish', report_language)
+            advice = localize_operation_advice('sell', report_language)
             decision_type = 'sell'
         else:
             decision_type = 'hold'
         
         # before interception500characters as summary
         summary = response_text[:500] if response_text else _localized_text(
-            report_language, en='No analysis result', zh='无分析结果', ko='분석 결과 없음')
+            report_language, en='No analysis result', zh='No analysis results', ko='분석 결과 없음')
         
         result = AnalysisResult(
             code=code,
@@ -4694,18 +4694,18 @@ Please output the complete JSON Format Decision Dashboard。"""
             trend_prediction=trend,
             operation_advice=advice,
             decision_type=decision_type,
-            confidence_level=localize_confidence_level('低', report_language),
+            confidence_level=localize_confidence_level('low', report_language),
             analysis_summary=summary,
             key_points=_localized_text(
                 report_language,
                 en='JSON parsing failed; treat this as best-effort output.',
-                zh='JSON解析失败，仅供参考',
+                zh='JSONParsing failed，For reference only',
                 ko='JSON 파싱에 실패했습니다. 참고용으로만 사용하세요.',
             ),
             risk_warning=_localized_text(
                 report_language,
                 en='The result may be inaccurate. Cross-check with other information.',
-                zh='分析结果可能不准确，建议结合其他信息判断',
+                zh='Analysis results may be inaccurate，It is recommended to judge based on other information',
                 ko='결과가 부정확할 수 있습니다. 다른 정보와 교차 확인하세요.',
             ),
             raw_response=response_text,

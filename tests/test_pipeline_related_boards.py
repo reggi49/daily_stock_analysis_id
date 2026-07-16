@@ -37,7 +37,7 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
     def test_attach_belong_boards_shallow_copies_context_before_injecting(self) -> None:
         pipeline = StockAnalysisPipeline.__new__(StockAnalysisPipeline)
         pipeline.fetcher_manager = MagicMock()
-        pipeline.fetcher_manager.get_belong_boards.return_value = [{"name": "白酒", "type": "行业"}]
+        pipeline.fetcher_manager.get_belong_boards.return_value = [{"name": "Liquor", "type": "industry"}]
 
         cached_context = {
             "market": "cn",
@@ -50,15 +50,15 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
 
         self.assertIsNot(enriched, cached_context)
         self.assertNotIn("belong_boards", cached_context)
-        self.assertEqual(enriched["belong_boards"], [{"name": "白酒", "type": "行业"}])
+        self.assertEqual(enriched["belong_boards"], [{"name": "Liquor", "type": "industry"}])
 
     def test_attach_belong_boards_adds_concept_rankings_for_cn(self) -> None:
         pipeline = StockAnalysisPipeline.__new__(StockAnalysisPipeline)
         pipeline.fetcher_manager = MagicMock()
-        pipeline.fetcher_manager.get_belong_boards.return_value = [{"name": "机器人概念", "type": "概念"}]
+        pipeline.fetcher_manager.get_belong_boards.return_value = [{"name": "Robot concept", "type": "concept"}]
         pipeline.fetcher_manager.get_concept_rankings.return_value = (
-            [{"name": "机器人概念", "change_pct": 4.2}],
-            [{"name": "转基因", "change_pct": -2.05}],
+            [{"name": "Robot concept", "change_pct": 4.2}],
+            [{"name": "genetically modified", "change_pct": -2.05}],
         )
 
         context = {
@@ -70,7 +70,7 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
 
         enriched = pipeline._attach_belong_boards_to_fundamental_context("600519", context)
 
-        self.assertEqual(enriched["concept_boards"]["data"]["top"][0]["name"], "机器人概念")
+        self.assertEqual(enriched["concept_boards"]["data"]["top"][0]["name"], "Robot concept")
         self.assertEqual(enriched["concept_boards"]["data"]["bottom"][0]["change_pct"], -2.05)
 
     def test_attach_belong_boards_reuses_concept_rankings_per_pipeline_run(self) -> None:
@@ -126,11 +126,11 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
     def test_extract_board_details_exposes_concept_rankings(self) -> None:
         snapshot = {
             "fundamental_context": {
-                "belong_boards": [{"name": "机器人概念", "type": "概念"}],
+                "belong_boards": [{"name": "Robot concept", "type": "concept"}],
                 "concept_boards": {
                     "status": "ok",
                     "data": {
-                        "top": [{"name": "机器人概念", "change_pct": "4.2%", "source": "akshare"}],
+                        "top": [{"name": "Robot concept", "change_pct": "4.2%", "source": "akshare"}],
                         "bottom": [],
                     },
                 },
@@ -140,16 +140,16 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
         extracted = extract_board_detail_fields(snapshot)
         details = ReportDetails(context_snapshot=snapshot)
 
-        self.assertEqual(extracted["concept_rankings"]["top"][0]["name"], "机器人概念")
+        self.assertEqual(extracted["concept_rankings"]["top"][0]["name"], "Robot concept")
         self.assertEqual(extracted["concept_rankings"]["top"][0]["change_pct"], 4.2)
         self.assertEqual(extracted["concept_rankings"]["top"][0]["source"], "akshare")
-        self.assertEqual(details.concept_rankings["top"][0]["name"], "机器人概念")
+        self.assertEqual(details.concept_rankings["top"][0]["name"], "Robot concept")
 
     def test_attach_belong_boards_copies_existing_board_list(self) -> None:
         pipeline = StockAnalysisPipeline.__new__(StockAnalysisPipeline)
         pipeline.fetcher_manager = MagicMock()
 
-        existing_boards = [{"name": "白酒", "type": "行业"}]
+        existing_boards = [{"name": "Liquor", "type": "industry"}]
         context = {
             "market": "cn",
             "status": "ok",
@@ -168,7 +168,7 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
     def test_attach_belong_boards_refetches_empty_cn_board_list(self) -> None:
         pipeline = StockAnalysisPipeline.__new__(StockAnalysisPipeline)
         pipeline.fetcher_manager = MagicMock()
-        pipeline.fetcher_manager.get_belong_boards.return_value = [{"name": "白酒", "type": "行业"}]
+        pipeline.fetcher_manager.get_belong_boards.return_value = [{"name": "Liquor", "type": "industry"}]
 
         context = {
             "market": "cn",
@@ -180,7 +180,7 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
 
         enriched = pipeline._attach_belong_boards_to_fundamental_context("600519", context)
 
-        self.assertEqual(enriched["belong_boards"], [{"name": "白酒", "type": "行业"}])
+        self.assertEqual(enriched["belong_boards"], [{"name": "Liquor", "type": "industry"}])
         pipeline.fetcher_manager.get_belong_boards.assert_called_once_with("600519")
 
     def test_attach_belong_boards_skips_provider_for_non_cn(self) -> None:
@@ -199,8 +199,8 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
         pipeline.fetcher_manager = MagicMock()
 
         existing_boards = [
-            {"name": "Technology", "type": "行业"},
-            {"name": "Consumer Electronics", "type": "概念"},
+            {"name": "Technology", "type": "industry"},
+            {"name": "Consumer Electronics", "type": "concept"},
         ]
         context = {"market": "us", "status": "ok", "belong_boards": existing_boards}
         enriched = pipeline._attach_belong_boards_to_fundamental_context("AAPL", context)
@@ -245,7 +245,7 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
     def test_attach_belong_boards_uses_normalized_a_share_code_when_market_missing(self) -> None:
         pipeline = StockAnalysisPipeline.__new__(StockAnalysisPipeline)
         pipeline.fetcher_manager = MagicMock()
-        pipeline.fetcher_manager.get_belong_boards.return_value = [{"name": "白酒"}]
+        pipeline.fetcher_manager.get_belong_boards.return_value = [{"name": "Liquor"}]
 
         context = {
             "status": "ok",
@@ -255,7 +255,7 @@ class PipelineRelatedBoardsTestCase(unittest.TestCase):
 
         enriched = pipeline._attach_belong_boards_to_fundamental_context("SH600519", context)
 
-        self.assertEqual(enriched["belong_boards"], [{"name": "白酒"}])
+        self.assertEqual(enriched["belong_boards"], [{"name": "Liquor"}])
         pipeline.fetcher_manager.get_belong_boards.assert_called_once_with("SH600519")
 
 if __name__ == "__main__":

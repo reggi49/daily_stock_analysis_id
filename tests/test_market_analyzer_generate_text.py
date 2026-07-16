@@ -129,7 +129,7 @@ class TestAnalyzerGenerateText:
         zh_markers = _legacy_audit_marker_specs(
             {"date": "2026-06-19"},
             code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             report_language="zh",
             news_context="news",
             analysis_context_pack_summary="pack summary",
@@ -137,13 +137,13 @@ class TestAnalyzerGenerateText:
         zh_by_name = {marker["marker_name"]: marker for marker in zh_markers}
 
         assert zh_by_name["stock_code"]["text"] == "600519"
-        assert zh_by_name["stock_name"]["text"] == "贵州茅台"
+        assert zh_by_name["stock_name"]["text"] == "Kweichow Moutai"
         assert zh_by_name["analysis_date"]["text"] == "2026-06-19"
-        assert zh_by_name["market_phase"]["text"] == "## 市场阶段上下文"
-        assert zh_by_name["daily_market_context"]["text"] == "## 大盘环境摘要"
+        assert zh_by_name["market_phase"]["text"] == "## market stage context"
+        assert zh_by_name["daily_market_context"]["text"] == "## Summary of the broad market environment"
         assert zh_by_name["analysis_context_pack"]["text"] == "pack summary"
-        assert zh_by_name["quote"]["text"] == "## 📈 技术面数据"
-        assert zh_by_name["news_context"]["text"] == "## 📰 舆情情报"
+        assert zh_by_name["quote"]["text"] == "## 📈 Technical data"
+        assert zh_by_name["news_context"]["text"] == "## 📰 public opinion intelligence"
         assert {marker["message_role"] for marker in zh_markers} == {"user"}
 
         en_markers = _legacy_audit_marker_specs(
@@ -164,11 +164,11 @@ class TestAnalyzerGenerateText:
 
     def test_generate_text_returns_llm_response(self):
         analyzer = self._make_analyzer()
-        with patch.object(analyzer, "_call_litellm", return_value="市场分析报告") as mock_call:
-            result = analyzer.generate_text("写一份复盘", max_tokens=1024, temperature=0.5)
-            assert result == "市场分析报告"
+        with patch.object(analyzer, "_call_litellm", return_value="Market analysis report") as mock_call:
+            result = analyzer.generate_text("Write a review", max_tokens=1024, temperature=0.5)
+            assert result == "Market analysis report"
             mock_call.assert_called_once_with(
-                "写一份复盘",
+                "Write a review",
                 generation_config={"max_tokens": 1024, "temperature": 0.5},
             )
 
@@ -179,11 +179,11 @@ class TestAnalyzerGenerateText:
             "usage_source": "unavailable",
             "backend": "codex_cli",
         }
-        with patch.object(analyzer, "_call_litellm", return_value=("复盘", "codex_cli", usage)), \
+        with patch.object(analyzer, "_call_litellm", return_value=("Review", "codex_cli", usage)), \
              patch("src.analyzer.persist_llm_usage") as mock_persist:
-            result = analyzer.generate_text("写一份复盘")
+            result = analyzer.generate_text("Write a review")
 
-        assert result == "复盘"
+        assert result == "Review"
         mock_persist.assert_not_called()
 
     @pytest.mark.parametrize(
@@ -246,8 +246,8 @@ class TestAnalyzerGenerateText:
         fallback_backend.generate.return_value = SimpleNamespace(
             text=json.dumps({
                 "sentiment_score": 70,
-                "trend_prediction": "看多",
-                "operation_advice": "持有",
+                "trend_prediction": "long",
+                "operation_advice": "hold",
                 "analysis_summary": "fallback ok",
             }),
             model="gemini/gemini-2.0-flash",
@@ -267,7 +267,7 @@ class TestAnalyzerGenerateText:
              patch.object(analyzer, "_format_prompt", return_value="prompt"), \
              patch.object(analyzer, "_build_market_snapshot", return_value={}):
             assert analyzer.is_available() is True
-            result = analyzer.analyze({"code": "600519", "stock_name": "贵州茅台"})
+            result = analyzer.analyze({"code": "600519", "stock_name": "Kweichow Moutai"})
 
         assert result.success is True
         assert result.analysis_summary == "fallback ok"
@@ -303,17 +303,17 @@ class TestAnalyzerGenerateText:
         )
         all_models_error = _AllModelsFailedError(
             "all fallback models returned invalid JSON",
-            last_response_text="这不是 JSON，而是 fallback 模型返回的纯文本分析",
+            last_response_text="this is not JSON，Rather fallback Plain text analysis returned by the model",
             last_model="provider/fallback-model",
             last_usage={"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
         )
         text_fallback_result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             sentiment_score=50,
-            trend_prediction="震荡",
-            operation_advice="持有",
-            analysis_summary="纯文本兜底摘要",
+            trend_prediction="shock",
+            operation_advice="hold",
+            analysis_summary="Plain text summary",
             success=False,
             error_message="LLM response is not valid JSON; analysis result will not be persisted",
         )
@@ -334,15 +334,15 @@ class TestAnalyzerGenerateText:
              patch.object(analyzer, "_parse_response", return_value=text_fallback_result) as mock_parse, \
              patch.object(analyzer, "_build_market_snapshot", return_value={}), \
              patch("src.analyzer.persist_llm_usage") as mock_persist:
-            result = analyzer.analyze({"code": "600519", "stock_name": "贵州茅台"})
+            result = analyzer.analyze({"code": "600519", "stock_name": "Kweichow Moutai"})
 
-        assert result.analysis_summary == "纯文本兜底摘要"
-        assert result.raw_response == "这不是 JSON，而是 fallback 模型返回的纯文本分析"
+        assert result.analysis_summary == "Plain text summary"
+        assert result.raw_response == "this is not JSON，Rather fallback Plain text analysis returned by the model"
         assert result.model_used == "provider/fallback-model"
         mock_parse.assert_called_once_with(
-            "这不是 JSON，而是 fallback 模型返回的纯文本分析",
+            "this is not JSON，Rather fallback Plain text analysis returned by the model",
             "600519",
-            "贵州茅台",
+            "Kweichow Moutai",
         )
         mock_persist.assert_called_once_with(
             {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
@@ -371,9 +371,9 @@ class TestAnalyzerGenerateText:
         )
         response_text = json.dumps({
             "sentiment_score": 70,
-            "trend_prediction": "看多",
-            "operation_advice": "持有",
-            "analysis_summary": "测试",
+            "trend_prediction": "long",
+            "operation_advice": "hold",
+            "analysis_summary": "test",
         })
         usage = {
             "usage_available": False,
@@ -389,7 +389,7 @@ class TestAnalyzerGenerateText:
              patch.object(analyzer, "_call_litellm", return_value=(response_text, "codex_cli", usage)), \
              patch.object(analyzer, "_build_market_snapshot", return_value={}), \
              patch("src.analyzer.persist_llm_usage") as mock_persist:
-            result = analyzer.analyze({"code": "600519", "stock_name": "贵州茅台"})
+            result = analyzer.analyze({"code": "600519", "stock_name": "Kweichow Moutai"})
 
         assert result.success is True
         mock_persist.assert_not_called()
@@ -640,13 +640,13 @@ class TestAnalyzerGenerateText:
             "analysis_mode": "stock_analysis",
             "dynamic_markers": [
                 {"marker_name": "stock_code", "message_role": "user", "text": "600519"},
-                {"marker_name": "quote", "message_role": "user", "text": "## 📈 技术面数据"},
+                {"marker_name": "quote", "message_role": "user", "text": "## 📈 Technical data"},
             ],
         }
 
         with patch.object(analyzer, "_dispatch_litellm_completion", return_value=stream_response()):
             text, model, usage = analyzer._call_litellm(
-                "## 📊 股票基础信息\n| 股票代码 | **600519** |\n\n## 📈 技术面数据\n",
+                "## 📊 Basic stock information\n| Stock code | **600519** |\n\n## 📈 Technical data\n",
                 {"max_tokens": 128, "temperature": 0.2},
                 system_prompt="system prompt",
                 stream=True,
@@ -714,7 +714,7 @@ class TestAnalyzerGenerateText:
             )
 
         with patch("src.analyzer.call_litellm_with_param_recovery", side_effect=_fake_call_litellm_with_param_recovery):
-            text, _, _ = analyzer._call_litellm("回归用例", {"max_tokens": 128, "temperature": 0.7})
+            text, _, _ = analyzer._call_litellm("regression use case", {"max_tokens": 128, "temperature": 0.7})
 
         assert text == "ok"
         passed_model_list = captured.get("model_list")
@@ -1079,7 +1079,7 @@ class TestAnalyzerGenerateText:
             report_language="zh",
             gemini_request_delay=0,
         )
-        context = {"code": "600519", "stock_name": "贵州茅台"}
+        context = {"code": "600519", "stock_name": "Kweichow Moutai"}
 
         caplog.set_level("ERROR", logger="src.analyzer")
         with patch.object(analyzer, "get_generation_backend_config_error", return_value=None), \
@@ -1494,21 +1494,21 @@ class TestAnalyzerGenerateText:
             llm_model_list=[],
         )
         prompt = (
-            "# 决策仪表盘分析请求\n"
-            "| 股票代码 | **600519** |\n"
-            "| 股票名称 | **贵州茅台** |\n"
-            "| 分析日期 | 2026-06-19 |\n\n"
-            "## ✅ 分析任务\n"
-            "请输出 JSON。"
+            "# Decision Dashboard Analysis Request\n"
+            "| Stock code | **600519** |\n"
+            "| Stock name | **Kweichow Moutai** |\n"
+            "| Analysis date | 2026-06-19 |\n\n"
+            "## ✅ Analysis tasks\n"
+            "Please output JSON。"
         )
-        fixed_rules_offset = prompt.index("## ✅ 分析任务")
+        fixed_rules_offset = prompt.index("## ✅ Analysis tasks")
         audit_context = {
             "language": "zh",
             "market_group": "cn",
             "analysis_mode": "stock_analysis",
             "dynamic_markers": [
                 {"marker_name": "stock_code", "message_role": "user", "text": "600519"},
-                {"marker_name": "stock_name", "message_role": "user", "text": "贵州茅台"},
+                {"marker_name": "stock_name", "message_role": "user", "text": "Kweichow Moutai"},
                 {"marker_name": "analysis_date", "message_role": "user", "text": "2026-06-19"},
             ],
         }
@@ -1538,7 +1538,7 @@ class TestAnalyzerGenerateText:
             assert markers[marker_name]["message_role"] == "user"
             assert markers[marker_name]["char_offset"] < fixed_rules_offset
         assert "600519" not in usage["known_dynamic_marker_positions"]
-        assert "贵州茅台" not in usage["known_dynamic_marker_positions"]
+        assert "Kweichow Moutai" not in usage["known_dynamic_marker_positions"]
         assert "2026-06-19" not in usage["known_dynamic_marker_positions"]
 
     def test_call_litellm_system_hmac_distinguishes_language_and_market_prompt(self):
@@ -2003,19 +2003,19 @@ class TestAnalyzerGenerateText:
         progress_updates = []
         first_result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             sentiment_score=80,
-            trend_prediction="看多",
-            operation_advice="持有",
-            analysis_summary="首轮结果",
+            trend_prediction="long",
+            operation_advice="hold",
+            analysis_summary="first round results",
         )
         second_result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             sentiment_score=82,
-            trend_prediction="看多",
-            operation_advice="持有",
-            analysis_summary="补全后结果",
+            trend_prediction="long",
+            operation_advice="hold",
+            analysis_summary="The result after completion",
         )
 
         with patch.object(analyzer, "is_available", return_value=True), \
@@ -2039,14 +2039,14 @@ class TestAnalyzerGenerateText:
              patch.object(analyzer, "_build_integrity_retry_prompt", return_value="retry prompt"), \
              patch("src.analyzer.persist_llm_usage"):
             result = analyzer.analyze(
-                {"code": "600519", "stock_name": "贵州茅台"},
+                {"code": "600519", "stock_name": "Kweichow Moutai"},
                 progress_callback=lambda progress, message: progress_updates.append((progress, message)),
             )
 
-        assert result.analysis_summary == "补全后结果"
+        assert result.analysis_summary == "The result after completion"
         assert [progress for progress, _ in progress_updates] == [68, 93, 94, 95]
-        assert "补全重试" in progress_updates[2][1]
-        assert "解析 JSON" in progress_updates[3][1]
+        assert "Complete retry" in progress_updates[2][1]
+        assert "parse JSON" in progress_updates[3][1]
 
     def test_analyze_persists_provider_usage_from_private_stream_hidden_usage_best_effort(self):
         analyzer = self._make_analyzer()
@@ -2065,11 +2065,11 @@ class TestAnalyzerGenerateText:
 
         parsed_result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             sentiment_score=80,
-            trend_prediction="看多",
-            operation_advice="持有",
-            analysis_summary="分析结果",
+            trend_prediction="long",
+            operation_advice="hold",
+            analysis_summary="Analyze results",
         )
 
         def stream_response():
@@ -2094,9 +2094,9 @@ class TestAnalyzerGenerateText:
              patch.object(analyzer, "_parse_response", return_value=parsed_result), \
              patch.object(analyzer, "_build_market_snapshot", return_value={}), \
              patch("src.analyzer.persist_llm_usage") as mock_usage:
-            result = analyzer.analyze({"code": "600519", "stock_name": "贵州茅台"})
+            result = analyzer.analyze({"code": "600519", "stock_name": "Kweichow Moutai"})
 
-        assert result.analysis_summary == "分析结果"
+        assert result.analysis_summary == "Analyze results"
         mock_usage.assert_called_once()
         usage_arg, model_arg = mock_usage.call_args[0]
         assert model_arg == "openai/gpt-4o-mini"
@@ -2131,11 +2131,11 @@ class TestAnalyzerGenerateText:
 
         parsed_result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             sentiment_score=80,
-            trend_prediction="看多",
-            operation_advice="持有",
-            analysis_summary="分析结果",
+            trend_prediction="long",
+            operation_advice="hold",
+            analysis_summary="Analyze results",
         )
 
         def stream_response():
@@ -2146,7 +2146,7 @@ class TestAnalyzerGenerateText:
 
         context = {
             "code": "600519",
-            "stock_name": "贵州茅台",
+            "stock_name": "Kweichow Moutai",
             "date": "2026-06-19",
             "today": {
                 "close": 1500,
@@ -2162,7 +2162,7 @@ class TestAnalyzerGenerateText:
                 "is_partial_bar": False,
             },
             "daily_market_context": {
-                "summary": "市场偏谨慎，等待量能确认。",
+                "summary": "The market is cautious，Waiting for quantity to be confirmed。",
                 "region": "cn",
                 "trade_date": "2026-06-19",
             },
@@ -2178,11 +2178,11 @@ class TestAnalyzerGenerateText:
              patch("src.analyzer.persist_llm_usage") as mock_usage:
             result = analyzer.analyze(
                 context,
-                news_context="2026-06-18 贵州茅台发布经营公告。",
-                analysis_context_pack_summary="## 分析上下文包\n- 估值处于中性区间。",
+                news_context="2026-06-18 Kweichow Moutai releases business announcement。",
+                analysis_context_pack_summary="## Analysis context package\n- Valuations are in the neutral range。",
             )
 
-        assert result.analysis_summary == "分析结果"
+        assert result.analysis_summary == "Analyze results"
         mock_usage.assert_called_once()
         usage_arg, _ = mock_usage.call_args[0]
         markers = {
@@ -2206,7 +2206,7 @@ class TestAnalyzerGenerateText:
         assert usage_arg["legacy_prompt_mode"] == "skill_aware"
         assert usage_arg["skill_config_hmac"] and len(usage_arg["skill_config_hmac"]) == 64
         assert "600519" not in usage_arg["known_dynamic_marker_positions"]
-        assert "贵州茅台" not in usage_arg["known_dynamic_marker_positions"]
+        assert "Kweichow Moutai" not in usage_arg["known_dynamic_marker_positions"]
         assert "2026-06-19" not in usage_arg["known_dynamic_marker_positions"]
 
     def test_parse_response_non_json_returns_failure(self):
@@ -2216,7 +2216,7 @@ class TestAnalyzerGenerateText:
 
         from src.analyzer import GeminiAnalyzer
 
-        result = GeminiAnalyzer._parse_response(analyzer, "这是一段纯文本分析，没有 JSON。", "600519", "贵州茅台")
+        result = GeminiAnalyzer._parse_response(analyzer, "This is a pure text analysis，No JSON。", "600519", "Kweichow Moutai")
         assert result.success is False
         assert result.error_message is not None
         assert result.code == "600519"
@@ -2243,11 +2243,11 @@ class TestAnalyzerGenerateText:
 
         valid_response = json.dumps({
             "sentiment_score": 75,
-            "trend_prediction": "看多",
-            "operation_advice": "持有",
-            "analysis_summary": "测试分析",
+            "trend_prediction": "long",
+            "operation_advice": "hold",
+            "analysis_summary": "Test analysis",
         })
-        result = GeminiAnalyzer._parse_response(analyzer, valid_response, "600519", "贵州茅台")
+        result = GeminiAnalyzer._parse_response(analyzer, valid_response, "600519", "Kweichow Moutai")
         assert result.success is True
         assert result.error_message is None
 
@@ -2261,14 +2261,14 @@ class TestAnalyzerGenerateText:
         )
 
         import json as _json
-        valid_json = _json.dumps({"sentiment_score": 70, "trend_prediction": "看多"})
+        valid_json = _json.dumps({"sentiment_score": 70, "trend_prediction": "long"})
         dispatch_calls = []
 
         def fake_dispatch(model, call_kwargs, **kwargs):
             dispatch_calls.append(model)
             if "primary" in model:
                 return SimpleNamespace(
-                    choices=[SimpleNamespace(message=SimpleNamespace(content="这不是 JSON 格式的响应"))],
+                    choices=[SimpleNamespace(message=SimpleNamespace(content="this is not JSON formatted response"))],
                     usage=None,
                 )
             return SimpleNamespace(
@@ -2301,7 +2301,7 @@ class TestAnalyzerGenerateText:
 
         def fake_dispatch(model, call_kwargs, **kwargs):
             return SimpleNamespace(
-                choices=[SimpleNamespace(message=SimpleNamespace(content="这不是 JSON 格式的响应"))],
+                choices=[SimpleNamespace(message=SimpleNamespace(content="this is not JSON formatted response"))],
                 usage=None,
             )
 
@@ -2313,7 +2313,7 @@ class TestAnalyzerGenerateText:
                     response_validator=analyzer._validate_json_response,
                 )
 
-        assert exc_info.value.last_response_text == "这不是 JSON 格式的响应"
+        assert exc_info.value.last_response_text == "this is not JSON formatted response"
 
     def test_analyze_all_models_invalid_json_goes_through_post_processing(self):
         """When all models return non-JSON, analyze() must still run integrity
@@ -2340,18 +2340,18 @@ class TestAnalyzerGenerateText:
         # _parse_response on non-JSON text produces a text fallback result
         text_fallback_result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             sentiment_score=50,
-            trend_prediction="震荡",
-            operation_advice="持有",
-            analysis_summary="部分文本摘要",
+            trend_prediction="shock",
+            operation_advice="hold",
+            analysis_summary="Partial text summary",
             success=False,
             error_message="LLM response is not valid JSON; analysis result will not be persisted",
         )
 
         all_models_error = _AllModelsFailedError(
             "all failed",
-            last_response_text="这不是 JSON，而是纯文本分析结果",
+            last_response_text="this is not JSON，Instead, it is a pure text analysis result",
             last_model="provider/fallback-model",
             last_usage={"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
         )
@@ -2372,7 +2372,7 @@ class TestAnalyzerGenerateText:
              patch("src.analyzer.persist_llm_usage") as mock_usage:
 
             result = analyzer.analyze(
-                {"code": "600519", "stock_name": "贵州茅台"},
+                {"code": "600519", "stock_name": "Kweichow Moutai"},
                 news_context="some news",
             )
 
@@ -2381,7 +2381,7 @@ class TestAnalyzerGenerateText:
 
         # _parse_response called twice (initial + retry)
         assert mock_parse.call_count == 2
-        mock_parse.assert_called_with("这不是 JSON，而是纯文本分析结果", "600519", "贵州茅台")
+        mock_parse.assert_called_with("this is not JSON，Instead, it is a pure text analysis result", "600519", "Kweichow Moutai")
 
         # Placeholder fill was applied after retry exhaustion
         mock_fill.assert_called_once()
@@ -2406,7 +2406,7 @@ class TestAnalyzerGenerateText:
 # ---------------------------------------------------------------------------
 
 class TestMarketAnalyzerBypassFix:
-    def _make_market_analyzer_with_mock_generate_text(self, return_value="复盘报告"):
+    def _make_market_analyzer_with_mock_generate_text(self, return_value="Review report"):
         """Return a MarketAnalyzer whose embedded Analyzer.generate_text is mocked."""
         from src.core.market_profile import CN_PROFILE
         from src.core.market_strategy import get_market_strategy_blueprint
@@ -2449,7 +2449,7 @@ class TestMarketAnalyzerBypassFix:
 
     def test_no_access_to_private_model_attribute(self):
         """generate_text() must be called; _model must never be accessed."""
-        ma = self._make_market_analyzer_with_mock_generate_text("复盘结果")
+        ma = self._make_market_analyzer_with_mock_generate_text("Review results")
         # Ensure _model attribute does not exist (simulates PR #494 state)
         assert not hasattr(ma.analyzer, "_model") or ma.analyzer._model is None, (
             "_model should not be set on the LiteLLM-based analyzer"
@@ -2469,7 +2469,7 @@ class TestMarketAnalyzerBypassFix:
             indices=[
                 MarketIndex(
                     code="000001",
-                    name="上证指数",
+                    name="Shanghai Composite Index",
                     current=3300.0,
                     change=5.0,
                     change_pct=0.15,
@@ -2491,7 +2491,7 @@ class TestMarketAnalyzerBypassFix:
             indices=[
                 MarketIndex(
                     code="000001",
-                    name="上证指数",
+                    name="Shanghai Composite Index",
                     current=3300.0,
                     change=5.0,
                     change_pct=0.15,
@@ -2534,7 +2534,7 @@ class TestMarketAnalyzerBypassFix:
             indices=[
                 MarketIndex(
                     code="000001",
-                    name="上证指数",
+                    name="Shanghai Composite Index",
                     current=3300.0,
                     change=5.0,
                     change_pct=0.15,
@@ -2558,7 +2558,7 @@ class TestMarketAnalyzerBypassFix:
             indices=[
                 MarketIndex(
                     code="000001",
-                    name="上证指数",
+                    name="Shanghai Composite Index",
                     current=3300.0,
                     change=5.0,
                     change_pct=0.15,
@@ -2591,13 +2591,13 @@ class TestMarketAnalyzerBypassFix:
         """generate_market_review() should request a larger output budget to avoid truncation."""
         from src.market_analyzer import MarketOverview, MarketIndex
 
-        ma = self._make_market_analyzer_with_mock_generate_text(return_value="复盘结果")
+        ma = self._make_market_analyzer_with_mock_generate_text(return_value="Review results")
         overview = MarketOverview(
             date="2026-03-05",
             indices=[
                 MarketIndex(
                     code="000001",
-                    name="上证指数",
+                    name="Shanghai Composite Index",
                     current=3300.0,
                     change=5.0,
                     change_pct=0.15,
@@ -2623,7 +2623,7 @@ class TestMarketAnalyzerBypassFix:
             indices=[
                 MarketIndex(
                     code="000001",
-                    name="上证指数",
+                    name="Shanghai Composite Index",
                     current=3300.0,
                     change=12.0,
                     change_pct=0.36,
@@ -2634,8 +2634,8 @@ class TestMarketAnalyzerBypassFix:
             limit_up_count=88,
             limit_down_count=5,
             total_amount=14567.0,
-            top_sectors=[{"name": "AI算力", "change_pct": 3.25}],
-            bottom_sectors=[{"name": "煤炭", "change_pct": -1.12}],
+            top_sectors=[{"name": "AIComputing power", "change_pct": 3.25}],
+            bottom_sectors=[{"name": "Coal", "change_pct": -1.12}],
         )
 
         result = ma.generate_market_review(overview, [])
@@ -2646,7 +2646,7 @@ class TestMarketAnalyzerBypassFix:
         assert "Turnover (CNY 100m)" in result
         assert "### 4. Sector / Theme Highlights" in result
         assert "### 6. Strategy Framework" in result
-        assert "### 一、市场总结" not in result
+        assert "### one、Market Summary" not in result
 
     def test_generate_template_review_uses_jp_title_for_english_fallback(self):
         from src.core.market_profile import JP_PROFILE
@@ -2691,7 +2691,7 @@ class TestMarketAnalyzerBypassFix:
             indices=[
                 MarketIndex(
                     code="SPX",
-                    name="标普500",
+                    name="S&P500",
                     current=5200.0,
                     change=-18.0,
                     change_pct=-0.35,
@@ -2701,19 +2701,19 @@ class TestMarketAnalyzerBypassFix:
 
         result = ma.generate_market_review(overview, [])
 
-        assert "## 2026-03-05 大盘复盘" in result
-        assert "### 一、盘面总览" in result
-        assert "今日美股市场整体呈现**小幅下跌**态势" in result
+        assert "## 2026-03-05 Market review" in result
+        assert "### one、Board overview" in result
+        assert "Overall presentation of the U.S. stock market today**Small decline**situation" in result
         assert "### 6. Strategy Framework" not in result
-        assert "### 六、策略框架" in result
+        assert "### six、strategic framework" in result
         assert "### 1. Market Summary" not in result
         assert "US Market Recap" not in result
 
     @pytest.mark.parametrize(
         ("region", "profile_name", "index_code", "index_name", "english_title", "zh_label"),
         [
-            ("jp", "JP_PROFILE", "N225", "Nikkei 225", "Japan Market Recap", "今日日股市场整体呈现"),
-            ("kr", "KR_PROFILE", "KS11", "KOSPI", "Korea Market Recap", "今日韩股市场整体呈现"),
+            ("jp", "JP_PROFILE", "N225", "Nikkei 225", "Japan Market Recap", "Overall presentation of the Japanese stock market today"),
+            ("kr", "KR_PROFILE", "KS11", "KOSPI", "Korea Market Recap", "The overall performance of the Korean stock market today"),
         ],
     )
     def test_generate_template_review_uses_jp_kr_labels_for_no_llm_fallback(
@@ -2748,7 +2748,7 @@ class TestMarketAnalyzerBypassFix:
         ma.config.report_language = "zh"
         zh_result = ma.generate_market_review(overview, [])
         assert zh_label in zh_result
-        assert "今日A股市场整体呈现" not in zh_result
+        assert "todayAOverall stock market presentation" not in zh_result
 
     def test_inject_data_into_review_matches_english_headings(self):
         from src.market_analyzer import MarketOverview, MarketIndex
@@ -2760,7 +2760,7 @@ class TestMarketAnalyzerBypassFix:
             indices=[
                 MarketIndex(
                     code="000001",
-                    name="上证指数",
+                    name="Shanghai Composite Index",
                     current=3300.0,
                     change=12.0,
                     change_pct=0.36,
@@ -2773,8 +2773,8 @@ class TestMarketAnalyzerBypassFix:
             limit_up_count=88,
             limit_down_count=5,
             total_amount=14567.0,
-            top_sectors=[{"name": "AI算力", "change_pct": 3.25}],
-            bottom_sectors=[{"name": "煤炭", "change_pct": -1.12}],
+            top_sectors=[{"name": "AIComputing power", "change_pct": 3.25}],
+            bottom_sectors=[{"name": "Coal", "change_pct": -1.12}],
         )
         review = """## 2026-03-05 A-share Market Recap
 
@@ -2795,9 +2795,9 @@ Sector text.
         assert "Turnover 14567 (CNY 100m)" in result
         assert "| Index | Last | Change % | Open | High | Low | Amplitude | Turnover (CNY 100m) |" in result
         assert "#### Leading Industry Sectors" in result
-        assert "| 1 | AI算力 | +3.25% |" in result
+        assert "| 1 | AIComputing power | +3.25% |" in result
         assert "#### Lagging Industry Sectors" in result
-        assert "| 1 | 煤炭 | -1.12% |" in result
+        assert "| 1 | Coal | -1.12% |" in result
 
     def test_inject_data_into_review_matches_reference_style_chinese_headings(self):
         from src.market_analyzer import MarketOverview, MarketIndex
@@ -2808,7 +2808,7 @@ Sector text.
             indices=[
                 MarketIndex(
                     code="000001",
-                    name="上证指数",
+                    name="Shanghai Composite Index",
                     current=3300.0,
                     change=12.0,
                     change_pct=0.36,
@@ -2825,51 +2825,51 @@ Sector text.
             limit_up_count=88,
             limit_down_count=5,
             total_amount=14567.0,
-            top_sectors=[{"name": "AI算力", "change_pct": 3.25}],
-            bottom_sectors=[{"name": "煤炭", "change_pct": -1.12}],
+            top_sectors=[{"name": "AIComputing power", "change_pct": 3.25}],
+            bottom_sectors=[{"name": "Coal", "change_pct": -1.12}],
         )
-        news = [{"title": "AI算力板块走强", "snippet": "算力产业链延续活跃，成交额放大"}]
-        review = """## 2026-03-05 大盘复盘
+        news = [{"title": "AIComputing power sector strengthens", "snippet": "The computing power industry chain continues to be active，Increased transaction volume"}]
+        review = """## 2026-03-05 Market review
 
-### 一、盘面总览
-总结。
+### one、Board overview
+Summary。
 
-### 二、指数结构
-指数。
+### two、exponential structure
+Index。
 
-### 三、板块主线
-板块。
+### three、Sector main line
+plate。
 
-### 五、消息催化
-新闻。
+### five、News catalysis
+News。
 """
 
         result = ma._inject_data_into_review(review, overview, news)
 
-        assert "盘面信号" in result
-        assert "66/100（偏暖，可进攻）" in result
-        assert "绿灯（可进攻）" not in result
-        assert "大盘红绿灯" not in result
-        assert "green（可进攻）" not in result
-        assert "信号依据" in result
-        signal_line = next(line for line in result.splitlines() if "**盘面信号**" in line)
-        drivers_line = next(line for line in result.splitlines() if "**信号依据**" in line)
+        assert "Disk signal" in result
+        assert "66/100（warmer，Can attack）" in result
+        assert "green light（Can attack）" not in result
+        assert "Large market traffic light" not in result
+        assert "green（Can attack）" not in result
+        assert "Signal basis" in result
+        signal_line = next(line for line in result.splitlines() if "**Disk signal**" in line)
+        drivers_line = next(line for line in result.splitlines() if "**Signal basis**" in line)
         assert signal_line.startswith("- ")
         assert "66/100" in signal_line
         assert "█" not in result
         assert "░" not in result
-        assert "盘面温度" not in drivers_line
-        assert "操作建议" in result
-        assert "盘面温度" not in result
-        assert "| 上涨/下跌/平盘 | 3200 / 1800 / 100 |" in result
-        assert "| 指数 | 最新 | 涨跌幅 | 开盘 | 最高 | 最低 | 振幅 | 成交额(亿) |" in result
-        assert "| 上证指数 | 3300.00 | 🟢 +0.36% | 3288.00 | 3312.00 | 3276.00 | 1.10% | 1450 |" in result
-        assert "#### 行业板块领涨 Top 5" in result
-        assert "| 1 | AI算力 | +3.25% |" in result
-        assert "#### 近三日市场线索" not in result
-        assert "AI算力板块走强" not in result
-        assert "新闻。" in result
-        assert "算力产业链延续活跃" not in result
+        assert "Disk temperature" not in drivers_line
+        assert "Operation suggestions" in result
+        assert "Disk temperature" not in result
+        assert "| rise/fall/Flat plate | 3200 / 1800 / 100 |" in result
+        assert "| Index | Latest | Increase or decrease | Open | highest | lowest | Amplitude | Turnover(billion) |" in result
+        assert "| Shanghai Composite Index | 3300.00 | 🟢 +0.36% | 3288.00 | 3312.00 | 3276.00 | 1.10% | 1450 |" in result
+        assert "#### Industry sectors led gains Top 5" in result
+        assert "| 1 | AIComputing power | +3.25% |" in result
+        assert "#### Market clues in the past three days" not in result
+        assert "AIComputing power sector strengthens" not in result
+        assert "News。" in result
+        assert "The computing power industry chain continues to be active" not in result
 
     def test_inject_data_into_review_appends_sector_block_when_heading_drifts(self):
         from src.market_analyzer import MarketOverview
@@ -2877,38 +2877,38 @@ Sector text.
         ma = self._make_market_analyzer_with_mock_generate_text(return_value="review")
         overview = MarketOverview(
             date="2026-03-05",
-            top_sectors=[{"name": "AI算力", "change_pct": 3.25}],
-            bottom_sectors=[{"name": "煤炭", "change_pct": -1.12}],
+            top_sectors=[{"name": "AIComputing power", "change_pct": 3.25}],
+            bottom_sectors=[{"name": "Coal", "change_pct": -1.12}],
         )
-        review = """## 2026-03-05 大盘复盘
+        review = """## 2026-03-05 Market review
 
-### 今日主线观察
-正文。
+### Today’s main line observation
+Text。
 """
 
         result = ma._inject_data_into_review(review, overview)
 
-        assert "### 三、板块主线" in result
-        assert "#### 行业板块领涨 Top 5" in result
-        assert "| 1 | AI算力 | +3.25% |" in result
-        assert "#### 行业板块领跌 Top 5" in result
-        assert "| 1 | 煤炭 | -1.12% |" in result
+        assert "### three、Sector main line" in result
+        assert "#### Industry sectors led gains Top 5" in result
+        assert "| 1 | AIComputing power | +3.25% |" in result
+        assert "#### Industry sectors led the decline Top 5" in result
+        assert "| 1 | Coal | -1.12% |" in result
 
     def test_market_review_payload_sections_skip_top_report_title(self):
         from src.market_analyzer import MarketAnalyzer
 
         ma = MarketAnalyzer.__new__(MarketAnalyzer)
-        sections = ma._split_report_sections("""## 2026-06-03 大盘复盘
+        sections = ma._split_report_sections("""## 2026-06-03 Market review
 
-> 今日指数分化。
+> Today’s index differentiation。
 
-### 一、盘面总览
-正文
+### one、Board overview
+Text
 """)
 
         assert sections[0]["key"] == "overview"
-        assert "今日指数分化" in sections[0]["markdown"]
-        assert all(section["title"] != "2026-06-03 大盘复盘" for section in sections)
+        assert "Today’s index differentiation" in sections[0]["markdown"]
+        assert all(section["title"] != "2026-06-03 Market review" for section in sections)
 
     def test_news_block_renders_title_source_and_link_only(self):
         from src.market_analyzer import MarketAnalyzer
@@ -2917,28 +2917,28 @@ Sector text.
         ma.config = SimpleNamespace(report_language="zh")
         ma.region = "cn"
         long_snippet = (
-            "复盘必读 2026-05-06 复盘的意义在于更清晰地把握市场脉搏，"
-            "综合描述 A 股三大指数今日集体反弹，成交额放大，科技成长方向领涨。"
+            "Must read for review 2026-05-06 The significance of review is to grasp the pulse of the market more clearly，"
+            "Comprehensive description A The three major stock indexes collectively rebounded today，Increased transaction volume，Technology growth leads the way。"
         )
 
         result = ma._build_news_block([
             {
-                "title": "A股收评：科创50指数放量反弹涨5.47% 两市成交额重回3万亿元",
+                "title": "Astock closing comments：Science and Technology50Index rebounds on heavy volume5.47% The turnover of the two cities returned to3trillion yuan",
                 "snippet": long_snippet,
-                "source": "东方财富",
+                "source": "Oriental Fortune",
                 "published_date": "2026-05-06",
                 "url": "https://example.com/news/1",
             }
         ])
 
-        assert "#### 近三日市场线索" in result
-        assert "| 序号 |" not in result
-        assert "摘要/线索片段" not in result
-        assert "关注点" not in result
-        assert "成交额放大" not in result
+        assert "#### Market clues in the past three days" in result
+        assert "| serial number |" not in result
+        assert "Summary/clue fragment" not in result
+        assert "focus" not in result
+        assert "Increased transaction volume" not in result
         assert (
-            "- 1. [A股收评：科创50指数放量反弹涨5.47% 两市成交额重回3万亿元]"
-            "(https://example.com/news/1)（东方财富 / 2026-05-06）"
+            "- 1. [Astock closing comments：Science and Technology50Index rebounds on heavy volume5.47% The turnover of the two cities returned to3trillion yuan]"
+            "(https://example.com/news/1)（Oriental Fortune / 2026-05-06）"
         ) in result
 
     def test_news_block_uses_dash_when_source_metadata_missing(self):
@@ -2950,14 +2950,14 @@ Sector text.
 
         result = ma._build_news_block([
             {
-                "title": "政策利好带动板块活跃",
-                "snippet": "相关主题成交放大",
+                "title": "Favorable policies drive activity in the sector",
+                "snippet": "Related topics transaction amplification",
             }
         ])
 
-        assert "- 1. 政策利好带动板块活跃" in result
-        assert "相关主题成交放大" not in result
-        assert "| 1 | 政策利好带动板块活跃 |" not in result
+        assert "- 1. Favorable policies drive activity in the sector" in result
+        assert "Related topics transaction amplification" not in result
+        assert "| 1 | Favorable policies drive activity in the sector |" not in result
 
     def test_news_block_uses_english_metadata_punctuation(self):
         from src.market_analyzer import MarketAnalyzer
@@ -2992,9 +2992,9 @@ Sector text.
             MarketOverview(date="2026-05-06"),
             [
                 {
-                    "title": "A股收评：指数放量反弹",
-                    "snippet": "科技成长方向领涨",
-                    "source": "测试来源",
+                    "title": "Astock closing comments：Index rebounds on heavy volume",
+                    "snippet": "Technology growth leads the way",
+                    "source": "Test source",
                     "published_date": "2026-05-06",
                     "url": long_url,
                 }
@@ -3012,8 +3012,8 @@ Sector text.
         overview = MarketOverview(
             date="2026-03-06",
             indices=[
-                MarketIndex(code="000001", name="上证指数", current=3200, change_pct=-1.8),
-                MarketIndex(code="399001", name="深证成指", current=9800, change_pct=-2.4),
+                MarketIndex(code="000001", name="Shanghai Composite Index", current=3200, change_pct=-1.8),
+                MarketIndex(code="399001", name="Shenzhen Component Index", current=9800, change_pct=-2.4),
             ],
             up_count=900,
             down_count=4100,
@@ -3025,7 +3025,7 @@ Sector text.
         snapshot = ma.build_market_light_snapshot(overview)
 
         assert snapshot["status"] == "red"
-        assert snapshot["label"] == "偏防守"
+        assert snapshot["label"] == "Defensive"
         assert snapshot["score"] < 40
         assert snapshot["region"] == "cn"
         assert snapshot["trade_date"] == "2026-03-06"
@@ -3033,7 +3033,7 @@ Sector text.
         assert snapshot["dimensions"]["breadth"]["available"] is True
         assert snapshot["dimensions"]["index"]["available"] is True
         assert snapshot["dimensions"]["limit"]["available"] is True
-        assert any("亏钱效应" in reason for reason in snapshot["reasons"])
+        assert any("money-losing effect" in reason for reason in snapshot["reasons"])
 
     def test_market_light_snapshot_uses_english_labels_and_reasons(self):
         from src.market_analyzer import MarketIndex, MarketOverview
@@ -3121,7 +3121,7 @@ Sector text.
         from src.core.market_profile import US_PROFILE
         from src.market_analyzer import MarketIndex, MarketOverview
 
-        ma = self._make_market_analyzer_with_mock_generate_text(return_value="复盘结果")
+        ma = self._make_market_analyzer_with_mock_generate_text(return_value="Review results")
         ma.region = "us"
         ma.profile = US_PROFILE
 
@@ -3138,7 +3138,7 @@ Sector text.
                 total_amount=9800.0,
             ),
             [],
-            "美股复盘报告",
+            "US stock market review report",
             market_light_snapshot={"dimensions": {"breadth": {"score": 60, "available": True}}},
         )
 
@@ -3148,12 +3148,12 @@ Sector text.
     def test_market_review_payload_omits_breadth_for_cn_market_without_available_stats(self):
         from src.market_analyzer import MarketIndex, MarketOverview
 
-        ma = self._make_market_analyzer_with_mock_generate_text(return_value="复盘结果")
+        ma = self._make_market_analyzer_with_mock_generate_text(return_value="Review results")
         payload = ma.build_market_review_payload(
             MarketOverview(
                 date="2026-03-18",
                 indices=[
-                    MarketIndex(code="000001", name="上证指数", current=3200.0, change_pct=0.6),
+                    MarketIndex(code="000001", name="Shanghai Composite Index", current=3200.0, change_pct=0.6),
                 ],
                 up_count=0,
                 down_count=0,
@@ -3163,22 +3163,22 @@ Sector text.
                 total_amount=0.0,
             ),
             [],
-            "A股复盘报告",
+            "AStock review report",
             market_light_snapshot={"dimensions": {"breadth": {"score": 55, "available": False}}},
         )
 
         assert "breadth" not in payload
-        assert payload["indices"][0]["name"] == "上证指数"
+        assert payload["indices"][0]["name"] == "Shanghai Composite Index"
 
     def test_market_review_payload_includes_breadth_only_when_stats_available(self):
         from src.market_analyzer import MarketIndex, MarketOverview
 
-        ma = self._make_market_analyzer_with_mock_generate_text(return_value="复盘结果")
+        ma = self._make_market_analyzer_with_mock_generate_text(return_value="Review results")
         payload = ma.build_market_review_payload(
             MarketOverview(
                 date="2026-03-18",
                 indices=[
-                    MarketIndex(code="000001", name="上证指数", current=3200.0, change_pct=0.6),
+                    MarketIndex(code="000001", name="Shanghai Composite Index", current=3200.0, change_pct=0.6),
                 ],
                 up_count=1200,
                 down_count=900,
@@ -3188,7 +3188,7 @@ Sector text.
                 total_amount=12345.0,
             ),
             [],
-            "A股复盘报告",
+            "AStock review report",
             market_light_snapshot={"dimensions": {"breadth": {"score": 62, "available": True}}},
         )
 
@@ -3201,16 +3201,16 @@ Sector text.
     def test_market_review_includes_concept_rankings_in_prompt_payload_and_tables(self):
         from src.market_analyzer import MarketIndex, MarketOverview
 
-        ma = self._make_market_analyzer_with_mock_generate_text(return_value="复盘结果")
+        ma = self._make_market_analyzer_with_mock_generate_text(return_value="Review results")
         overview = MarketOverview(
             date="2026-03-18",
             indices=[
-                MarketIndex(code="000001", name="上证指数", current=3200.0, change_pct=0.6),
+                MarketIndex(code="000001", name="Shanghai Composite Index", current=3200.0, change_pct=0.6),
             ],
-            top_sectors=[{"name": "半导体", "change_pct": 2.35}],
-            bottom_sectors=[{"name": "煤炭", "change_pct": -1.1}],
-            top_concepts=[{"name": "机器人概念", "change_pct": 4.2}],
-            bottom_concepts=[{"name": "转基因", "change_pct": -2.05}],
+            top_sectors=[{"name": "Semiconductor", "change_pct": 2.35}],
+            bottom_sectors=[{"name": "Coal", "change_pct": -1.1}],
+            top_concepts=[{"name": "Robot concept", "change_pct": 4.2}],
+            bottom_concepts=[{"name": "transgenic", "change_pct": -2.05}],
         )
 
         prompt = ma._build_review_prompt(overview, [])
@@ -3218,16 +3218,16 @@ Sector text.
         payload = ma.build_market_review_payload(
             overview,
             [],
-            "A股复盘报告",
+            "AStock review report",
             market_light_snapshot={"dimensions": {"breadth": {"score": 55, "available": False}}},
         )
 
-        assert "行业领涨: 半导体(+2.35%)" in prompt
-        assert "概念领涨: 机器人概念(+4.20%)" in prompt
-        assert "#### 概念板块领涨 Top 5" in table_block
-        assert "| 1 | 机器人概念 | +4.20% |" in table_block
-        assert payload["sectors"]["top"][0]["name"] == "半导体"
-        assert payload["concepts"]["top"][0]["name"] == "机器人概念"
+        assert "Industry leads the gains: Semiconductor(+2.35%)" in prompt
+        assert "Concepts lead the rally: Robot concept(+4.20%)" in prompt
+        assert "#### Concept sectors led gains Top 5" in table_block
+        assert "| 1 | Robot concept | +4.20% |" in table_block
+        assert payload["sectors"]["top"][0]["name"] == "Semiconductor"
+        assert payload["concepts"]["top"][0]["name"] == "Robot concept"
 
     def test_us_english_indices_do_not_label_turnover_as_cny(self):
         from src.core.market_profile import US_PROFILE
@@ -3267,17 +3267,17 @@ Sector text.
         overview = MarketOverview(
             date="2026-03-05",
             indices=[
-                MarketIndex(code="000001", name="上证指数", current=3200.0, change_pct=0.68),
-                MarketIndex(code="399001", name="深证成指", current=9800.0, change_pct=-0.42),
-                MarketIndex(code="399006", name="创业板指", current=2100.0, change_pct=0.0),
+                MarketIndex(code="000001", name="Shanghai Composite Index", current=3200.0, change_pct=0.68),
+                MarketIndex(code="399001", name="Shenzhen Component Index", current=9800.0, change_pct=-0.42),
+                MarketIndex(code="399006", name="GEM Index", current=2100.0, change_pct=0.0),
             ],
         )
 
         result = ma._build_indices_block(overview)
 
-        assert "| 上证指数 | 3200.00 | 🔴 +0.68% |" in result
-        assert "| 深证成指 | 9800.00 | 🟢 -0.42% |" in result
-        assert "| 创业板指 | 2100.00 | ⚪ +0.00% |" in result
+        assert "| Shanghai Composite Index | 3200.00 | 🔴 +0.68% |" in result
+        assert "| Shenzhen Component Index | 9800.00 | 🟢 -0.42% |" in result
+        assert "| GEM Index | 2100.00 | ⚪ +0.00% |" in result
 
     def test_indices_block_keeps_green_up_default_color_scheme(self):
         from src.market_analyzer import MarketOverview, MarketIndex
@@ -3286,15 +3286,15 @@ Sector text.
         overview = MarketOverview(
             date="2026-03-05",
             indices=[
-                MarketIndex(code="000001", name="上证指数", current=3200.0, change_pct=0.68),
-                MarketIndex(code="399001", name="深证成指", current=9800.0, change_pct=-0.42),
+                MarketIndex(code="000001", name="Shanghai Composite Index", current=3200.0, change_pct=0.68),
+                MarketIndex(code="399001", name="Shenzhen Component Index", current=9800.0, change_pct=-0.42),
             ],
         )
 
         result = ma._build_indices_block(overview)
 
-        assert "| 上证指数 | 3200.00 | 🟢 +0.68% |" in result
-        assert "| 深证成指 | 9800.00 | 🔴 -0.42% |" in result
+        assert "| Shanghai Composite Index | 3200.00 | 🟢 +0.68% |" in result
+        assert "| Shenzhen Component Index | 9800.00 | 🔴 -0.42% |" in result
 
     def test_no_private_attribute_access_in_market_analyzer_source(self):
         """Static guard: market_analyzer.py must not access private analyzer attrs."""

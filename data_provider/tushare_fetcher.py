@@ -508,7 +508,7 @@ class TushareFetcher(BaseFetcher):
             error_msg = str(e).lower()
             
             # Detect quota exceedance
-            if any(keyword in error_msg for keyword in ['quota', '配额', 'limit', '权限']):
+            if any(keyword in error_msg for keyword in ['quota', 'Quota', 'limit', 'Permissions']):
                 logger.warning(f"Tushare Quota may be exceeded: {e}")
                 raise RateLimitError(f"Tushare Quota exceeded: {e}") from e
             
@@ -938,11 +938,11 @@ class TushareFetcher(BaseFetcher):
             
             # 1. latest price：latest price、Collected yesterday
             # Compatible with column names returned by different interfaces sina/em efinance tushare xtdata
-            code_col = next((c for c in ['代码', '股票代码', 'ts_code','stock_code'] if c in df.columns), None)
-            name_col = next((c for c in ['名称', '股票名称','name','name'] if c in df.columns), None)
-            close_col = next((c for c in ['最新价', '最新价', 'close','lastPrice'] if c in df.columns), None)
-            pre_close_col = next((c for c in ['昨收', '昨日收盘', 'pre_close','lastClose'] if c in df.columns), None)
-            amount_col = next((c for c in ['成交额', '成交额', 'amount','amount'] if c in df.columns), None) 
+            code_col = next((c for c in ['code', 'Stock code', 'ts_code','stock_code'] if c in df.columns), None)
+            name_col = next((c for c in ['Name', 'Stock name','name','name'] if c in df.columns), None)
+            close_col = next((c for c in ['latest price', 'latest price', 'close','lastPrice'] if c in df.columns), None)
+            pre_close_col = next((c for c in ['Collected yesterday', "Yesterday's closing", 'pre_close','lastClose'] if c in df.columns), None)
+            amount_col = next((c for c in ['Turnover', 'Turnover', 'amount','amount'] if c in df.columns), None) 
             
             limit_up_count = 0
             limit_down_count = 0
@@ -1102,7 +1102,7 @@ class TushareFetcher(BaseFetcher):
         try:
             df = self._call_api_with_rate_limit("moneyflow_ind_dc", trade_date=start_date)
             if df is not None and not df.empty:
-                df = df[df['content_type'] == '行业']  # Filter for industry sectors
+                df = df[df['content_type'] == 'Industry']  # Filter for industry sectors
                 change_col = 'pct_change'
                 name = 'name'
                 if change_col in df.columns:
@@ -1175,14 +1175,14 @@ class TushareFetcher(BaseFetcher):
                 chip = ChipDistribution(
                     code=stock_code,
                     date=datetime.strptime(start_date, '%Y%m%d').strftime('%Y-%m-%d'),
-                    profit_ratio=metrics['获利比例'],
-                    avg_cost=metrics['平均成本'],
-                    cost_90_low=metrics['90成本-低'],
-                    cost_90_high=metrics['90成本-高'],
-                    concentration_90=metrics['90集中度'],
-                    cost_70_low=metrics['70成本-低'],
-                    cost_70_high=metrics['70成本-高'],
-                    concentration_70=metrics['70集中度'],
+                    profit_ratio=metrics['Profit ratio'],
+                    avg_cost=metrics['average cost'],
+                    cost_90_low=metrics['90cost-low'],
+                    cost_90_high=metrics['90cost-high'],
+                    concentration_90=metrics['90Concentration'],
+                    cost_70_low=metrics['70cost-low'],
+                    cost_70_high=metrics['70cost-high'],
+                    concentration_70=metrics['70Concentration'],
                 )
                 
                 logger.info(f"[Chip distribution] {stock_code} date={chip.date}: Profit ratio={chip.profit_ratio:.1%}, "

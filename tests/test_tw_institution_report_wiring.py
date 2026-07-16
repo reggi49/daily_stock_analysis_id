@@ -31,7 +31,7 @@ _TW_FETCHER_METHOD = (
 _FAKE_REC = {
     "stock_code": "2330",
     "date": "20260629",
-    "market": "上市",
+    "market": "Listed",
     "source": "TWSE-T86",
     "unit": "shares",
     "foreign_net": -1912490,

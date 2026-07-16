@@ -297,19 +297,19 @@ def _extract_guardrail_reason(
                 ]
             )
         hints = (
-            "等待",
-            "待",
-            "需要确认",
-            "缺少确认",
-            "未确认",
-            "回踩",
-            "支撑",
-            "压力",
-            "风险",
-            "资金",
-            "突破",
-            "不追",
-            "不宜",
+            "wait",
+            "Wait",
+            "Need confirmation",
+            "Missing confirmation",
+            "Not confirmed",
+            "Dislike",
+            "support",
+            "pressure",
+            "risk",
+            "funds",
+            "breakthrough",
+            "Don't chase",
+            "Not suitable",
         )
         for candidate in candidates:
             text = str(candidate or "").strip()
@@ -324,12 +324,12 @@ def _extract_guardrail_reason(
 def _confidence_from_level(value: Any) -> Optional[float]:
     key = str(value or "").strip().lower()
     mapping = {
-        "高": 0.8,
         "high": 0.8,
-        "中": 0.6,
+        "high": 0.8,
+        "in": 0.6,
         "medium": 0.6,
         "mid": 0.6,
-        "低": 0.4,
+        "low": 0.4,
         "low": 0.4,
     }
     return mapping.get(key)

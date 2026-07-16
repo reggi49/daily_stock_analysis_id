@@ -31,7 +31,7 @@ def parse_sniper_value(value: Any) -> Optional[float]:
         pass
 
     colon_pos = max(text.rfind("："), text.rfind(":"))
-    yuan_pos = text.find("元", colon_pos + 1 if colon_pos != -1 else 0)
+    yuan_pos = text.find("Yuan", colon_pos + 1 if colon_pos != -1 else 0)
     if yuan_pos != -1:
         segment_start = colon_pos + 1 if colon_pos != -1 else 0
         segment = text[segment_start:yuan_pos]

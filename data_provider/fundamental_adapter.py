@@ -111,8 +111,8 @@ def _parse_dividend_plan_to_per_share(plan_text: str) -> Optional[float]:
         return None
 
     for pattern in (
-        r"(?:每)?\s*10\s*股?\s*派(?:发)?\s*([0-9]+(?:\.[0-9]+)?)\s*元",
-        r"10\s*派\s*([0-9]+(?:\.[0-9]+)?)\s*元",
+        r"(?:every)?\s*10\s*shares?\s*send(?:send)?\s*([0-9]+(?:\.[0-9]+)?)\s*Yuan",
+        r"10\s*send\s*([0-9]+(?:\.[0-9]+)?)\s*Yuan",
     ):
         match = re.search(pattern, text)
         if match:
@@ -120,7 +120,7 @@ def _parse_dividend_plan_to_per_share(plan_text: str) -> Optional[float]:
             if parsed is not None and parsed > 0:
                 return parsed / 10.0
 
-    match_per_share = re.search(r"每\s*股\s*派(?:发)?\s*([0-9]+(?:\.[0-9]+)?)\s*元", text)
+    match_per_share = re.search(r"every\s*shares\s*send(?:send)?\s*([0-9]+(?:\.[0-9]+)?)\s*Yuan", text)
     if match_per_share:
         parsed = _safe_float(match_per_share.group(1))
         if parsed is not None and parsed > 0:
@@ -312,15 +312,15 @@ class AkshareFundamentalAdapter:
         if fin_df is not None:
             row = _extract_latest_row(fin_df, stock_code)
             if row is not None:
-                revenue_yoy = _safe_float(_pick_by_keywords(row, ["营业收入同比", "营收同比", "收入同比", "同比增长"]))
-                profit_yoy = _safe_float(_pick_by_keywords(row, ["净利润同比", "净利同比", "归母净利润同比"]))
-                roe = _safe_float(_pick_by_keywords(row, ["净资产收益率", "ROE", "净资产收益"]))
-                gross_margin = _safe_float(_pick_by_keywords(row, ["毛利率"]))
+                revenue_yoy = _safe_float(_pick_by_keywords(row, ["Operating income year-on-year", "Year-on-year revenue", "Revenue year-on-year", "year-on-year growth"]))
+                profit_yoy = _safe_float(_pick_by_keywords(row, ["Net profit year-on-year", "Net profit year-on-year", "Net profit attributable to parent company year-on-year"]))
+                roe = _safe_float(_pick_by_keywords(row, ["ROE", "ROE", "net asset income"]))
+                gross_margin = _safe_float(_pick_by_keywords(row, ["Gross profit margin"]))
                 report_date = _normalize_report_date(_pick_by_keywords(row, _DIVIDEND_KEYWORD_MAP["report_date"]))
-                revenue = _safe_float(_pick_by_keywords(row, ["营业总收入", "营业收入", "营收"]))
-                net_profit_parent = _safe_float(_pick_by_keywords(row, ["归母净利润", "母公司股东净利润", "净利润"]))
+                revenue = _safe_float(_pick_by_keywords(row, ["total operating income", "operating income", "revenue"]))
+                net_profit_parent = _safe_float(_pick_by_keywords(row, ["Net profit attributable to parent company", "Parent company shareholders’ net profit", "net profit"]))
                 operating_cash_flow = _safe_float(
-                    _pick_by_keywords(row, ["经营活动产生的现金流量净额", "经营现金流", "经营活动现金流"])
+                    _pick_by_keywords(row, ["Net cash flow from operating activities", "operating cash flow", "cash flow from operating activities"])
                 )
                 result["growth"] = {
                     "revenue_yoy": revenue_yoy,
@@ -351,7 +351,7 @@ class AkshareFundamentalAdapter:
             row = _extract_latest_row(forecast_df, stock_code)
             if row is not None:
                 result["earnings"]["forecast_summary"] = _safe_str(
-                    _pick_by_keywords(row, ["预告", "业绩变动", "内容", "摘要", "公告"])
+                    _pick_by_keywords(row, ["Preview", "Performance changes", "content", "Summary", "Announcement"])
                 )[:200]
                 result["source_chain"].append(f"earnings_forecast:{forecast_source}")
 
@@ -365,14 +365,14 @@ class AkshareFundamentalAdapter:
             row = _extract_latest_row(quick_df, stock_code)
             if row is not None:
                 result["earnings"]["quick_report_summary"] = _safe_str(
-                    _pick_by_keywords(row, ["快报", "摘要", "公告", "说明"])
+                    _pick_by_keywords(row, ["Express", "Summary", "Announcement", "Description"])
                 )[:200]
                 result["source_chain"].append(f"earnings_quick:{quick_source}")
 
         # Dividend details (cash dividend, pre-tax)
         dividend_df, dividend_source, dividend_errors = self._call_df_candidates([
             ("stock_fhps_detail_em", {"symbol": stock_code}),
-            ("stock_history_dividend_detail", {"symbol": stock_code, "indicator": "分红", "date": ""}),
+            ("stock_history_dividend_detail", {"symbol": stock_code, "indicator": "dividend", "date": ""}),
             ("stock_dividend_cninfo", {"symbol": stock_code}),
         ])
         result["errors"].extend(dividend_errors)
@@ -391,7 +391,7 @@ class AkshareFundamentalAdapter:
         if inst_df is not None:
             row = _extract_latest_row(inst_df, stock_code)
             if row is not None:
-                inst_change = _safe_float(_pick_by_keywords(row, ["增减", "变化", "变动", "持股变化"]))
+                inst_change = _safe_float(_pick_by_keywords(row, ["increase or decrease", "change", "change", "Changes in shareholdings"]))
                 result["institution"]["institution_holding_change"] = inst_change
                 result["source_chain"].append(f"institution:{inst_source}")
 
@@ -405,7 +405,7 @@ class AkshareFundamentalAdapter:
         if top10_df is not None:
             row = _extract_latest_row(top10_df, stock_code)
             if row is not None:
-                holder_change = _safe_float(_pick_by_keywords(row, ["增减", "变化", "持股变化", "变动"]))
+                holder_change = _safe_float(_pick_by_keywords(row, ["increase or decrease", "change", "Changes in shareholdings", "change"]))
                 result["institution"]["top10_holder_change"] = holder_change
                 result["source_chain"].append(f"top10:{top10_source}")
 
@@ -436,9 +436,9 @@ class AkshareFundamentalAdapter:
         if stock_df is not None:
             row = _extract_latest_row(stock_df, stock_code)
             if row is not None:
-                net_inflow = _safe_float(_pick_by_keywords(row, ["主力净流入", "净流入", "净额"]))
-                inflow_5d = _safe_float(_pick_by_keywords(row, ["5日", "五日"]))
-                inflow_10d = _safe_float(_pick_by_keywords(row, ["10日", "十日"]))
+                net_inflow = _safe_float(_pick_by_keywords(row, ["Main net inflow", "net inflow", "net amount"]))
+                inflow_5d = _safe_float(_pick_by_keywords(row, ["5day", "five days"]))
+                inflow_10d = _safe_float(_pick_by_keywords(row, ["10day", "ten days"]))
                 result["stock_flow"] = {
                     "main_net_inflow": net_inflow,
                     "inflow_5d": inflow_5d,

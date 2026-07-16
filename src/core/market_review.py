@@ -37,11 +37,11 @@ logger = logging.getLogger(__name__)
 MARKET_REVIEW_HISTORY_CODE = "MARKET"
 MARKET_REVIEW_REPORT_TYPE = "market_review"
 _MARKET_REVIEW_MARKETS = (
-    ('cn', 'cn_title', 'A 股'),
-    ('hk', 'hk_title', '港股'),
-    ('us', 'us_title', '美股'),
-    ('jp', 'jp_title', '日股'),
-    ('kr', 'kr_title', '韩股'),
+    ('cn', 'cn_title', 'A shares'),
+    ('hk', 'hk_title', 'Hong Kong stocks'),
+    ('us', 'us_title', 'US stocks'),
+    ('jp', 'jp_title', 'Japanese stocks'),
+    ('kr', 'kr_title', 'Korean stocks'),
 )
 _MARKET_REVIEW_REGION_ORDER = tuple(market for market, _, _ in _MARKET_REVIEW_MARKETS)
 _VALID_MARKET_REVIEW_REGIONS = frozenset(_MARKET_REVIEW_REGION_ORDER)
@@ -140,7 +140,7 @@ def _get_market_review_text(language: str) -> dict[str, str]:
         "hk_title": "# HK Market Review",
         "jp_title": "# Japan Market Review",
         "kr_title": "# Korea Market Review",
-        "separator": "> 以下为下一市场Market Review",
+        "separator": "> The following is the next marketMarket Review",
     }
 
 
@@ -196,7 +196,7 @@ def run_market_review(
         send_notification: Whether to send notifications
         merge_notification: Whether to merge notifications (skips this push, main layer merges individual stock + market review for unified send, Issue #190)
         override_region: Override config market_review_region (effective subset after Issue #373 trading-day filter)
-        query_id: 历史记录关联 ID；API The following is the next market task_id，CLI/Bot The following is the next market
+        query_id: History association ID；API The following is the next market task_id，CLI/Bot The following is the next market
         save_report_file: Whether to save Markdown file; can be disabled for context-generation paths to avoid multi-region temp review overlap
         persist_history: Whether to write to analysis_history; warmup paths can be disabled to avoid overwriting user-visible same-day market review records
         trigger_source: Trigger source, used for log diagnostics (cli/schedule/api/bot/service etc.)
@@ -650,7 +650,7 @@ def _render_sector_payload_markdown_block(
     if not sector_block:
         return ""
     language = normalize_report_language(payload.get("language"))
-    title = "Sector Highlights" if language == "en" else "板块主线"
+    title = "Sector Highlights" if language == "en" else "Sector main line"
     heading = f"{title_prefix} / {title}" if title_prefix else title
     return f"### {heading}\n\n{sector_block}".strip()
 
@@ -660,7 +660,7 @@ def _markdown_has_sector_table(markdown: Any, *, title_prefix: str = "") -> bool
     if title_prefix:
         title = title_prefix.strip()
         prefixed_markers = (
-            f"### {title} / 板块主线",
+            f"### {title} / Sector main line",
             f"### {title} / Sector Highlights",
         )
         if any(marker in text for marker in prefixed_markers):
@@ -707,8 +707,8 @@ def _markdown_contains_sector_markers(text: str) -> bool:
         "#### Lagging Sectors",
         "#### Leading Industry Sectors",
         "#### Lagging Industry Sectors",
-        "| 排名 | plate |",
-        "| 排名 | Industry sector |",
+        "| Ranking | plate |",
+        "| Ranking | Industry sector |",
         "| Rank | Sector |",
     )
     return any(marker in text for marker in markers)
@@ -729,7 +729,7 @@ def _render_sector_payload_block(payload: Dict[str, Any]) -> str:
         if language == "en":
             lines.extend(["#### Leading Sectors", "| Rank | Sector | Change |", "|------|--------|--------|"])
         else:
-            lines.extend(["#### Leading sectors Top 5", "| 排名 | plate | 涨跌幅 |", "|------|------|--------|"])
+            lines.extend(["#### Leading sectors Top 5", "| Ranking | plate | Increase or decrease |", "|------|------|--------|"])
         for rank, sector in enumerate(top[:5], 1):
             if not isinstance(sector, dict):
                 continue
@@ -741,7 +741,7 @@ def _render_sector_payload_block(payload: Dict[str, Any]) -> str:
         if language == "en":
             lines.extend(["#### Lagging Sectors", "| Rank | Sector | Change |", "|------|--------|--------|"])
         else:
-            lines.extend(["#### Leading the decline in sectors Top 5", "| 排名 | plate | 涨跌幅 |", "|------|------|--------|"])
+            lines.extend(["#### Leading the decline in sectors Top 5", "| Ranking | plate | Increase or decrease |", "|------|------|--------|"])
         for rank, sector in enumerate(bottom[:5], 1):
             if not isinstance(sector, dict):
                 continue
@@ -937,4 +937,4 @@ def _summarize_market_review(review_report: str, report_language: str) -> str:
         return "Market review report generated."
     if report_language == "ko":
         return "시황 리뷰 리포트가 생성되었습니다."
-    return "Market Review报告已生成。"
+    return "Market ReviewReport generated。"

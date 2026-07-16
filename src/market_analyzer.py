@@ -56,17 +56,17 @@ _CHINESE_SECTION_PATTERNS = {
 @dataclass
 class MarketIndex:
     """Market overview data"""
-    code: str                    # 指数代码
-    name: str                    # 指数名称
-    current: float = 0.0         # 当前点位
-    change: float = 0.0          # 涨跌点数
+    code: str                    # index code
+    name: str                    # Index name
+    current: float = 0.0         # Current point
+    change: float = 0.0          # Price points
     change_pct: float = 0.0      # Increase or decrease(%)
-    open: float = 0.0            # 开盘点位
-    high: float = 0.0            # 最高点位
-    low: float = 0.0             # 最低点位
-    prev_close: float = 0.0      # 昨收点位
-    volume: float = 0.0          # 成交量（手）
-    amount: float = 0.0          # Turnover（元）
+    open: float = 0.0            # opening point
+    high: float = 0.0            # highest point
+    low: float = 0.0             # lowest point
+    prev_close: float = 0.0      # Yesterday's closing point
+    volume: float = 0.0          # Volume（hand）
+    amount: float = 0.0          # Turnover（Yuan）
     amplitude: float = 0.0       # amplitude(%)
     
     def to_dict(self) -> Dict[str, Any]:
@@ -90,19 +90,19 @@ class MarketOverview:
     """Market overview data"""
     date: str                           # date
     indices: List[MarketIndex] = field(default_factory=list)  # major indices
-    up_count: int = 0                   # 上涨家数
-    down_count: int = 0                 # 下跌家数
-    flat_count: int = 0                 # 平盘家数
-    limit_up_count: int = 0             # 涨停家数
-    limit_down_count: int = 0           # 跌停家数
+    up_count: int = 0                   # Increase in number of houses
+    down_count: int = 0                 # Number of stocks falling
+    flat_count: int = 0                 # Number of flat traders
+    limit_up_count: int = 0             # Number of companies with daily limit
+    limit_down_count: int = 0           # Number of companies falling to the limit
     total_amount: float = 0.0           # Transaction volume between the two cities（action framework）
     # north_flow: float = 0.0           # action framework（action framework）- action framework，action framework
     
     # action framework
-    top_sectors: List[Dict] = field(default_factory=list)     # 涨幅前5板块
-    bottom_sectors: List[Dict] = field(default_factory=list)  # 跌幅前5板块
-    top_concepts: List[Dict] = field(default_factory=list)    # 涨幅前5概念
-    bottom_concepts: List[Dict] = field(default_factory=list) # 跌幅前5概念
+    top_sectors: List[Dict] = field(default_factory=list)     # before increase5plate
+    bottom_sectors: List[Dict] = field(default_factory=list)  # before decline5plate
+    top_concepts: List[Dict] = field(default_factory=list)    # before increase5concept
+    bottom_concepts: List[Dict] = field(default_factory=list) # before decline5concept
 
 
 @dataclass
@@ -181,7 +181,7 @@ class MarketAnalyzer:
             return "Korea market" if review_language == "en" else "Korean market"
         if review_language == "en":
             return "A-share market"
-        return "A股市场"
+        return "Astock market"
 
     def _get_turnover_unit_label(self) -> str:
         """Return the turnover unit label for the current market/language."""
@@ -621,7 +621,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
             logger.info("[Market] %s action=search_market_news status=start", self._log_context())
             
             # according to region Set search context name，Avoid US stock searches being interpreted as A stock context
-            market_name = market_names.get(self.region, "大盘")
+            market_name = market_names.get(self.region, "Market")
             for query in search_queries:
                 response = self.search_service.search_stock_news(
                     stock_code="market",
@@ -1047,21 +1047,21 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
         reasons: List[str] = []
         if up_ratio is not None:
             if up_ratio >= 0.6:
-                reasons.append(f"上涨家数占比 {up_ratio:.0%}，赚钱效应扩散")
+                reasons.append(f"Increased share of households {up_ratio:.0%}，The money-making effect spreads")
             elif up_ratio <= 0.4:
-                reasons.append(f"上涨家数占比 {up_ratio:.0%}，亏钱效应较强")
+                reasons.append(f"Increased share of households {up_ratio:.0%}，The money-losing effect is strong")
             else:
-                reasons.append(f"上涨家数占比 {up_ratio:.0%}，市场分化")
+                reasons.append(f"Increased share of households {up_ratio:.0%}，Market differentiation")
         index_changes = [idx.change_pct for idx in overview.indices if idx.change_pct is not None]
         if index_changes:
             avg_change = sum(index_changes) / len(index_changes)
-            reasons.append(f"主要指数平均涨跌幅 {avg_change:+.2f}%")
+            reasons.append(f"Average rise and fall of major indexes {avg_change:+.2f}%")
         if overview.limit_up_count or overview.limit_down_count:
-            reasons.append(f"涨跌停差 {overview.limit_up_count - overview.limit_down_count:+d}")
+            reasons.append(f"price limit {overview.limit_up_count - overview.limit_down_count:+d}")
         if not reasons and overview.total_amount:
-            reasons.append(f"成交额 {overview.total_amount:.0f} 亿，{self._describe_turnover(overview.total_amount)}")
+            reasons.append(f"Turnover {overview.total_amount:.0f} billion，{self._describe_turnover(overview.total_amount)}")
         if not reasons:
-            reasons.append("结构化涨跌数据有限，按可用行情综合判断")
+            reasons.append("Structured rise and fall data is limited，Comprehensive judgment based on available market conditions")
         return reasons[:4]
 
     def _build_market_light_reasons_en(self, overview: MarketOverview, score: int) -> List[str]:
@@ -1131,7 +1131,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
                 lines.append("")
             lines.extend([
                 title,
-                f"| {'Rank' if language == 'en' else '排名'} | {name_label} | {'Change' if language == 'en' else '涨跌幅'} |",
+                f"| {'Rank' if language == 'en' else 'Ranking'} | {name_label} | {'Change' if language == 'en' else 'Increase or decrease'} |",
                 "|------|------|--------|",
             ])
             for rank, item in enumerate(rows[:5], 1):
@@ -1145,10 +1145,10 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
             append_ranking("#### Leading Concept Themes", "Concept", overview.top_concepts)
             append_ranking("#### Lagging Concept Themes", "Concept", overview.bottom_concepts)
         else:
-            append_ranking("#### 行业板块领涨 Top 5", "行业板块", overview.top_sectors)
-            append_ranking("#### 行业板块领跌 Top 5", "行业板块", overview.bottom_sectors)
-            append_ranking("#### 概念板块领涨 Top 5", "概念板块", overview.top_concepts)
-            append_ranking("#### 概念板块领跌 Top 5", "概念板块", overview.bottom_concepts)
+            append_ranking("#### Industry sectors led gains Top 5", "Industry sector", overview.top_sectors)
+            append_ranking("#### Industry sectors led the decline Top 5", "Industry sector", overview.bottom_sectors)
+            append_ranking("#### Concept sectors led gains Top 5", "Concept section", overview.top_concepts)
+            append_ranking("#### Concept sectors led the decline Top 5", "Concept section", overview.bottom_concepts)
         return "\n".join(lines)
 
     def _build_news_block(self, news: List) -> str:
@@ -1238,12 +1238,12 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
     @staticmethod
     def _describe_turnover(total_amount: float) -> str:
         if total_amount >= 15000:
-            return "高活跃度"
+            return "High activity"
         if total_amount >= 9000:
-            return "中等活跃"
+            return "Moderately active"
         if total_amount > 0:
-            return "缩量观望"
-        return "暂无数据"
+            return "Wait and see"
+        return "No data yet"
 
     def _build_market_light_scores(self, overview: MarketOverview) -> Dict[str, Any]:
         """Build the canonical Market Light scores used by reports and alerts."""
@@ -1369,7 +1369,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
 ### seven、Risk warning
 （List the risks that need attention；Final addition“Suggestions are for reference only，Does not constitute investment advice”。）"""
 
-        numerals = ["一", "二", "三", "四", "五", "六", "七", "八"]
+        numerals = ["one", "two", "three", "Four", "five", "six", "seven", "eight"]
         section_number = 3
         sections: List[str] = []
 
@@ -1379,15 +1379,15 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
             section_number += 1
 
         if self.profile.has_sector_rankings:
-            add_section("板块主线", "（仅分析已提供的行业板块与概念题材榜单，不扩展未提供的数据）")
+            add_section("Sector main line", "（Only analyze the provided industry sector and concept theme lists，Do not expand unprovided data）")
         if self.profile.has_market_stats:
-            add_section("资金与情绪", "（仅解读已提供的成交额、涨跌停结构、市场宽度和风险偏好数据）")
+            add_section("Money and Sentiment", "（Only interpret the provided turnover、Price limit structure、Market Breadth and Risk Appetite Data）")
         add_section(
             "News catalysis",
             "（Combined with news and index performance in the past three days，Distil the catalysts or disturbances that will truly impact tomorrow’s trading；Do not infer funding flows that are not provided、Market breadth or sector list）",
         )
-        add_section("明日交易计划", "（给出进攻/均衡/防守结论、仓位区间、关注方向、回避方向和一个触发失效条件）")
-        add_section("风险提示", "（列出需要关注的风险点；最后补充“建议仅供参考，不构成投资建议”。）")
+        add_section("Tomorrow's trading plan", "（give offense/equilibrium/defensive conclusion、Position range、attention direction、Avoidance direction and a trigger failure condition）")
+        add_section("Risk warning", "（List the risks that need attention；Final addition“Suggestions are for reference only，Does not constitute investment advice”。）")
         return "\n\n".join(sections)
 
     def _build_review_prompt(self, overview: MarketOverview, news: List) -> str:
@@ -1466,9 +1466,9 @@ Concepts lead the decline: {bottom_concepts_text if bottom_concepts_text else "N
 
             data_limit_lines = []
             if not self.profile.has_market_stats:
-                data_limit_lines.append("- 该市场暂无涨跌家数、涨跌停、成交额汇总、参与度或资金流信号。")
+                data_limit_lines.append("- There are no rising or falling prices in this market.、price limit、Transaction volume summary、Participation or Funding Flow Signals。")
             if not self.profile.has_sector_rankings:
-                data_limit_lines.append("- 该市场暂无行业板块/概念题材涨跌榜。")
+                data_limit_lines.append("- There is currently no industry sector in this market/Concept theme rise and fall list。")
             if data_limit_lines:
                 data_limits_block = "## data boundaries\n" + "\n".join(data_limit_lines)
 
@@ -1719,7 +1719,7 @@ Market conditions can change quickly. The data above is for reference only and d
             return report
 
         market_labels = {"cn": "A-Share", "us": "US Stock", "hk": "HK Stock", "jp": "Japan Stock", "kr": "Korea Stock", "id": "Indonesian Stock"}
-        market_label = market_labels.get(self.region, "A股")
+        market_label = market_labels.get(self.region, "Ashares")
         dashboard_block = self._build_stats_block(overview) if self.profile.has_market_stats else ""
         indices_block = self._build_indices_block(overview)
         sector_block = self._build_sector_block(overview) if self.profile.has_sector_rankings else ""
@@ -1740,7 +1740,7 @@ Market conditions can change quickly. The data above is for reference only and d
         sector_section = (
             f"""
 ### three、Sector main line
-{sector_block or "- 暂无板块涨跌榜数据。"}
+{sector_block or "- There is no data on the sector’s rise and fall list yet.。"}
 """
             if self.profile.has_sector_rankings
             else ""
@@ -1761,7 +1761,7 @@ Market conditions can change quickly. The data above is for reference only and d
 {market_summary_block}
 
 ### two、exponential structure
-{indices_block or indices_text or "暂无指数数据。"}
+{indices_block or indices_text or "No index data yet。"}
 {sector_section}
 {funds_section}
 
@@ -1834,7 +1834,7 @@ Market conditions can change quickly. The data above is for reference only and d
                     continue
                 seen_urls.add(url)
                 merged_local.append({
-                    "title": item.get("title") or "未命名资讯",
+                    "title": item.get("title") or "Unnamed information",
                     "snippet": item.get("summary") or "",
                     "source": item.get("source") or item.get("source_name") or "local-intel",
                     "published_date": item.get("published_at") or "",

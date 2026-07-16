@@ -14,7 +14,7 @@ from src.report_language import (
 
 
 _CONSERVATIVE_TAGS = {"high_risk", "market_cooling", "conservative", "low_position_cap"}
-_CONSERVATIVE_TEXT_MARKERS_ZH = ("退潮", "观望", "高风险", "谨慎", "保守", "仓位上限", "仓位不超过", "轻仓")
+_CONSERVATIVE_TEXT_MARKERS_ZH = ("low tide", "wait and see", "high risk", "cautious", "conservative", "Position limit", "The position does not exceed", "Qingcang")
 _CONSERVATIVE_TEXT_MARKERS_EN = ("high risk", "risk-off", "risk off", "watch", "cautious", "conservative", "position cap", "position limit")
 _CONSERVATIVE_TEXT_MARKERS_KO = ("고위험", "관망", "위험", "신중", "보수", "비중 상한", "비중 축소", "경량")
 _AGGRESSIVE_BUY_MARKERS_ZH = (
@@ -40,7 +40,7 @@ _AGGRESSIVE_BUY_MARKERS_KO = (
     "추격 매수",
     "비중 확대",
 )
-_NEGATION_HINTS_ZH = ("暂不", "不建议", "不应", "不宜", "不能", "无法", "不允许", "禁止", "避免", "不要", "别", "先不")
+_NEGATION_HINTS_ZH = ("Not yet", "Not recommended", "should not", "Not suitable", "Can't", "Unable", "not allowed", "prohibited", "avoid", "Don't", "Don't", "Not yet")
 _NEGATION_HINTS_EN = (" not ", "do not", "don't", "no ", "never", "avoid")
 _NEGATION_HINTS_KO = ("권하지 않", "하지 않", "하지 마", "불가", "금지", "피하", "보류", "않", "말")
 _NEGATION_LOOKBACK = 16
@@ -48,7 +48,7 @@ _GUARDRAIL_SENTIMENT_SCORE = 52
 
 
 def _softened_operation_advice(language: str) -> str:
-    return localize_operation_advice("观望", language)
+    return localize_operation_advice("wait and see", language)
 
 
 def _negation_hints_for(language: str) -> tuple[str, ...]:
@@ -285,4 +285,4 @@ def _cap_conservative_sentiment_score(value: Any) -> int:
     return min(_GUARDRAIL_SENTIMENT_SCORE, max(0, score))
 
 def _is_high_confidence(value: Any) -> bool:
-    return str(value or "").strip().lower() in {"高", "high", "높음"}
+    return str(value or "").strip().lower() in {"high", "high", "높음"}

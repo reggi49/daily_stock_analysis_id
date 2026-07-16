@@ -976,7 +976,7 @@ def _chunk_by_max_words(content: str, max_words: int, special_char_len: int = 2)
 
     sections = []
     suffix = TRUNCATION_SUFFIX
-    effective_max_words = max_words - len(suffix)  # 预留后缀，避免边界超限
+    effective_max_words = max_words - len(suffix)  # reserved suffix，Avoid boundary overruns
     if effective_max_words <= 0:
         effective_max_words = max_words
         suffix = ""
@@ -1029,7 +1029,7 @@ def chunk_content_by_max_words(
         current_chunk = []
         current_word_len = 0
         separator_len = len(separator) if separator else 0
-        effective_max_words = max_words - separator_len # 预留分割符长度，避免边界超限
+        effective_max_words = max_words - separator_len # Reserved separator length，Avoid boundary overruns
 
         for section in sections:
             section += separator

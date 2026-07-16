@@ -66,10 +66,10 @@ class TestTushareFetcherGetStockList(unittest.TestCase):
         fetcher._api.stock_basic.return_value = pd.DataFrame(
             {
                 "ts_code": ["600519.SH", "000001.SZ"],
-                "name": ["贵州茅台", "平安银行"],
-                "industry": ["白酒", "银行"],
-                "area": ["贵州", "深圳"],
-                "market": ["主板", "主板"],
+                "name": ["Kweichow Moutai", "Ping An Bank"],
+                "industry": ["Liquor", "bank"],
+                "area": ["Guizhou", "Shenzhen"],
+                "market": ["motherboard", "motherboard"],
             }
         )
 
@@ -84,7 +84,7 @@ class TestTushareFetcherGetStockList(unittest.TestCase):
         )
         self.assertEqual(len(df), 2)
         self.assertEqual(set(df["code"].tolist()), {"600519", "000001"})
-        self.assertEqual(fetcher._stock_name_cache.get("600519"), "贵州茅台")
+        self.assertEqual(fetcher._stock_name_cache.get("600519"), "Kweichow Moutai")
 
         fetcher._api.stock_basic.assert_called_once()
         self.assertFalse(fetcher._api.hk_basic.called)
@@ -179,7 +179,7 @@ class TestTushareFetcherFetchRawData(unittest.TestCase):
         with patch.object(fetcher, "_check_rate_limit"):
             with self.assertRaises(DataFetchError) as ctx:
                 fetcher._fetch_raw_data("AAPL", "2026-01-01", "2026-01-05")
-        self.assertIn("不支持美股", str(ctx.exception))
+        self.assertIn("Does not support US stocks", str(ctx.exception))
         fetcher._api.daily.assert_not_called()
 
     def test_fetch_raw_data_api_unconfigured_raises(self) -> None:
@@ -189,7 +189,7 @@ class TestTushareFetcherFetchRawData(unittest.TestCase):
         self.assertIsNone(fetcher._api)
         with self.assertRaises(DataFetchError) as ctx:
             fetcher._fetch_raw_data("600519", "2026-01-01", "2026-01-05")
-        self.assertIn("未初始化", str(ctx.exception))
+        self.assertIn("not initialized", str(ctx.exception))
 
     def test_fetch_raw_data_quota_exception_becomes_rate_limit(self) -> None:
         fetcher = self._make_fetcher()

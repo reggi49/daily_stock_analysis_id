@@ -52,7 +52,7 @@ def test_reply_text_chunked_keeps_reply_and_at_user(monkeypatch):
 
 def test_reply_text_uses_legacy_feishu_markdown_formatter():
     client = DummyFeishuReplyClient(max_bytes=1000)
-    text = "# 日报\n\n## 📊 分析结果摘要\n\n| 股票 | 信号 |\n| --- | --- |\n| 600519 | 强势 |"
+    text = "# daily newspaper\n\n## 📊 Summary of analysis results\n\n| stocks | signal |\n| --- | --- |\n| 600519 | Strong |"
 
     result = client.reply_text(message_id="msg_123", text=text)
 
@@ -81,7 +81,7 @@ def test_send_to_chat_chunked_uses_chat_id(monkeypatch):
 
 def test_send_to_chat_uses_legacy_feishu_markdown_formatter():
     client = DummyFeishuReplyClient(max_bytes=1000)
-    text = "# 日报\n\n[详情](https://example.com/report)"
+    text = "# daily newspaper\n\n[Details](https://example.com/report)"
 
     result = client.send_to_chat(chat_id="chat_123", text=text)
 

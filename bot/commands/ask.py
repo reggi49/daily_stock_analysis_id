@@ -434,7 +434,7 @@ class AskCommand(BotCommand):
             pass
 
         level = str(dashboard.get("confidence_level") or "").strip()
-        return {"高": 0.85, "中": 0.65, "低": 0.45}.get(level)
+        return {"high": 0.85, "in": 0.65, "low": 0.45}.get(level)
 
     @staticmethod
     def _extract_summary(stock_code: str, dashboard: Optional[Dict[str, Any]], raw_content: str) -> str:
@@ -490,14 +490,14 @@ class AskCommand(BotCommand):
             return None
 
         prefixes = (
-            "理想买入点：",
-            "次优买入点：",
-            "止损位：",
-            "目标位：",
-            "理想买入点:",
-            "次优买入点:",
-            "止损位:",
-            "目标位:",
+            "Ideal buying point：",
+            "Second best buying point：",
+            "Stop loss level：",
+            "Target position：",
+            "Ideal buying point:",
+            "Second best buying point:",
+            "Stop loss level:",
+            "Target position:",
         )
         for prefix in prefixes:
             if text.startswith(prefix):

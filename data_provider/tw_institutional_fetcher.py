@@ -332,7 +332,7 @@ class TwInstitutionalFetcher:
         if foreign is None or trust is None or dealer is None:
             return None
         return TwInstitutionalFetcher._build_record(
-            code, ad_date, "上市", "TWSE-T86", foreign, trust, dealer, total
+            code, ad_date, "Listed", "TWSE-T86", foreign, trust, dealer, total
         )
 
     # -------------------------------------------------------------- TPEx (Government Information Openness Authorization Clause)
@@ -366,7 +366,7 @@ class TwInstitutionalFetcher:
         if foreign is None or trust is None or dealer is None:
             return None
         return TwInstitutionalFetcher._build_record(
-            code, ad_date, "上櫃", "TPEx-OpenAPI", foreign, trust, dealer, total
+            code, ad_date, "On the counter", "TPEx-OpenAPI", foreign, trust, dealer, total
         )
 
     # -------------------------------------------------------------- normalize

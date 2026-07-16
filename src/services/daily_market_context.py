@@ -44,10 +44,10 @@ _MARKET_REVIEW_LOCK_WAIT_BACKOFF_MULTIPLIER = 1.5
 _MARKET_REVIEW_LOCK_WAIT_MAX_ATTEMPTS = 40
 
 _RISK_PATTERNS: Tuple[Tuple[str, Tuple[str, ...]], ...] = (
-    ("high_risk", ("高风险", "风险偏高", "风险较高", "high risk", "elevated risk")),
-    ("market_cooling", ("退潮", "降温", "risk-off", "risk off", "cooling")),
-    ("conservative", ("观望", "谨慎", "保守", "等待确认", "watch", "cautious", "conservative")),
-    ("low_position_cap", ("仓位上限", "轻仓", "低仓位", "小仓", "position cap", "low position", "small position")),
+    ("high_risk", ("high risk", "Risk is high", "higher risk", "high risk", "elevated risk")),
+    ("market_cooling", ("low tide", "cool down", "risk-off", "risk off", "cooling")),
+    ("conservative", ("wait and see", "cautious", "conservative", "Waiting for confirmation", "watch", "cautious", "conservative")),
+    ("low_position_cap", ("Position limit", "Qingcang", "low position", "Ogura", "position cap", "low position", "small position")),
 )
 
 
@@ -949,10 +949,10 @@ def _extract_risk_tags(text: str) -> List[str]:
 def _extract_position_cap(text: str) -> Optional[str]:
     if not text:
         return None
-    cap_match = re.search(r"(?:仓位上限|仓位不超过|position cap|position limit)[^0-9%]{0,12}(\d{1,3}\s*%)", text, re.IGNORECASE)
+    cap_match = re.search(r"(?:Position limit|The position does not exceed|position cap|position limit)[^0-9%]{0,12}(\d{1,3}\s*%)", text, re.IGNORECASE)
     if cap_match:
         return cap_match.group(1).replace(" ", "")
-    low_position_match = re.search(r"(轻仓|低仓位|小仓|low position|small position)", text, re.IGNORECASE)
+    low_position_match = re.search(r"(Qingcang|low position|Ogura|low position|small position)", text, re.IGNORECASE)
     return low_position_match.group(1) if low_position_match else None
 
 

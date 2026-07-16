@@ -349,7 +349,7 @@ def _build_hotspot_event_routes_from_search(topic: str, config: Config) -> List[
             topic_text,
             topic_text,
             max_results=3,
-            focus_keywords=[topic_text, "A股", "题材", "催化", "涨价"],
+            focus_keywords=[topic_text, "Ashares", "theme", "catalysis", "price increase"],
         )
     except Exception as exc:
         logger.info("AlphaSift hotspot event search skipped for %s: %s", topic_text, exc)
@@ -428,11 +428,11 @@ def _strip_hotspot_news_noise(text: str) -> str:
     cleaned = _normalize_inline_text(text)
     cleaned = re.sub(r"【[^】]{1,24}】", " ", cleaned)
     cleaned = re.sub(r"\[[^\]]{1,24}\]", " ", cleaned)
-    cleaned = re.sub(r"\b20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}[日号]?\b", " ", cleaned)
+    cleaned = re.sub(r"\b20\d{2}[-/.year]\d{1,2}[-/.month]\d{1,2}[Date number]?\b", " ", cleaned)
     cleaned = re.sub(r"\b\d{1,2}:\d{2}\b", " ", cleaned)
     cleaned = re.sub(r"\([^)]{0,18}\d+\.\d+[^)]{0,18}\)", " ", cleaned)
     cleaned = re.sub(r"（[^）]{0,18}\d+\.\d+[^）]{0,18}）", " ", cleaned)
-    cleaned = re.sub(r"截至[^。；;]*", " ", cleaned)
+    cleaned = re.sub(r"As of[^。；;]*", " ", cleaned)
     cleaned = re.sub(r"(Suggest watching|Follow-up suggestions|Risk warning|Investment advice)[^.;]*", " ", cleaned)
     cleaned = re.sub(r"\s+", " ", cleaned)
     return cleaned.strip(" ，,；;。.")
@@ -440,9 +440,9 @@ def _strip_hotspot_news_noise(text: str) -> str:
 
 def _extract_hotspot_catalyst_phrase(text: str) -> str:
     patterns = (
-        r"以[^，。；;]{1,12}代[^，。；;]{1,12}",
-        r"[^，。；;]{1,18}(涨价|价格上行|供需偏紧|供应紧张|资源增储|订单增长|政策催化|出口管制|减产|并购重组|技术突破)[^，。；;]{0,24}",
-        r"[^，。；;]{1,18}(替代|国产替代|需求增长|景气上行)[^，。；;]{0,24}",
+        r"to[^，。；;]{1,12}generation[^，。；;]{1,12}",
+        r"[^，。；;]{1,18}(price increase|Price goes up|Supply and demand are tight|Supply is tight|Increase resource reserves|Order growth|policy catalysis|Export controls|Cut production|Mergers and Acquisitions|technological breakthrough)[^，。；;]{0,24}",
+        r"[^，。；;]{1,18}(substitute|Domestic replacement|demand growth|Economic boom)[^，。；;]{0,24}",
     )
     for pattern in patterns:
         match = re.search(pattern, text)
@@ -454,10 +454,10 @@ def _extract_hotspot_catalyst_phrase(text: str) -> str:
 def _extract_hotspot_impact_phrases(text: str) -> str:
     impacts: List[str] = []
     keyword_groups = (
-        ("小金属", ("小金属", "钼", "钨", "锑", "锗", "铟")),
-        ("有色金属", ("有色", "铜", "铝", "锌", "铅")),
-        ("相关个股", ("涨停", "异动", "走强", "大涨", "拉升")),
-        ("产业链", ("产业链", "上游", "下游", "材料", "资源")),
+        ("small metal", ("small metal", "Molybdenum", "Tungsten", "Antimony", "germanium", "Indium")),
+        ("nonferrous metals", ("colored", "Copper", "Aluminum", "zinc", "lead")),
+        ("Related stocks", ("daily limit", "Abnormal movement", "Stronger", "Big rise", "pull up")),
+        ("Industrial chain", ("Industrial chain", "upstream", "downstream", "Material", "Resources")),
     )
     for label, keywords in keyword_groups:
         if any(keyword in text for keyword in keywords) and label not in impacts:
@@ -485,7 +485,7 @@ def _compact_hotspot_news_text(*, title: str, snippet: str) -> str:
     if title_text and snippet_text == title_text:
         snippet_text = ""
     text = "。".join(part for part in (title_text, snippet_text) if part)
-    text = re.sub(r"(\d{4}[-/.年]\d{1,2}[-/.月]\d{1,2}[日号]?)\s+\d{1,2}:\d{2}", r"\1", text)
+    text = re.sub(r"(\d{4}[-/.year]\d{1,2}[-/.month]\d{1,2}[Date number]?)\s+\d{1,2}:\d{2}", r"\1", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
@@ -560,12 +560,12 @@ def _extract_litellm_message_content(response: Any) -> str:
 
 def _clean_hotspot_llm_summary(text: str) -> str:
     summary = _normalize_inline_text(text).strip(" 　\"'“”‘’")
-    summary = re.sub(r"^(摘要|总结|消息催化|事件催化)\s*[:：]\s*", "", summary)
+    summary = re.sub(r"^(Summary|Summary|News catalysis|event catalysis)\s*[:：]\s*", "", summary)
     return summary
 
 
 def _extract_date_text(text: str) -> str:
-    match = re.search(r"(20\d{2})[-/.年](\d{1,2})[-/.月](\d{1,2})", text or "")
+    match = re.search(r"(20\d{2})[-/.year](\d{1,2})[-/.month](\d{1,2})", text or "")
     if not match:
         return ""
     year, month, day = match.groups()
@@ -2002,90 +2002,90 @@ class DsaEastMoneyHotspotProvider:
         "fields": "f2,f3,f4,f12,f13,f14,f104,f105,f128,f136,f140,f141,f207",
     }
     _BROAD_BOARD_KEYWORDS = (
-        "融资融券",
-        "深股通",
-        "沪股通",
-        "创业板",
-        "昨日",
-        "机构重仓",
-        "富时罗素",
+        "Margin margin trading",
+        "Shenzhen Stock Connect",
+        "Shanghai Stock Connect",
+        "GEM",
+        "yesterday",
+        "Institutional heavy position",
+        "FTSE Russell",
         "MSCI",
-        "标普",
-        "上证",
-        "深证",
-        "中证",
+        "S&P",
+        "Shanghai Stock Exchange",
+        "Shenzhen Certificate",
+        "CSI",
         "HS300",
-        "证金",
+        "Security deposit",
         "QFII",
-        "基金",
-        "转融券",
-        "预增",
-        "预盈",
-        "亏损",
-        "低价",
-        "小盘股",
-        "中盘股",
-        "百元股",
-        "破发",
-        "破增发",
-        "趋势股",
-        "广东板块",
-        "江苏板块",
-        "浙江板块",
-        "上海板块",
-        "深圳特区",
-        "央国企",
-        "国企改革",
-        "专精特新",
-        "其他",
+        "fund",
+        "refinancing securities",
+        "Pre-increase",
+        "pre-profit",
+        "Loss",
+        "low price",
+        "small cap stocks",
+        "mid-cap stocks",
+        "100 yuan shares",
+        "break",
+        "Break additional issuance",
+        "trend stocks",
+        "Guangdong plate",
+        "Jiangsu plate",
+        "Zhejiang plate",
+        "Shanghai plate",
+        "Shenzhen Special Economic Zone",
+        "central state-owned enterprises",
+        "State-owned enterprise reform",
+        "Specialized and Specialized",
+        "Others",
         "Ⅱ",
         "Ⅲ",
     )
     _CHANGE_EVENT_LABELS = {
-        4: "快速拉升",
-        8: "快速回落",
-        16: "大幅上涨",
-        32: "大幅下跌",
-        64: "有大笔买入",
-        128: "有大笔卖出",
-        8193: "火箭发射",
-        8194: "高台跳水",
-        8201: "大笔买入",
-        8202: "大笔卖出",
-        8203: "封涨停板",
-        8204: "打开涨停板",
-        8207: "有打开跌停板",
-        8208: "封跌停板",
-        8209: "向上缺口",
-        8210: "向下缺口",
-        8211: "60日新高",
-        8212: "60日新低",
-        8213: "60日大幅上涨",
-        8214: "60日大幅下跌",
-        8215: "竞价上涨",
-        8216: "竞价下跌",
-        8217: "高开",
-        8218: "低开",
-        8219: "放量",
-        8220: "缩量",
-        8221: "向上突破",
-        8222: "向下破位",
+        4: "Quick pull up",
+        8: "Quick fall",
+        16: "sharp rise",
+        32: "sharp drop",
+        64: "There is a big buy",
+        128: "There was a big sale",
+        8193: "rocket launch",
+        8194: "high diving",
+        8201: "big buy",
+        8202: "big sale",
+        8203: "Close daily limit",
+        8204: "Open daily limit",
+        8207: "The limit has been opened",
+        8208: "Close the limit",
+        8209: "upward gap",
+        8210: "downward gap",
+        8211: "60Daily high",
+        8212: "60New daily low",
+        8213: "60sharp rise in daily",
+        8214: "60sharp drop in day",
+        8215: "Bid increases",
+        8216: "Bid falls",
+        8217: "Open high",
+        8218: "open low",
+        8219: "Increase the volume",
+        8220: "shrink",
+        8221: "Breakout",
+        8222: "Break down",
     }
     _METAL_TOPIC_GROUPS = {
-        "钼": "小金属",
-        "钨": "小金属",
-        "钴": "小金属",
-        "镍": "小金属",
-        "锑": "小金属",
-        "铟": "小金属",
-        "锗": "小金属",
-        "铅锌": "工业金属",
-        "铜": "工业金属",
-        "铝": "工业金属",
-        "锡": "工业金属",
-        "黄金": "贵金属",
-        "白银": "贵金属",
-        "贵金属": "贵金属",
+        "Molybdenum": "small metal",
+        "Tungsten": "small metal",
+        "Cobalt": "small metal",
+        "Nickel": "small metal",
+        "Antimony": "small metal",
+        "Indium": "small metal",
+        "germanium": "small metal",
+        "Lead zinc": "industrial metal",
+        "Copper": "industrial metal",
+        "Aluminum": "industrial metal",
+        "Tin": "industrial metal",
+        "gold": "precious metals",
+        "silver": "precious metals",
+        "precious metals": "precious metals",
     }
     def __init__(self) -> None:
         import requests
@@ -2163,10 +2163,10 @@ class DsaEastMoneyHotspotProvider:
             return []
         rows: List[Dict[str, Any]] = []
         for index, row in df.head(max(1, min(top, 50))).iterrows():
-            name = _env_text(row.get("name") or row.get("板块名称") or row.get("行业名称") or row.get("名称"))
+            name = _env_text(row.get("name") or row.get("Section name") or row.get("Industry name") or row.get("Name"))
             if not name:
                 continue
-            change_pct = _safe_float(row.get("change_pct") or row.get("涨跌幅"))
+            change_pct = _safe_float(row.get("change_pct") or row.get("Increase or decrease"))
             event_count = int(_safe_float(row.get("event_count") or row.get("observations")) or 0)
             leader = _env_text(row.get("leader"))
             leaders_raw = row.get("leaders")
@@ -2257,8 +2257,8 @@ class DsaEastMoneyHotspotProvider:
                 "source": "ths_info",
             })
         if not stocks and summary:
-            stock_code = _env_text(summary.get("板块异动最频繁个股及所属类型-股票代码"))
-            stock_name = _env_text(summary.get("板块异动最频繁个股及所属类型-股票名称"))
+            stock_code = _env_text(summary.get("The stocks with the most frequent sector changes and their types-Stock code"))
+            stock_name = _env_text(summary.get("The stocks with the most frequent sector changes and their types-Stock name"))
             if stock_code or stock_name:
                 stocks.append({
                     "code": stock_code,
@@ -2290,12 +2290,12 @@ class DsaEastMoneyHotspotProvider:
             return pd.DataFrame()
         rows = []
         for index, row in df.iterrows():
-            topic = _env_text(row.get("板块名称"))
+            topic = _env_text(row.get("Section name"))
             if not topic or self._is_broad_board(topic):
                 continue
-            change_pct = _safe_float(row.get("涨跌幅"))
-            event_count = int(_safe_float(row.get("板块异动总次数")) or 0)
-            leader = _env_text(row.get("板块异动最频繁个股及所属类型-股票名称"))
+            change_pct = _safe_float(row.get("Increase or decrease"))
+            event_count = int(_safe_float(row.get("Total number of sector changes")) or 0)
+            leader = _env_text(row.get("The stocks with the most frequent sector changes and their types-Stock name"))
             heat_score = min(99.0, max(1.0, event_count / 120.0 + max(change_pct or 0.0, 0.0) * 9.0))
             trend_score = self._derive_trend_score(change_pct=change_pct, event_count=event_count)
             persistence_score = self._derive_persistence_score(event_count=event_count)
@@ -2385,9 +2385,9 @@ class DsaEastMoneyHotspotProvider:
         rows = ((payload.get("data") or {}).get("diff") or []) if isinstance(payload, dict) else []
         normalized = [
             {
-                "板块名称": str(row.get("f14") or "").strip(),
-                "涨跌幅": row.get("f3"),
-                "序号": index + 1,
+                "Section name": str(row.get("f14") or "").strip(),
+                "Increase or decrease": row.get("f3"),
+                "serial number": index + 1,
                 "name": str(row.get("f14") or "").strip(),
                 "change_pct": row.get("f3"),
                 "rank": index + 1,
@@ -2405,9 +2405,9 @@ class DsaEastMoneyHotspotProvider:
         df = self._fetch_board_changes_raw()
         if df is None or df.empty:
             return {}
-        rows = df[df["板块名称"].astype(str) == topic]
+        rows = df[df["Section name"].astype(str) == topic]
         if rows.empty:
-            rows = df[df["板块名称"].astype(str).str.contains(re.escape(topic), case=False, na=False)]
+            rows = df[df["Section name"].astype(str).str.contains(re.escape(topic), case=False, na=False)]
         if rows.empty:
             return {}
         return rows.iloc[0].to_dict()
@@ -2473,7 +2473,7 @@ class DsaEastMoneyHotspotProvider:
         df = pd.DataFrame(frame)
         if df.empty:
             return False
-        for column in ("name", "板块名称", "行业名称", "名称"):
+        for column in ("name", "Section name", "Industry name", "Name"):
             if column not in df.columns:
                 continue
             values = df[column].map(_env_text)
@@ -2484,10 +2484,10 @@ class DsaEastMoneyHotspotProvider:
     def _build_hotspot_summary(self, topic: str, summary: Dict[str, Any]) -> str:
         if not summary:
             return f"{topic} currently has no available board change summary."
-        change_pct = _safe_float(summary.get("涨跌幅"))
-        event_count = int(_safe_float(summary.get("板块异动总次数")) or 0)
-        leader = _env_text(summary.get("板块异动最频繁个股及所属类型-股票名称"))
-        action = _env_text(summary.get("板块异动最频繁个股及所属类型-买卖方向"))
+        change_pct = _safe_float(summary.get("Increase or decrease"))
+        event_count = int(_safe_float(summary.get("Total number of sector changes")) or 0)
+        leader = _env_text(summary.get("The stocks with the most frequent sector changes and their types-Stock name"))
+        action = _env_text(summary.get("The stocks with the most frequent sector changes and their types-Buying and selling direction"))
         parts = [f"{topic} current change {change_pct:.2f}%" if change_pct is not None else f"{topic} has change records"]
         if event_count:
             parts.append(f"{event_count} intraday change events")
@@ -2520,19 +2520,19 @@ class DsaEastMoneyHotspotProvider:
             event_date = self._extract_route_date(ths_event) or today
             put_daily_item(
                 date=event_date,
-                title="题材驱动",
+                title="Subject matter driven",
                 description=ths_event,
                 source="ths_summary",
             )
         if summary:
-            change_events = self._parse_change_events(summary.get("板块具体异动类型列表及出现次数"))[:5]
-            event_text = "；".join(f"{item['label']}出现 {item['count']} 次" for item in change_events)
+            change_events = self._parse_change_events(summary.get("List of specific plate movement types and their occurrence times"))[:5]
+            event_text = "；".join(f"{item['label']}appear {item['count']} times" for item in change_events)
             description = self._build_hotspot_summary(topic, summary)
             if event_text:
-                description = f"{description} 当日结构：{event_text}。"
+                description = f"{description} Structure of the day：{event_text}。"
             put_daily_item(
                 date=today,
-                title="当日发酵",
+                title="Fermentation on the same day",
                 description=description,
                 source="eastmoney_board_change",
             )
@@ -2542,8 +2542,8 @@ class DsaEastMoneyHotspotProvider:
         ]
         if not route:
             route.append({
-                "title": "等待发酵",
-                "description": "暂未获取到明确催化事件，可继续观察涨跌幅、成交额和核心个股联动。",
+                "title": "Waiting for fermentation",
+                "description": "No clear catalytic event has been obtained yet，You can continue to observe the rise and fall、Linkage between trading volume and core stocks。",
                 "source": "fallback",
                 "date": today,
                 "published_at": today,
@@ -2551,7 +2551,7 @@ class DsaEastMoneyHotspotProvider:
         return route
 
     def _extract_route_date(self, text: str) -> str:
-        match = re.search(r"(20\d{2})[-/.年](\d{1,2})[-/.月](\d{1,2})", text or "")
+        match = re.search(r"(20\d{2})[-/.year](\d{1,2})[-/.month](\d{1,2})", text or "")
         if not match:
             return ""
         year, month, day = match.groups()
@@ -2575,7 +2575,7 @@ class DsaEastMoneyHotspotProvider:
                 continue
             events.append({
                 "type": event_type,
-                "label": self._CHANGE_EVENT_LABELS.get(event_type, f"异动类型 {event_type}"),
+                "label": self._CHANGE_EVENT_LABELS.get(event_type, f"Change type {event_type}"),
                 "count": count,
             })
         return sorted(events, key=lambda item: item["count"], reverse=True)
@@ -2589,19 +2589,19 @@ class DsaEastMoneyHotspotProvider:
             return ""
         if df is None or df.empty:
             return ""
-        if "概念名称" not in df.columns:
+        if "concept name" not in df.columns:
             logger.warning(
-                "AlphaSift THS summary missing required column '概念名称'; skip enrichment.",
+                "AlphaSift THS summary missing required column 'concept name'; skip enrichment.",
             )
             return ""
-        rows = df[df["概念名称"].astype(str) == topic]
+        rows = df[df["concept name"].astype(str) == topic]
         if rows.empty:
-            rows = df[df["概念名称"].astype(str).str.contains(re.escape(topic), case=False, na=False)]
+            rows = df[df["concept name"].astype(str).str.contains(re.escape(topic), case=False, na=False)]
         if rows.empty:
             return ""
         row = rows.iloc[0]
-        date = _env_text(row.get("日期"))
-        event = _env_text(row.get("驱动事件"))
+        date = _env_text(row.get("Date"))
+        event = _env_text(row.get("driving event"))
         return f"{date}：{event}" if date and event else event
 
     def _fetch_ths_info(self, topic: str) -> Dict[str, str]:
@@ -2611,12 +2611,12 @@ class DsaEastMoneyHotspotProvider:
             df = ak.stock_board_concept_info_ths(symbol=topic)
         except Exception:
             return {}
-        if df is None or df.empty or "项目" not in df.columns or "值" not in df.columns:
+        if df is None or df.empty or "Project" not in df.columns or "value" not in df.columns:
             return {}
         return {
-            _env_text(row.get("项目")): _env_text(row.get("值"))
+            _env_text(row.get("Project")): _env_text(row.get("value"))
             for _, row in df.iterrows()
-            if _env_text(row.get("项目"))
+            if _env_text(row.get("Project"))
         }
 
     def _fetch_eastmoney_constituents(self, topic: str, *, source: str) -> Any:
@@ -2669,7 +2669,7 @@ class DsaEastMoneyHotspotProvider:
         rows = df[df["name"].astype(str) == topic]
         if rows.empty:
             rows = df[df["name"].astype(str).str.contains(re.escape(topic), case=False, na=False)]
-        if rows.empty and topic.endswith("概念"):
+        if rows.empty and topic.endswith("concept"):
             base = topic[:-2]
             rows = df[df["name"].astype(str).str.contains(re.escape(base), case=False, na=False)]
         if rows.empty:
@@ -2688,8 +2688,8 @@ class DsaEastMoneyHotspotProvider:
                 exc,
             )
             return pd.DataFrame()
-        code = _env_text(summary.get("板块异动最频繁个股及所属类型-股票代码"))
-        name = _env_text(summary.get("板块异动最频繁个股及所属类型-股票名称"))
+        code = _env_text(summary.get("The stocks with the most frequent sector changes and their types-Stock code"))
+        name = _env_text(summary.get("The stocks with the most frequent sector changes and their types-Stock name"))
         if not code and not name:
             return pd.DataFrame()
         return pd.DataFrame([{
@@ -2715,11 +2715,11 @@ class DsaEastMoneyHotspotProvider:
         rows: List[Dict[str, Any]] = []
         seen: set[str] = set()
         for _, row in df.iterrows():
-            board_name = _env_text(row.get("板块名称"))
+            board_name = _env_text(row.get("Section name"))
             if not board_name or self._hotspot_group(board_name) != group:
                 continue
-            code = _env_text(row.get("板块异动最频繁个股及所属类型-股票代码"))
-            name = _env_text(row.get("板块异动最频繁个股及所属类型-股票名称"))
+            code = _env_text(row.get("The stocks with the most frequent sector changes and their types-Stock code"))
+            name = _env_text(row.get("The stocks with the most frequent sector changes and their types-Stock name"))
             if not code and not name:
                 continue
             key = code or name
@@ -2729,8 +2729,8 @@ class DsaEastMoneyHotspotProvider:
             rows.append({
                 "code": code,
                 "name": name,
-                "change_pct": _safe_float(row.get("涨跌幅")),
-                "role": f"{group}活跃股",
+                "change_pct": _safe_float(row.get("Increase or decrease")),
+                "role": f"{group}active stocks",
                 "hot_stock_score": 35.0,
                 "source": "eastmoney_board_change.related_group",
             })
@@ -2765,8 +2765,8 @@ class DsaEastMoneyHotspotProvider:
             if df.empty:
                 continue
             for _, row in df.iterrows():
-                code = _env_text(row.get("code") or row.get("代码") or row.get("证券代码"))
-                name = _env_text(row.get("name") or row.get("名称") or row.get("股票名称"))
+                code = _env_text(row.get("code") or row.get("code") or row.get("Securities code"))
+                name = _env_text(row.get("name") or row.get("Name") or row.get("Stock name"))
                 if not code and not name:
                     continue
                 key = code or name
@@ -2827,26 +2827,26 @@ class DsaEastMoneyHotspotProvider:
             return []
         records = []
         for _, row in df.iterrows():
-            code = _env_text(row.get("code") or row.get("代码") or row.get("证券代码"))
-            name = _env_text(row.get("name") or row.get("名称") or row.get("股票名称"))
+            code = _env_text(row.get("code") or row.get("code") or row.get("Securities code"))
+            name = _env_text(row.get("name") or row.get("Name") or row.get("Stock name"))
             if not code and not name:
                 continue
             records.append({
                 "code": code,
                 "name": name,
-                "change_pct": _safe_float(row.get("change_pct") or row.get("涨跌幅") or row.get("涨幅")),
-                "amount": _safe_float(row.get("amount") or row.get("成交额") or row.get("成交金额")),
-                "turnover_rate": _safe_float(row.get("turnover_rate") or row.get("换手率")),
-                "volume_ratio": _safe_float(row.get("volume_ratio") or row.get("量比")),
-                "role": _env_text(row.get("role")) or "概念股",
+                "change_pct": _safe_float(row.get("change_pct") or row.get("Increase or decrease") or row.get("Increase")),
+                "amount": _safe_float(row.get("amount") or row.get("Turnover") or row.get("Transaction amount")),
+                "turnover_rate": _safe_float(row.get("turnover_rate") or row.get("turnover rate")),
+                "volume_ratio": _safe_float(row.get("volume_ratio") or row.get("Quantity ratio")),
+                "role": _env_text(row.get("role")) or "concept stocks",
                 "hot_stock_score": _safe_float(row.get("hot_stock_score")) or 0.0,
             })
         return records
 
 
 def _build_alphasift_context(config: Config, *, max_results: Optional[int] = None) -> Dict[str, Any]:
-    # context.llm.model/fallback/model_list 与 LiteLLM 路由语义保持一致，
-    # 参见 https://docs.litellm.ai/docs/proxy/configs#the-model_list-key
+    # context.llm.model/fallback/model_list with LiteLLM Routing semantics remain consistent，
+    # See https://docs.litellm.ai/docs/proxy/configs#the-model_list-key
     channels = _normalize_dsa_llm_channels(config)
     litellm_model, fallback_models = _resolve_alphasift_llm_models(config)
     return {
@@ -3193,13 +3193,13 @@ def _normalize_dsa_daily_history(raw_df: Any) -> Any:
         return df
 
     aliases = {
-        "date": ("date", "trade_date", "datetime", "日期"),
-        "open": ("open", "开盘"),
-        "high": ("high", "最高"),
-        "low": ("low", "最低"),
-        "close": ("close", "收盘", "price"),
-        "volume": ("volume", "vol", "成交量"),
-        "amount": ("amount", "成交额"),
+        "date": ("date", "trade_date", "datetime", "Date"),
+        "open": ("open", "Open"),
+        "high": ("high", "highest"),
+        "low": ("low", "lowest"),
+        "close": ("close", "close", "price"),
+        "volume": ("volume", "vol", "Volume"),
+        "amount": ("amount", "Turnover"),
     }
     normalized = pd.DataFrame(index=df.index)
     for target, candidates in aliases.items():
@@ -3509,23 +3509,23 @@ def _build_dsa_analysis_summary(
     price = _first_non_empty(quote.get("price"), candidate.get("price"))
     change_pct = _first_non_empty(quote.get("change_pct"), candidate.get("change_pct"))
     if price is not None:
-        text = f"DSA行情：现价 {price}"
+        text = f"DSAQuotes：Current price {price}"
         if change_pct is not None:
-            text += f"，涨跌幅 {change_pct}%"
+            text += f"，Increase or decrease {change_pct}%"
         parts.append(text)
 
     coverage = fundamentals.get("coverage") if isinstance(fundamentals, dict) else {}
     if isinstance(coverage, dict) and coverage:
         available_blocks = [key for key, value in coverage.items() if str(value).lower() in {"available", "partial"}]
         if available_blocks:
-            parts.append(f"DSA基本面覆盖：{', '.join(available_blocks[:4])}")
+            parts.append(f"DSAfundamental coverage：{', '.join(available_blocks[:4])}")
 
     news_results = news.get("results") if isinstance(news, dict) else []
     if isinstance(news_results, list) and news_results:
         titles = [str(item.get("title") or "").strip() for item in news_results if isinstance(item, dict)]
         titles = [title for title in titles if title]
         if titles:
-            parts.append(f"DSA新闻：{'；'.join(titles[:2])}")
+            parts.append(f"DSANews：{'；'.join(titles[:2])}")
 
     if not parts:
         return ""
@@ -3552,8 +3552,8 @@ def _ensure_supported_market(market: str) -> None:
             detail={
                 "error": "alphasift_invalid_market",
                 "message": (
-                    f"市场 {market} 不在 AlphaSift 适配层支持范围内"
-                    f"（支持市场：{', '.join(map(str, normalized)) or '未知'}）。"
+                    f"market {market} Not here AlphaSift Within the scope of adaptation layer support"
+                    f"（support market：{', '.join(map(str, normalized)) or 'unknown'}）。"
                 ),
             },
         )
@@ -3680,11 +3680,11 @@ def _build_candidate_reason(item: Dict[str, Any]) -> str:
         )[:3]
         if top_factors:
             factor_text = "、".join(f"{key} {value:.1f}" for key, value in top_factors)
-            parts.append(f"主要因子：{factor_text}")
+            parts.append(f"main factors：{factor_text}")
     if item.get("industry"):
-        parts.append(f"行业：{item['industry']}")
+        parts.append(f"Industry：{item['industry']}")
     if item.get("risk_level"):
-        parts.append(f"风险等级：{item['risk_level']}")
+        parts.append(f"risk level：{item['risk_level']}")
     return "；".join(parts)
 
 

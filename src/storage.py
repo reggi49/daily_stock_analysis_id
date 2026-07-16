@@ -120,18 +120,18 @@ class StockDaily(Base):
     close = Column(Float)
     
     # Transaction data
-    volume = Column(Float)  # 成交量（股）
-    amount = Column(Float)  # 成交额（元）
-    pct_chg = Column(Float)  # 涨跌幅（%）
+    volume = Column(Float)  # Volume（shares）
+    amount = Column(Float)  # Turnover（Yuan）
+    pct_chg = Column(Float)  # Increase or decrease（%）
     
     # Technical indicators
     ma5 = Column(Float)
     ma10 = Column(Float)
     ma20 = Column(Float)
-    volume_ratio = Column(Float)  # 量比
+    volume_ratio = Column(Float)  # Quantity ratio
     
     # Data source
-    data_source = Column(String(50))  # 记录数据来源（Transaction data AkshareFetcher）
+    data_source = Column(String(50))  # Record data sources（Transaction data AkshareFetcher）
     
     # Update time
     created_at = Column(DateTime, default=datetime.now)
@@ -2591,15 +2591,15 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
         ma20 = data.ma20 or 0
         
         if close > ma5 > ma10 > ma20 > 0:
-            return "多头排列 📈"
+            return "multi-head arrangement 📈"
         elif close < ma5 < ma10 < ma20 and ma20 > 0:
-            return "空头排列 📉"
+            return "Short arrangement 📉"
         elif close > ma5 and ma5 > ma10:
-            return "短期向好 🔼"
+            return "Good in the short term 🔼"
         elif close < ma5 and ma5 < ma10:
-            return "短期走弱 🔽"
+            return "short term weakness 🔽"
         else:
-            return "震荡整理 ↔️"
+            return "Shock finishing ↔️"
 
     @staticmethod
     def _parse_published_date(value: Optional[str]) -> Optional[datetime]:
@@ -2996,7 +2996,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                     .order_by(ConversationMessage.created_at)
                     .limit(1)
                 ).scalar()
-                title = (first_user_msg or "新对话")[:60]
+                title = (first_user_msg or "new conversation")[:60]
 
                 results.append({
                     "session_id": sid,

@@ -27,16 +27,16 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity passes when all mandatory fields are present."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
             dashboard={
-                "core_conclusion": {"one_sentence": "持有观望"},
+                "core_conclusion": {"one_sentence": "wait and see"},
                 "intelligence": {"risk_alerts": []},
-                "battle_plan": {"sniper_points": {"stop_loss": "110元"}},
+                "battle_plan": {"sniper_points": {"stop_loss": "110Yuan"}},
             },
         )
         ok, missing = check_content_integrity(result)
@@ -47,16 +47,16 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Signal attribution is optional and does not enter missing_fields."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
             dashboard={
-                "core_conclusion": {"one_sentence": "持有观望"},
+                "core_conclusion": {"one_sentence": "wait and see"},
                 "intelligence": {"risk_alerts": []},
-                "battle_plan": {"sniper_points": {"stop_loss": "110元"}},
+                "battle_plan": {"sniper_points": {"stop_loss": "110Yuan"}},
             },
         )
         ok, missing = check_content_integrity(result)
@@ -67,14 +67,14 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity fails when analysis_summary is empty."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
+            operation_advice="hold",
             analysis_summary="",
             decision_type="hold",
             dashboard={
-                "core_conclusion": {"one_sentence": "持有"},
+                "core_conclusion": {"one_sentence": "hold"},
                 "intelligence": {"risk_alerts": []},
                 "battle_plan": {"sniper_points": {"stop_loss": "110"}},
             },
@@ -87,11 +87,11 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity fails when core_conclusion.one_sentence is missing."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
             dashboard={
                 "core_conclusion": {},
@@ -107,11 +107,11 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity fails when one_sentence is blank whitespace."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
             dashboard={
                 "core_conclusion": {"one_sentence": "   "},
@@ -127,14 +127,14 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity fails when stop_loss missing and decision_type is buy."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="买入",
-            analysis_summary="稳健",
+            operation_advice="Buy",
+            analysis_summary="Robust",
             decision_type="buy",
             dashboard={
-                "core_conclusion": {"one_sentence": "可买入"},
+                "core_conclusion": {"one_sentence": "available for purchase"},
                 "intelligence": {"risk_alerts": []},
                 "battle_plan": {"sniper_points": {}},
             },
@@ -147,14 +147,14 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity passes when stop_loss missing and decision_type is sell."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看空",
+            name="Kweichow Moutai",
+            trend_prediction="bearish",
             sentiment_score=35,
-            operation_advice="卖出",
-            analysis_summary="弱势",
+            operation_advice="sell",
+            analysis_summary="Weak",
             decision_type="sell",
             dashboard={
-                "core_conclusion": {"one_sentence": "建议卖出"},
+                "core_conclusion": {"one_sentence": "Recommended to sell"},
                 "intelligence": {"risk_alerts": []},
                 "battle_plan": {"sniper_points": {}},
             },
@@ -167,14 +167,14 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity fails when intelligence.risk_alerts field is missing."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
             dashboard={
-                "core_conclusion": {"one_sentence": "持有"},
+                "core_conclusion": {"one_sentence": "hold"},
                 "intelligence": {},
                 "battle_plan": {"sniper_points": {"stop_loss": "110"}},
             },
@@ -187,14 +187,14 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Phase decision fields are required only for phase-aware analysis."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
             dashboard={
-                "core_conclusion": {"one_sentence": "持有"},
+                "core_conclusion": {"one_sentence": "hold"},
                 "intelligence": {"risk_alerts": []},
                 "battle_plan": {"sniper_points": {"stop_loss": "110"}},
             },
@@ -214,14 +214,14 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity fails when risk_alerts is None."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
             dashboard={
-                "core_conclusion": {"one_sentence": "持有"},
+                "core_conclusion": {"one_sentence": "hold"},
                 "intelligence": {"risk_alerts": None},
                 "battle_plan": {"sniper_points": {"stop_loss": "110"}},
             },
@@ -234,15 +234,15 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity fails when risk_alerts is not list."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
             dashboard={
-                "core_conclusion": {"one_sentence": "持有"},
-                "intelligence": {"risk_alerts": "需留意"},
+                "core_conclusion": {"one_sentence": "hold"},
+                "intelligence": {"risk_alerts": "Need to pay attention"},
                 "battle_plan": {"sniper_points": {"stop_loss": "110"}},
             },
         )
@@ -254,14 +254,14 @@ class TestCheckContentIntegrity(unittest.TestCase):
         """Integrity fails when stop_loss is blank whitespace."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="买入",
-            analysis_summary="稳健",
+            operation_advice="Buy",
+            analysis_summary="Robust",
             decision_type="buy",
             dashboard={
-                "core_conclusion": {"one_sentence": "可买入"},
+                "core_conclusion": {"one_sentence": "available for purchase"},
                 "intelligence": {"risk_alerts": []},
                 "battle_plan": {"sniper_points": {"stop_loss": "   "}},
             },
@@ -278,16 +278,16 @@ class TestApplyPlaceholderFill(unittest.TestCase):
         """Placeholder fills analysis_summary when missing."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
+            operation_advice="hold",
             analysis_summary="",
             decision_type="hold",
             dashboard={},
         )
         apply_placeholder_fill(result, ["analysis_summary"])
-        self.assertEqual(result.analysis_summary, "待补充")
+        self.assertEqual(result.analysis_summary, "To be added")
 
     def test_fills_missing_analysis_summary_in_english(self) -> None:
         """English report should use English placeholder text for missing analysis_summary."""
@@ -309,29 +309,29 @@ class TestApplyPlaceholderFill(unittest.TestCase):
         """Placeholder fills stop_loss when missing."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="买入",
-            analysis_summary="稳健",
+            operation_advice="Buy",
+            analysis_summary="Robust",
             decision_type="buy",
             dashboard={"battle_plan": {"sniper_points": {}}},
         )
         apply_placeholder_fill(result, ["dashboard.battle_plan.sniper_points.stop_loss"])
         self.assertEqual(
             result.dashboard["battle_plan"]["sniper_points"]["stop_loss"],
-            "待补充",
+            "To be added",
         )
 
     def test_fills_risk_alerts_empty_list(self) -> None:
         """Placeholder fills risk_alerts with empty list when missing."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
             dashboard={"intelligence": {}},
         )
@@ -342,29 +342,29 @@ class TestApplyPlaceholderFill(unittest.TestCase):
         """Placeholder fills risk_alerts when value is None."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
-            risk_warning="注意融资",
+            risk_warning="Pay attention to financing",
             dashboard={"intelligence": {"risk_alerts": None}},
         )
         apply_placeholder_fill(result, ["dashboard.intelligence.risk_alerts"])
-        self.assertEqual(result.dashboard["intelligence"]["risk_alerts"], ["注意融资"])
+        self.assertEqual(result.dashboard["intelligence"]["risk_alerts"], ["Pay attention to financing"])
 
     def test_fills_risk_alerts_when_invalid_type(self) -> None:
         """Placeholder fills risk_alerts when value is non-list."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
-            dashboard={"intelligence": {"risk_alerts": "注意回撤"}},
+            dashboard={"intelligence": {"risk_alerts": "Pay attention to the retracement"}},
         )
         apply_placeholder_fill(result, ["dashboard.intelligence.risk_alerts"])
         self.assertEqual(result.dashboard["intelligence"]["risk_alerts"], [])
@@ -373,83 +373,83 @@ class TestApplyPlaceholderFill(unittest.TestCase):
         """Placeholder handles list risk_warning and flattens valid text values."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
-            risk_warning=["回撤风险", "波动加大"],
+            risk_warning=["Retracement risk", "Increased volatility"],
             dashboard={"intelligence": {"risk_alerts": ""}},
         )
         apply_placeholder_fill(result, ["dashboard.intelligence.risk_alerts"])
-        self.assertEqual(result.dashboard["intelligence"]["risk_alerts"], ["回撤风险", "波动加大"])
+        self.assertEqual(result.dashboard["intelligence"]["risk_alerts"], ["Retracement risk", "Increased volatility"])
 
     def test_fills_risk_alerts_when_risk_warning_is_dict(self) -> None:
         """Placeholder serializes dict risk_warning into a string risk alert."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="持有",
-            analysis_summary="稳健",
+            operation_advice="hold",
+            analysis_summary="Robust",
             decision_type="hold",
-            risk_warning={"note": "技术面偏弱"},
+            risk_warning={"note": "Technically weak"},
             dashboard={"intelligence": {"risk_alerts": ""}},
         )
         apply_placeholder_fill(result, ["dashboard.intelligence.risk_alerts"])
         self.assertEqual(
             json.loads(result.dashboard["intelligence"]["risk_alerts"][0]),
-            {"note": "技术面偏弱"},
+            {"note": "Technically weak"},
         )
 
     def test_fills_stop_loss_when_blank(self) -> None:
         """Placeholder fills stop_loss when blank whitespace."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="买入",
-            analysis_summary="稳健",
+            operation_advice="Buy",
+            analysis_summary="Robust",
             decision_type="buy",
             dashboard={"battle_plan": {"sniper_points": {"stop_loss": "   "}}},
         )
         apply_placeholder_fill(result, ["dashboard.battle_plan.sniper_points.stop_loss"])
         self.assertEqual(
             result.dashboard["battle_plan"]["sniper_points"]["stop_loss"],
-            "待补充",
+            "To be added",
         )
 
     def test_fills_stop_loss_when_invalid_type(self) -> None:
         """Placeholder fills stop_loss when value is invalid type."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="买入",
-            analysis_summary="稳健",
+            operation_advice="Buy",
+            analysis_summary="Robust",
             decision_type="buy",
             dashboard={"battle_plan": {"sniper_points": {"stop_loss": {}}}},
         )
         apply_placeholder_fill(result, ["dashboard.battle_plan.sniper_points.stop_loss"])
         self.assertEqual(
             result.dashboard["battle_plan"]["sniper_points"]["stop_loss"],
-            "待补充",
+            "To be added",
         )
 
     def test_fills_none_dashboard_blocks_from_existing_context(self) -> None:
         """Placeholder fill handles null dashboard blocks and reuses existing result text."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="看多",
+            name="Kweichow Moutai",
+            trend_prediction="long",
             sentiment_score=70,
-            operation_advice="买入",
-            analysis_summary="已有趋势摘要",
-            risk_warning="跌破支撑需减仓",
+            operation_advice="Buy",
+            analysis_summary="Already have a trend summary",
+            risk_warning="If it falls below the support, you need to reduce your position.",
             decision_type="buy",
             dashboard={
                 "core_conclusion": None,
@@ -467,22 +467,22 @@ class TestApplyPlaceholderFill(unittest.TestCase):
             ],
         )
 
-        self.assertEqual(result.dashboard["core_conclusion"]["one_sentence"], "已有趋势摘要")
-        self.assertEqual(result.dashboard["intelligence"]["risk_alerts"], ["跌破支撑需减仓"])
-        self.assertEqual(result.dashboard["battle_plan"]["sniper_points"]["stop_loss"], "待补充")
+        self.assertEqual(result.dashboard["core_conclusion"]["one_sentence"], "Already have a trend summary")
+        self.assertEqual(result.dashboard["intelligence"]["risk_alerts"], ["If it falls below the support, you need to reduce your position."])
+        self.assertEqual(result.dashboard["battle_plan"]["sniper_points"]["stop_loss"], "To be added")
 
     def test_phase_decision_placeholder_fill_satisfies_integrity_contract(self) -> None:
         """Phase placeholders close the retry-exhausted integrity contract without fake conditions."""
         result = AnalysisResult(
             code="600519",
-            name="贵州茅台",
-            trend_prediction="震荡",
+            name="Kweichow Moutai",
+            trend_prediction="shock",
             sentiment_score=50,
-            operation_advice="持有",
-            analysis_summary="已有摘要",
+            operation_advice="hold",
+            analysis_summary="Already have an abstract",
             decision_type="hold",
             dashboard={
-                "core_conclusion": {"one_sentence": "持有观望"},
+                "core_conclusion": {"one_sentence": "wait and see"},
                 "intelligence": {"risk_alerts": []},
                 "battle_plan": {"sniper_points": {"stop_loss": "100"}},
                 "phase_decision": {
@@ -505,10 +505,10 @@ class TestApplyPlaceholderFill(unittest.TestCase):
         self.assertEqual(phase_decision["phase_context"], {})
         self.assertEqual(phase_decision["watch_conditions"], [])
         self.assertEqual(phase_decision["data_limitations"], [])
-        self.assertEqual(phase_decision["action_window"], "模型未提供阶段化行动窗口")
-        self.assertEqual(phase_decision["immediate_action"], "模型未提供阶段化即时动作")
-        self.assertEqual(phase_decision["next_check_time"], "模型未提供下一次检查点")
-        self.assertEqual(phase_decision["confidence_reason"], "模型未提供阶段化置信度理由")
+        self.assertEqual(phase_decision["action_window"], "The model does not provide a staged action window")
+        self.assertEqual(phase_decision["immediate_action"], "The model does not provide staged instant actions")
+        self.assertEqual(phase_decision["next_check_time"], "The model does not provide the next checkpoint")
+        self.assertEqual(phase_decision["confidence_reason"], "Model does not provide staged confidence reasons")
 
 
 class TestIntegrityRetryPrompt(unittest.TestCase):
@@ -519,10 +519,10 @@ class TestIntegrityRetryPrompt(unittest.TestCase):
         with patch.object(GeminiAnalyzer, "_init_litellm", return_value=None):
             analyzer = GeminiAnalyzer()
         prompt = analyzer._build_integrity_retry_prompt(
-            "原始提示",
-            '{"analysis_summary": "已有内容"}',
+            "original tip",
+            '{"analysis_summary": "Already have content"}',
             ["dashboard.core_conclusion.one_sentence"],
         )
-        self.assertIn("原始提示", prompt)
-        self.assertIn('{"analysis_summary": "已有内容"}', prompt)
+        self.assertIn("original tip", prompt)
+        self.assertIn('{"analysis_summary": "Already have content"}', prompt)
         self.assertIn("dashboard.core_conclusion.one_sentence", prompt)

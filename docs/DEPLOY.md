@@ -426,7 +426,7 @@ Add the following Secrets:
 | `TELEGRAM_MESSAGE_THREAD_ID` | Telegram Topic ID | Optional* |
 | `EMAIL_SENDER` | Sender email | Optional* |
 | `EMAIL_PASSWORD` | Email authorization code | Optional* |
-| `SERVERCHAN3_SENDKEY` | Server酱³ Sendkey | Optional* |
+| `SERVERCHAN3_SENDKEY` | ServerSauce³ Sendkey | Optional* |
 | `CUSTOM_WEBHOOK_URLS` | Custom Webhook (comma-separated for multiple) | Optional* |
 | `STOCK_LIST` | Watchlist, e.g., `600519,300750` | ✅ |
 | `SERPAPI_API_KEYS` | SerpAPI Key | Recommended |

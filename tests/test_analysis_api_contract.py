@@ -70,13 +70,13 @@ def _analysis_context_pack_overview() -> dict:
         "created_at": "2026-04-10T08:30:00+00:00",
         "subject": {
             "code": "600519",
-            "stock_name": "贵州茅台",
+            "stock_name": "Kweichow Moutai",
             "market": "cn",
         },
         "blocks": [
             {
                 "key": "quote",
-                "label": "行情",
+                "label": "Quotes",
                 "status": "available",
                 "source": "mock",
                 "warnings": [],
@@ -84,7 +84,7 @@ def _analysis_context_pack_overview() -> dict:
             },
             {
                 "key": "news",
-                "label": "新闻",
+                "label": "News",
                 "status": "missing",
                 "source": None,
                 "warnings": [],
@@ -167,8 +167,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         args, kwargs = task_queue.submit_background_task.call_args
         self.assertTrue(callable(args[0]))
         self.assertEqual(kwargs["stock_code"], "market_review")
-        self.assertEqual(kwargs["stock_name"], "大盘复盘")
-        self.assertEqual(kwargs["message"], "大盘复盘任务已提交")
+        self.assertEqual(kwargs["stock_name"], "Market review")
+        self.assertEqual(kwargs["message"], "The market review task has been submitted")
 
     def test_trigger_market_review_accepts_request_level_report_language(self) -> None:
         if trigger_market_review is None or analysis_endpoint_module is None:
@@ -501,11 +501,11 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         queue.get_task.return_value = SimpleNamespace(
             task_id="market-task-1",
             stock_code="market_review",
-            stock_name="大盘复盘",
+            stock_name="Market review",
             status=analysis_endpoint_module.TaskStatusEnum.COMPLETED,
             progress=100,
             result={
-                "result": "市场复盘报告示例文本",
+                "result": "Market review report sample text",
                 "market_review_payload": {"kind": "market_review", "sections": []},
             },
             error=None,
@@ -518,7 +518,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             status = get_analysis_status("market-task-1")
 
         self.assertEqual(status.status, "completed")
-        self.assertEqual(status.market_review_report, "市场复盘报告示例文本")
+        self.assertEqual(status.market_review_report, "Market review report sample text")
         self.assertEqual(status.market_review_payload["kind"], "market_review")
         self.assertIsNone(status.result)
 
@@ -536,7 +536,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                     task_id=f"task-{task_status.value}",
                     trace_id=f"trace-{task_status.value}",
                     stock_code="600519",
-                    stock_name="贵州茅台",
+                    stock_name="Kweichow Moutai",
                     status=task_status,
                     progress=42,
                     result=None,
@@ -563,15 +563,15 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         queue.get_task.return_value = SimpleNamespace(
             task_id="task-queue-1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             status=analysis_endpoint_module.TaskStatusEnum.COMPLETED,
             progress=100,
             result={
                 "stock_code": "600519",
-                "stock_name": "贵州茅台",
+                "stock_name": "Kweichow Moutai",
                 "report": {
                     "meta": {"query_id": "task-queue-1", "stock_code": "600519"},
-                    "summary": {"analysis_summary": "summary", "operation_advice": "不建议买入"},
+                    "summary": {"analysis_summary": "summary", "operation_advice": "Not recommended to buy"},
                 },
             },
             error=None,
@@ -589,15 +589,15 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         self.assertIsNotNone(status.result)
         self.assertEqual(status.result.query_id, "task-queue-1")
         self.assertEqual(status.result.stock_code, "600519")
-        self.assertEqual(status.result.stock_name, "贵州茅台")
+        self.assertEqual(status.result.stock_name, "Kweichow Moutai")
         self.assertEqual(status.result.created_at, created_at.isoformat())
         self.assertEqual(
             status.result.report["summary"]["analysis_summary"],
             "summary",
         )
-        self.assertEqual(status.result.report["summary"]["operation_advice"], "不建议买入")
+        self.assertEqual(status.result.report["summary"]["operation_advice"], "Not recommended to buy")
         self.assertEqual(status.result.report["summary"]["action"], "avoid")
-        self.assertEqual(status.result.report["summary"]["action_label"], "回避")
+        self.assertEqual(status.result.report["summary"]["action_label"], "Avoid")
 
     def test_get_analysis_status_prefers_raw_result_action_over_summary_action(self) -> None:
         if get_analysis_status is None or analysis_endpoint_module is None:
@@ -608,12 +608,12 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         queue.get_task.return_value = SimpleNamespace(
             task_id="task-queue-action-conflict",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             status=analysis_endpoint_module.TaskStatusEnum.COMPLETED,
             progress=100,
             result={
                 "stock_code": "600519",
-                "stock_name": "贵州茅台",
+                "stock_name": "Kweichow Moutai",
                 "report": {
                     "meta": {
                         "query_id": "task-queue-action-conflict",
@@ -623,12 +623,12 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                     },
                     "summary": {
                         "analysis_summary": "summary",
-                        "operation_advice": "持有观察",
+                        "operation_advice": "hold observation",
                         "action": "buy",
                     },
                     "details": {
                         "raw_result": {
-                            "operation_advice": "持有观察",
+                            "operation_advice": "hold observation",
                             "action": "watch",
                             "report_language": "zh",
                         },
@@ -649,7 +649,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         self.assertEqual(status.status, "completed")
         self.assertIsNotNone(status.result)
         self.assertEqual(status.result.report["summary"]["action"], "watch")
-        self.assertEqual(status.result.report["summary"]["action_label"], "观望")
+        self.assertEqual(status.result.report["summary"]["action_label"], "wait and see")
 
     def test_get_analysis_status_preserves_zero_sentiment_score_when_aligning_action(self) -> None:
         if get_analysis_status is None or analysis_endpoint_module is None:
@@ -660,12 +660,12 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         queue.get_task.return_value = SimpleNamespace(
             task_id="task-queue-zero-score",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             status=analysis_endpoint_module.TaskStatusEnum.COMPLETED,
             progress=100,
             result={
                 "stock_code": "600519",
-                "stock_name": "贵州茅台",
+                "stock_name": "Kweichow Moutai",
                 "report": {
                     "meta": {
                         "query_id": "task-queue-zero-score",
@@ -674,13 +674,13 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                         "report_language": "zh",
                     },
                     "summary": {
-                        "analysis_summary": "趋势显著恶化",
-                        "operation_advice": "持有",
+                        "analysis_summary": "Trend worsens significantly",
+                        "operation_advice": "hold",
                         "sentiment_score": 0,
                     },
                     "details": {
                         "raw_result": {
-                            "operation_advice": "持有",
+                            "operation_advice": "hold",
                             "report_language": "zh",
                         },
                     },
@@ -701,7 +701,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         self.assertIsNotNone(status.result)
         self.assertEqual(status.result.report["summary"]["sentiment_score"], 0)
         self.assertEqual(status.result.report["summary"]["action"], "sell")
-        self.assertEqual(status.result.report["summary"]["action_label"], "卖出")
+        self.assertEqual(status.result.report["summary"]["action_label"], "sell")
 
     def test_get_analysis_status_preserves_zero_sentiment_score_when_enriching_report(self) -> None:
         if get_analysis_status is None or analysis_endpoint_module is None:
@@ -712,12 +712,12 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         queue.get_task.return_value = SimpleNamespace(
             task_id="task-queue-zero-score-enriched",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             status=analysis_endpoint_module.TaskStatusEnum.COMPLETED,
             progress=100,
             result={
                 "stock_code": "600519",
-                "stock_name": "贵州茅台",
+                "stock_name": "Kweichow Moutai",
                 "report": {
                     "meta": {
                         "query_id": "task-queue-zero-score-enriched",
@@ -726,13 +726,13 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                         "report_language": "zh",
                     },
                     "summary": {
-                        "analysis_summary": "趋势显著恶化",
-                        "operation_advice": "持有",
+                        "analysis_summary": "Trend worsens significantly",
+                        "operation_advice": "hold",
                         "sentiment_score": 0,
                     },
                     "details": {
                         "raw_result": {
-                            "operation_advice": "持有",
+                            "operation_advice": "hold",
                             "report_language": "zh",
                         },
                     },
@@ -757,7 +757,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         self.assertIsNotNone(status.result)
         self.assertEqual(status.result.report["summary"]["sentiment_score"], 0)
         self.assertEqual(status.result.report["summary"]["action"], "sell")
-        self.assertEqual(status.result.report["summary"]["action_label"], "卖出")
+        self.assertEqual(status.result.report["summary"]["action_label"], "sell")
 
     def test_get_analysis_status_preserves_queue_report_created_at_when_enriching(self) -> None:
         if get_analysis_status is None or analysis_endpoint_module is None:
@@ -768,12 +768,12 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         queue.get_task.return_value = SimpleNamespace(
             task_id="task-queue-2",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             status=analysis_endpoint_module.TaskStatusEnum.COMPLETED,
             progress=100,
             result={
                 "stock_code": "600519",
-                "stock_name": "贵州茅台",
+                "stock_name": "Kweichow Moutai",
                 "report": {
                     "meta": {"query_id": "task-queue-2", "stock_code": "600519"},
                     "summary": {"analysis_summary": "summary"},
@@ -814,7 +814,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             "_build_market_review_runtime",
             return_value=(runtime_notifier, runtime_analyzer, runtime_search),
         ), patch("src.core.market_review.run_market_review", return_value=None):
-            with self.assertRaisesRegex(RuntimeError, "大盘复盘未返回可持久化报告"):
+            with self.assertRaisesRegex(RuntimeError, "The market review did not return a durable report"):
                 analysis_endpoint_module._run_market_review_background(
                     send_notification=False,
                     override_region="cn",
@@ -873,15 +873,15 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                     config=SimpleNamespace(),
                 ),
                 stock_code="market_review",
-                stock_name="大盘复盘",
-                message="大盘复盘任务已提交",
+                stock_name="Market review",
+                message="The market review task has been submitted",
             )
 
         task_info = queue.get_task(task.task_id)
         self.assertIsNotNone(task_info)
         self.assertEqual(task_info.status, TaskStatus.FAILED)
         self.assertEqual(task_info.error, "runtime init failed")
-        self.assertEqual(task_info.message, "任务失败: runtime init failed")
+        self.assertEqual(task_info.message, "Task failed: runtime init failed")
         release_market_review_lock.assert_called_once()
 
     def test_get_analysis_status_completed_db_snapshot_preserves_zero_change_pct(self) -> None:
@@ -895,7 +895,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             SimpleNamespace(
                 id=1,
                 code="600519",
-                name="贵州茅台",
+                name="Kweichow Moutai",
                 report_type="detailed",
                 raw_result={"report_language": "zh", "model_used": "test-model"},
                 context_snapshot={
@@ -909,8 +909,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                     "realtime_quote_raw": {"price": 1234.5, "change_pct": 9.9},
                 },
                 sentiment_score=80,
-                operation_advice="持有",
-                trend_prediction="看多",
+                operation_advice="hold",
+                trend_prediction="long",
                 analysis_summary="summary",
                 ideal_buy=None,
                 secondary_buy=None,
@@ -939,10 +939,10 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             SimpleNamespace(
                 id=10,
                 code="MARKET",
-                name="大盘复盘",
+                name="Market review",
                 report_type="market_review",
-                raw_result={"raw_response": "# 🎯 大盘复盘\n\n复盘正文"},
-                news_content="复盘正文",
+                raw_result={"raw_response": "# 🎯 Market review\n\nReview text"},
+                news_content="Review text",
                 created_at=None,
             )
         ]
@@ -952,7 +952,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             result = get_analysis_status("market-task-1")
 
         self.assertEqual(result.status, "completed")
-        self.assertEqual(result.market_review_report, "# 🎯 大盘复盘\n\n复盘正文")
+        self.assertEqual(result.market_review_report, "# 🎯 Market review\n\nReview text")
         self.assertIsNone(result.result)
 
     def test_get_analysis_status_completed_db_snapshot_reads_change_pct_from_raw_when_price_present(self) -> None:
@@ -1085,7 +1085,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         pipeline_instance = MagicMock()
         pipeline_instance.process_single_stock.return_value = SimpleNamespace(
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             current_price=1234.56,
             change_pct=1.23,
             model_used="test-model",
@@ -1159,7 +1159,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         service_instance = MagicMock()
         service_instance.analyze_stock.return_value = {
             "stock_code": "600519",
-            "stock_name": "贵州茅台",
+            "stock_name": "Kweichow Moutai",
             "report": {
                 "meta": {"stock_code": "600519", "report_language": "zh"},
                 "summary": {"analysis_summary": "summary"},
@@ -1214,7 +1214,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         result = service._build_analysis_response(
             SimpleNamespace(
                 code="AAPL",
-                name="股票AAPL",
+                name="stocksAAPL",
                 current_price=180.35,
                 change_pct=1.04,
                 model_used="test-model",
@@ -1241,7 +1241,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         result = service._build_analysis_response(
             SimpleNamespace(
                 code="600519",
-                name="贵州茅台",
+                name="Kweichow Moutai",
                 current_price=1234.56,
                 change_pct=1.23,
                 model_used="test-model",
@@ -1269,7 +1269,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         result = service._build_analysis_response(
             SimpleNamespace(
                 code="600519",
-                name="贵州茅台",
+                name="Kweichow Moutai",
                 current_price=1234.56,
                 change_pct=1.23,
                 model_used="test-model",
@@ -1299,7 +1299,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         pipeline_instance.process_single_stock.return_value = SimpleNamespace(
             success=True,
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             current_price=1234.56,
             change_pct=1.23,
             model_used="test-model",
@@ -1341,7 +1341,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot={
                 "enhanced_context": {
                     "fundamental_context": {
@@ -1368,9 +1368,9 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             report_data={
                 "meta": {"report_type": "detailed", "report_language": "zh"},
                 "summary": {
-                    "analysis_summary": "等待确认",
-                    "operation_advice": "不建议买入",
-                    "trend_prediction": "震荡",
+                    "analysis_summary": "Waiting for confirmation",
+                    "operation_advice": "Not recommended to buy",
+                    "trend_prediction": "shock",
                     "sentiment_score": 45,
                 },
                 "strategy": {},
@@ -1378,14 +1378,14 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot=None,
             fallback_fundamental_payload=None,
         )
 
-        self.assertEqual(report.summary.operation_advice, "不建议买入")
+        self.assertEqual(report.summary.operation_advice, "Not recommended to buy")
         self.assertEqual(report.summary.action, "avoid")
-        self.assertEqual(report.summary.action_label, "回避")
+        self.assertEqual(report.summary.action_label, "Avoid")
 
     def test_build_analysis_report_aligns_score_and_legacy_advice(self) -> None:
         if _build_analysis_report is None:
@@ -1395,8 +1395,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             report_data={
                 "meta": {"report_type": "detailed", "report_language": "zh"},
                 "summary": {
-                    "analysis_summary": "等待确认",
-                    "operation_advice": "持有",
+                    "analysis_summary": "Waiting for confirmation",
+                    "operation_advice": "hold",
                     "sentiment_score": 72,
                 },
                 "strategy": {},
@@ -1404,13 +1404,13 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q2",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot=None,
             fallback_fundamental_payload=None,
         )
 
         self.assertEqual(report.summary.action, "buy")
-        self.assertEqual(report.summary.action_label, "买入")
+        self.assertEqual(report.summary.action_label, "Buy")
 
     def test_build_analysis_report_reads_decision_action_from_raw_result(self) -> None:
         if _build_analysis_report is None:
@@ -1420,17 +1420,17 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             report_data={
                 "meta": {"report_type": "detailed", "report_language": "zh"},
                 "summary": {
-                    "analysis_summary": "等待确认",
-                    "operation_advice": "持有观察",
+                    "analysis_summary": "Waiting for confirmation",
+                    "operation_advice": "hold observation",
                     "action": "buy",
-                    "trend_prediction": "震荡",
+                    "trend_prediction": "shock",
                     "sentiment_score": 45,
                 },
                 "strategy": {},
                 "details": {
                     "action": "sell",
                     "raw_result": {
-                        "operation_advice": "持有观察",
+                        "operation_advice": "hold observation",
                         "action": "watch",
                         "report_language": "zh",
                     },
@@ -1438,13 +1438,13 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot=None,
             fallback_fundamental_payload=None,
         )
 
         self.assertEqual(report.summary.action, "watch")
-        self.assertEqual(report.summary.action_label, "观望")
+        self.assertEqual(report.summary.action_label, "wait and see")
 
     def test_build_analysis_report_stringifies_strategy_price_fields(self) -> None:
         if _build_analysis_report is None:
@@ -1464,7 +1464,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot=None,
             fallback_fundamental_payload=None,
         )
@@ -1487,14 +1487,14 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot={
                 "enhanced_context": {
                     "fundamental_context": {
-                        "belong_boards": [{"name": "白酒", "type": "行业"}],
+                        "belong_boards": [{"name": "Liquor", "type": "Industry"}],
                         "boards": {
                             "data": {
-                                "top": [{"name": "白酒", "change_pct": 2.5}],
+                                "top": [{"name": "Liquor", "change_pct": 2.5}],
                                 "bottom": [],
                             }
                         },
@@ -1504,8 +1504,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             fallback_fundamental_payload=None,
         )
 
-        self.assertEqual(report.details.belong_boards, [{"name": "白酒", "type": "行业"}])
-        self.assertEqual(report.details.sector_rankings["top"][0]["name"], "白酒")
+        self.assertEqual(report.details.belong_boards, [{"name": "Liquor", "type": "Industry"}])
+        self.assertEqual(report.details.sector_rankings["top"][0]["name"], "Liquor")
         self.assertEqual(report.details.sector_rankings["top"][0]["change_pct"], 2.5)
 
     def test_build_analysis_report_exposes_overview_but_sanitizes_snapshot(self) -> None:
@@ -1523,7 +1523,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot={
                 "enhanced_context": {
                     "code": "600519",
@@ -1594,7 +1594,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q-meta-phase",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot=None,
             fallback_fundamental_payload=None,
         )
@@ -1622,7 +1622,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q-snapshot-phase",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot={"market_phase_summary": snapshot_summary},
             fallback_fundamental_payload=None,
         )
@@ -1659,7 +1659,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 },
                 query_id="q-kr-phase",
                 stock_code="005930",
-                stock_name="三星电子",
+                stock_name="Samsung Electronics",
                 context_snapshot={"market_phase_summary": persisted_phase_summary},
                 fallback_fundamental_payload=None,
             )
@@ -1706,7 +1706,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 },
                 query_id="q-kr-legacy-cn",
                 stock_code="005930",
-                stock_name="三星电子",
+                stock_name="Samsung Electronics",
                 context_snapshot={"market_phase_summary": legacy_cn_summary},
                 fallback_fundamental_payload=None,
             )
@@ -1730,13 +1730,13 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot={
                 "fundamental_context": {
-                    "belong_boards": [{"name": "白酒", "type": "行业"}],
+                    "belong_boards": [{"name": "Liquor", "type": "Industry"}],
                     "boards": {
                         "data": {
-                            "top": [{"name": "白酒", "change_pct": 2.5}],
+                            "top": [{"name": "Liquor", "change_pct": 2.5}],
                             "bottom": [],
                         }
                     },
@@ -1752,8 +1752,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
         )
 
-        self.assertEqual(report.details.belong_boards, [{"name": "白酒", "type": "行业"}])
-        self.assertEqual(report.details.sector_rankings["top"][0]["name"], "白酒")
+        self.assertEqual(report.details.belong_boards, [{"name": "Liquor", "type": "Industry"}])
+        self.assertEqual(report.details.sector_rankings["top"][0]["name"], "Liquor")
         self.assertEqual(report.details.financial_report["report_date"], "2025-12-31")
         self.assertEqual(report.details.dividend_metrics["ttm_dividend_yield_pct"], 2.6)
 
@@ -1770,7 +1770,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot={
                 "fundamental_context": {
                     "belong_boards": [],
@@ -1784,10 +1784,10 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 },
             },
             fallback_fundamental_payload={
-                "belong_boards": [{"name": "白酒", "type": "行业"}],
+                "belong_boards": [{"name": "Liquor", "type": "Industry"}],
                 "boards": {
                     "data": {
-                        "top": [{"name": "白酒", "change_pct": 2.5}],
+                        "top": [{"name": "Liquor", "change_pct": 2.5}],
                         "bottom": [],
                     }
                 },
@@ -1800,8 +1800,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
         )
 
-        self.assertEqual(report.details.belong_boards, [{"name": "白酒", "type": "行业"}])
-        self.assertEqual(report.details.sector_rankings["top"][0]["name"], "白酒")
+        self.assertEqual(report.details.belong_boards, [{"name": "Liquor", "type": "Industry"}])
+        self.assertEqual(report.details.sector_rankings["top"][0]["name"], "Liquor")
         self.assertEqual(report.details.financial_report["report_date"], "2025-12-31")
         self.assertEqual(report.details.dividend_metrics["ttm_dividend_yield_pct"], 2.6)
 
@@ -1818,20 +1818,20 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot={
                 "enhanced_context": {
                     "fundamental_context": {
                         "belong_boards": [
-                            {"name": " 白酒 ", "type": " 行业 ", "code": " BK0815 "},
+                            {"name": " Liquor ", "type": " Industry ", "code": " BK0815 "},
                             {"name": "   "},
                             "bad-item",
                         ],
                         "boards": {
                             "data": {
-                                "top": {"name": "坏数据"},
+                                "top": {"name": "bad data"},
                                 "bottom": [
-                                    {"name": " 消费 ", "change_pct": "-1.2%"},
+                                    {"name": " consumption ", "change_pct": "-1.2%"},
                                     {"name": None, "change_pct": 1},
                                     "bad-item",
                                 ],
@@ -1845,13 +1845,13 @@ class AnalysisApiContractTestCase(unittest.TestCase):
 
         self.assertEqual(
             report.details.belong_boards,
-            [{"name": "白酒", "type": "行业", "code": "BK0815"}],
+            [{"name": "Liquor", "type": "Industry", "code": "BK0815"}],
         )
         self.assertEqual(
             report.details.sector_rankings,
             {
                 "top": [],
-                "bottom": [{"name": "消费", "change_pct": -1.2}],
+                "bottom": [{"name": "consumption", "change_pct": -1.2}],
             },
         )
 
@@ -1868,11 +1868,11 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             },
             query_id="q1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             context_snapshot={
                 "enhanced_context": {
                     "fundamental_context": {
-                        "belong_boards": [{"name": "白酒"}],
+                        "belong_boards": [{"name": "Liquor"}],
                         "boards": {
                             "status": "failed",
                             "data": {},
@@ -1883,7 +1883,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             fallback_fundamental_payload=None,
         )
 
-        self.assertEqual(report.details.belong_boards, [{"name": "白酒"}])
+        self.assertEqual(report.details.belong_boards, [{"name": "Liquor"}])
         self.assertIsNone(report.details.sector_rankings)
 
     def test_build_analysis_report_preserves_report_language(self) -> None:
@@ -1947,7 +1947,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         record = SimpleNamespace(
             id=1,
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             report_type="detailed",
             created_at=datetime(2026, 4, 10, 12, 0, 0),
             raw_result=json.dumps({"model_used": "test-model", "report_language": "zh"}),
@@ -1968,8 +1968,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 }
             ),
             sentiment_score=80,
-            operation_advice="持有",
-            trend_prediction="震荡上行",
+            operation_advice="hold",
+            trend_prediction="Fluctuate upward",
             analysis_summary="summary",
             ideal_buy=None,
             secondary_buy=None,
@@ -1998,17 +1998,17 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         record = SimpleNamespace(
             id=1,
             code="600519",
-            name="贵州茅台",
+            name="Kweichow Moutai",
             report_type="detailed",
             created_at=datetime(2026, 4, 10, 12, 0, 0),
             raw_result=json.dumps({"model_used": "test-model", "report_language": "zh"}),
             context_snapshot=json.dumps(
                 {
                     "fundamental_context": {
-                        "belong_boards": [{"name": "白酒", "type": "行业"}],
+                        "belong_boards": [{"name": "Liquor", "type": "Industry"}],
                         "boards": {
                             "data": {
-                                "top": [{"name": "白酒", "change_pct": 2.8}],
+                                "top": [{"name": "Liquor", "change_pct": 2.8}],
                                 "bottom": [],
                             }
                         },
@@ -2026,8 +2026,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             ),
             news_content="news",
             sentiment_score=80,
-            operation_advice="持有",
-            trend_prediction="震荡上行",
+            operation_advice="hold",
+            trend_prediction="Fluctuate upward",
             analysis_summary="summary",
             ideal_buy=None,
             secondary_buy=None,
@@ -2053,11 +2053,11 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         )
         self.assertEqual(
             status.result.report["details"]["belong_boards"],
-            [{"name": "白酒", "type": "行业"}],
+            [{"name": "Liquor", "type": "Industry"}],
         )
         self.assertEqual(
             status.result.report["details"]["sector_rankings"]["top"][0]["name"],
-            "白酒",
+            "Liquor",
         )
         self.assertEqual(
             status.result.report["details"]["analysis_context_pack_overview"]["metadata"]["trigger_source"],
@@ -2084,10 +2084,10 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         phase_summary = _market_phase_summary()
         context_snapshot = {
             "fundamental_context": {
-                "belong_boards": [{"name": "白酒", "type": "行业"}],
+                "belong_boards": [{"name": "Liquor", "type": "Industry"}],
                 "boards": {
                     "data": {
-                        "top": [{"name": "白酒", "change_pct": 2.8}],
+                        "top": [{"name": "Liquor", "change_pct": 2.8}],
                         "bottom": [],
                     }
                 },
@@ -2102,17 +2102,17 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         task = SimpleNamespace(
             task_id="task_agent_snapshot_in_memory_1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             status=TaskStatus.COMPLETED,
             progress=100,
             result={
                 "stock_code": "600519",
-                "stock_name": "贵州茅台",
+                "stock_name": "Kweichow Moutai",
                 "report": {
                     "meta": {
                         "query_id": "task_agent_snapshot_in_memory_1",
                         "stock_code": "600519",
-                        "stock_name": "贵州茅台",
+                        "stock_name": "Kweichow Moutai",
                         "report_type": "detailed",
                         "report_language": "zh",
                         "created_at": "2026-04-10T12:00:00",
@@ -2149,11 +2149,11 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         )
         self.assertEqual(
             status.result.report["details"]["belong_boards"],
-            [{"name": "白酒", "type": "行业"}],
+            [{"name": "Liquor", "type": "Industry"}],
         )
         self.assertEqual(
             status.result.report["details"]["sector_rankings"]["top"][0]["name"],
-            "白酒",
+            "Liquor",
         )
         self.assertEqual(
             status.result.report["details"]["analysis_context_pack_overview"]["metadata"]["trigger_source"],
@@ -2185,18 +2185,18 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         task = SimpleNamespace(
             task_id="task_no_snapshot_in_memory_1",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             status=TaskStatus.COMPLETED,
             progress=100,
             analysis_phase="intraday",
             result={
                 "stock_code": "600519",
-                "stock_name": "贵州茅台",
+                "stock_name": "Kweichow Moutai",
                 "report": {
                     "meta": {
                         "query_id": "task_no_snapshot_in_memory_1",
                         "stock_code": "600519",
-                        "stock_name": "贵州茅台",
+                        "stock_name": "Kweichow Moutai",
                         "market_phase_summary": phase_summary,
                     },
                     "summary": {"analysis_summary": "summary"},
@@ -2329,7 +2329,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         self.assertEqual(ctx.exception.status_code, 400)
         self.assertEqual(
             ctx.exception.detail["message"],
-            "股票代码不能为空或仅包含空白字符",
+            "Stock code cannot be empty or contain only whitespace characters",
         )
 
     def test_trigger_analysis_rejects_obviously_invalid_mixed_input_before_resolution(self) -> None:
@@ -2351,7 +2351,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 )
 
         self.assertEqual(ctx.exception.status_code, 400)
-        self.assertEqual(ctx.exception.detail["message"], "请输入有效的股票代码或股票名称")
+        self.assertEqual(ctx.exception.detail["message"], "Please enter a valid stock code or stock name")
         resolve_mock.assert_not_called()
 
     def test_trigger_analysis_rejects_unresolvable_alpha_garbage(self) -> None:
@@ -2374,7 +2374,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 )
 
         self.assertEqual(ctx.exception.status_code, 400)
-        self.assertEqual(ctx.exception.detail["message"], "请输入有效的股票代码或股票名称")
+        self.assertEqual(ctx.exception.detail["message"], "Please enter a valid stock code or stock name")
         queue_mock.assert_not_called()
 
     def test_trigger_analysis_accepts_us_suffix_code(self) -> None:
@@ -2585,7 +2585,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 request=SimpleNamespace(
                     stock_code="00700.HK",
                     stock_codes=None,
-                    stock_name="腾讯控股",
+                    stock_name="Tencent Holdings",
                     original_query="00700",
                     selection_source="autocomplete",
                     report_type="detailed",
@@ -2600,7 +2600,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         resolve_mock.assert_not_called()
         queue.submit_tasks_batch.assert_called_once_with(
             stock_codes=["00700.HK"],
-            stock_name="腾讯控股",
+            stock_name="Tencent Holdings",
             original_query="00700",
             selection_source="autocomplete",
             report_type="detailed",
@@ -2622,7 +2622,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 request=SimpleNamespace(
                     stock_code="920493.BJ",
                     stock_codes=None,
-                    stock_name="示例北交所股票",
+                    stock_name="Example NSE stocks",
                     original_query="920493",
                     selection_source="autocomplete",
                     report_type="detailed",
@@ -2638,7 +2638,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         resolve_mock.assert_not_called()
         queue.submit_tasks_batch.assert_called_once_with(
             stock_codes=["920493.BJ"],
-            stock_name="示例北交所股票",
+            stock_name="Example NSE stocks",
             original_query="920493",
             selection_source="autocomplete",
             report_type="detailed",
@@ -2727,10 +2727,10 @@ class AnalysisApiContractTestCase(unittest.TestCase):
              patch("api.v1.endpoints.analysis.get_task_queue", return_value=queue):
             response = trigger_analysis(
                 request=SimpleNamespace(
-                    stock_code="西安奕材-U",
+                    stock_code="Xi'an Yicai-U",
                     stock_codes=None,
                     stock_name=None,
-                    original_query="西安奕材-U",
+                    original_query="Xi'an Yicai-U",
                     selection_source="manual",
                     report_type="detailed",
                     force_refresh=False,
@@ -2745,7 +2745,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         queue.submit_tasks_batch.assert_called_once_with(
             stock_codes=["688783"],
             stock_name=None,
-            original_query="西安奕材-U",
+            original_query="Xi'an Yicai-U",
             selection_source="manual",
             report_type="detailed",
             analysis_phase="auto",
@@ -2764,10 +2764,10 @@ class AnalysisApiContractTestCase(unittest.TestCase):
              patch("api.v1.endpoints.analysis.get_task_queue", return_value=queue):
             response = trigger_analysis(
                 request=SimpleNamespace(
-                    stock_code="贵州茅台",
+                    stock_code="Kweichow Moutai",
                     stock_codes=None,
                     stock_name=None,
-                    original_query="贵州茅台",
+                    original_query="Kweichow Moutai",
                     selection_source="manual",
                     report_type="detailed",
                     force_refresh=False,
@@ -2782,7 +2782,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         queue.submit_tasks_batch.assert_called_once_with(
             stock_codes=["600519"],
             stock_name=None,
-            original_query="贵州茅台",
+            original_query="Kweichow Moutai",
             selection_source="manual",
             report_type="detailed",
             analysis_phase="auto",
@@ -2896,8 +2896,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 request=SimpleNamespace(
                     stock_code=None,
                     stock_codes=["600519", "000001"],
-                    stock_name="贵州茅台",
-                    original_query="茅台,平安银行",
+                    stock_name="Kweichow Moutai",
+                    original_query="Moutai,Ping An Bank",
                     selection_source="import",
                     report_type="detailed",
                     force_refresh=False,
@@ -2912,7 +2912,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         queue.submit_tasks_batch.assert_called_once_with(
             stock_codes=["600519", "000001"],
             stock_name=None,
-            original_query="茅台,平安银行",
+            original_query="Moutai,Ping An Bank",
             selection_source="import",
             report_type="detailed",
             analysis_phase="auto",
@@ -3018,7 +3018,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             task_id="task-list-phase",
             trace_id="trace-list-phase",
             stock_code="600519",
-            stock_name="贵州茅台",
+            stock_name="Kweichow Moutai",
             status=TaskStatus.PROCESSING,
             progress=42,
             message="running",
@@ -3027,7 +3027,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             started_at=datetime(2026, 4, 10, 12, 0, 1),
             completed_at=None,
             error=None,
-            original_query="茅台",
+            original_query="Moutai",
             selection_source="manual",
             analysis_phase="postmarket",
             skills=["growth_quality"],
@@ -3142,7 +3142,7 @@ class BatchTaskQueueContractTestCase(unittest.TestCase):
         self.assertIsNone(executor.calls[0][1][6])
 
         service_instance = MagicMock()
-        service_instance.analyze_stock.return_value = {"stock_name": "贵州茅台"}
+        service_instance.analyze_stock.return_value = {"stock_name": "Kweichow Moutai"}
         with patch("src.services.analysis_service.AnalysisService", return_value=service_instance):
             executor.calls[0][0](*executor.calls[0][1])
 
@@ -3184,7 +3184,7 @@ class BatchTaskQueueContractTestCase(unittest.TestCase):
         queue = AnalysisTaskQueue(max_workers=1)
         queue._executor = type("ExecutorStub", (), {"submit": lambda self, *args, **kwargs: Future()})()
 
-        with self.assertRaisesRegex(ValueError, "股票代码不能为空或仅包含空白字符"):
+        with self.assertRaisesRegex(ValueError, "Stock code cannot be empty or contain only whitespace characters"):
             queue.submit_task("   ", report_type="detailed")
 
         self.assertEqual(queue._tasks, {})
@@ -3219,12 +3219,12 @@ class BatchTaskQueueContractTestCase(unittest.TestCase):
         updated = queue.update_task_progress(
             accepted[0].task_id,
             62,
-            "LLM 正在生成分析结果",
+            "LLM Generating analysis results",
         )
 
         self.assertIsNotNone(updated)
         self.assertEqual(updated.progress, 62)
-        self.assertEqual(updated.message, "LLM 正在生成分析结果")
+        self.assertEqual(updated.message, "LLM Generating analysis results")
         self.assertEqual(events, [("task_progress", updated.to_dict())])
 
 

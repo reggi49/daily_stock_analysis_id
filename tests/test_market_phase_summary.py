@@ -189,13 +189,13 @@ def test_format_public_phase_pack_excerpt_limits_and_redacts_public_fields() -> 
         report_language="zh",
     )
 
-    assert "阶段：intraday" in excerpt
-    assert "触发来源：portfolio" in excerpt
-    assert "摘要来源：最近分析快照" in excerpt
-    assert "盘中数据提示" in excerpt
-    assert "数据质量: limited" in excerpt
-    assert "限制: quote stale" in excerpt
-    assert "限制: [REDACTED]" in excerpt
+    assert "stage：intraday" in excerpt
+    assert "trigger source：portfolio" in excerpt
+    assert "Summary source：Recent analysis snapshot" in excerpt
+    assert "Intraday data tips" in excerpt
+    assert "Data quality: limited" in excerpt
+    assert "Limit: quote stale" in excerpt
+    assert "Limit: [REDACTED]" in excerpt
     assert "news missing" not in excerpt
     assert "api_key=secret" not in excerpt
 
@@ -210,7 +210,7 @@ def test_format_public_market_status_line_localizes_compact_summary() -> None:
             {"market": "cn", "phase": "postmarket"},
             report_language="zh",
         )
-        == "市场状态：A股 · 盘后"
+        == "market status：Ashares · after hours"
     )
     assert (
         format_public_market_status_line(

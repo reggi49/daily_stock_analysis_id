@@ -15,40 +15,40 @@ from src.schemas.decision_scale import action_for_score, decision_type_for_score
     ("value", "expected"),
     [
         ("strong_buy", "buy"),
-        ("强烈买入", "buy"),
-        ("买入", "buy"),
-        ("布局", "buy"),
-        ("建仓", "buy"),
+        ("Strong buy", "buy"),
+        ("Buy", "buy"),
+        ("Layout", "buy"),
+        ("Open a position", "buy"),
         ("add", "add"),
-        ("加仓", "add"),
-        ("增持", "add"),
+        ("Add to position", "add"),
+        ("Overweight", "add"),
         ("accumulate", "add"),
         ("hold", "hold"),
-        ("持有", "hold"),
-        ("持有观察", "hold"),
-        ("洗盘观察", "hold"),
+        ("hold", "hold"),
+        ("hold observation", "hold"),
+        ("Washing dishes and observing", "hold"),
         ("watch", "watch"),
-        ("观望", "watch"),
-        ("等待", "watch"),
+        ("wait and see", "watch"),
+        ("wait", "watch"),
         ("wait", "watch"),
         ("reduce", "reduce"),
-        ("减仓", "reduce"),
+        ("Reduce positions", "reduce"),
         ("trim", "reduce"),
         ("sell", "sell"),
-        ("卖出", "sell"),
-        ("清仓", "sell"),
+        ("sell", "sell"),
+        ("Clearance", "sell"),
         ("strong_sell", "sell"),
-        ("强烈卖出", "sell"),
+        ("Strong Sell", "sell"),
         ("avoid", "avoid"),
-        ("回避", "avoid"),
-        ("规避", "avoid"),
-        ("不建议买入", "avoid"),
-        ("避免买入", "avoid"),
+        ("Avoid", "avoid"),
+        ("avoid", "avoid"),
+        ("Not recommended to buy", "avoid"),
+        ("avoid buying", "avoid"),
         ("do not buy", "avoid"),
         ("alert", "alert"),
-        ("风险预警", "alert"),
-        ("警惕", "alert"),
-        ("触发告警", "alert"),
+        ("Risk warning", "alert"),
+        ("Be alert", "alert"),
+        ("trigger alarm", "alert"),
         ("risk alert", "alert"),
     ],
 )
@@ -61,14 +61,14 @@ def test_normalize_decision_action_matrix(value: str, expected: str) -> None:
     [
         "",
         None,
-        "观察",
-        "等待突破后买入",
+        "observe",
+        "Wait for a breakout to buy",
         "waiting to buy",
-        "买入或卖出",
         "buy or sell",
-        "买盘增强，继续观察",
-        "卖压缓解，继续观察",
-        "卖方评级分歧",
+        "buy or sell",
+        "Buying orders strengthen，Continue to observe",
+        "Selling pressure eases，Continue to observe",
+        "Seller rating divergence",
         "no buyback announced",
         "cannot buyback shares now",
         "share buy-back announced",
@@ -79,8 +79,8 @@ def test_normalize_decision_action_matrix(value: str, expected: str) -> None:
         "sell off risk remains low",
         "no sell-off pressure",
         "risk alert, avoid buying",
-        "风险预警，避免买入",
-        "普通复盘说明",
+        "Risk warning，avoid buying",
+        "General review instructions",
     ],
 )
 def test_normalize_decision_action_unknown_or_ambiguous_returns_none(value: str | None) -> None:
@@ -90,20 +90,20 @@ def test_normalize_decision_action_unknown_or_ambiguous_returns_none(value: str 
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
-        ("暂不买入", "avoid"),
-        ("不要买入", "avoid"),
-        ("不宜买入", "avoid"),
-        ("先不买入", "avoid"),
-        ("无需买入", "avoid"),
-        ("无须买入", "avoid"),
-        ("不建议建仓", "avoid"),
-        ("暂不建仓", "avoid"),
-        ("无需建仓", "avoid"),
-        ("无须建仓", "avoid"),
-        ("不建议布局", "avoid"),
-        ("先不布局", "avoid"),
-        ("无需布局", "avoid"),
-        ("无须布局", "avoid"),
+        ("Not buying yet", "avoid"),
+        ("Don't buy", "avoid"),
+        ("Not suitable to buy", "avoid"),
+        ("Don’t buy yet", "avoid"),
+        ("No need to buy", "avoid"),
+        ("No need to buy", "avoid"),
+        ("Not recommended to open a position", "avoid"),
+        ("Not opening a position yet", "avoid"),
+        ("No need to open a position", "avoid"),
+        ("No need to open a position", "avoid"),
+        ("Layout not recommended", "avoid"),
+        ("No layout first", "avoid"),
+        ("No layout required", "avoid"),
+        ("No layout required", "avoid"),
         ("no buy", "avoid"),
         ("no need to buy", "avoid"),
         ("need not buy", "avoid"),
@@ -113,8 +113,8 @@ def test_normalize_decision_action_unknown_or_ambiguous_returns_none(value: str 
         ("not to buy", "avoid"),
         ("avoid buying", "avoid"),
         ("avoid buying into weakness", "avoid"),
-        ("不建议加仓", "hold"),
-        ("无须加仓", "hold"),
+        ("Not recommended to add positions", "hold"),
+        ("No need to add position", "hold"),
         ("no add", "hold"),
         ("no need to add", "hold"),
         ("need not add", "hold"),
@@ -123,19 +123,19 @@ def test_normalize_decision_action_unknown_or_ambiguous_returns_none(value: str 
         ("no accumulate", "hold"),
         ("can't accumulate", "hold"),
         ("not to accumulate", "hold"),
-        ("不建议卖出", "hold"),
-        ("无需卖出", "hold"),
-        ("无须卖出", "hold"),
-        ("不要卖出", "hold"),
-        ("暂不卖出", "hold"),
+        ("Not recommended to sell", "hold"),
+        ("No need to sell", "hold"),
+        ("No need to sell", "hold"),
+        ("don't sell", "hold"),
+        ("Not for sale yet", "hold"),
         ("no sell", "hold"),
         ("no need to sell", "hold"),
         ("cannot sell", "hold"),
         ("can't sell", "hold"),
         ("not a sell yet", "hold"),
         ("not to sell", "hold"),
-        ("无需减仓", "hold"),
-        ("无须减仓", "hold"),
+        ("No need to reduce positions", "hold"),
+        ("No need to reduce positions", "hold"),
         ("no reduce", "hold"),
         ("no need to reduce", "hold"),
         ("cannot reduce", "hold"),
@@ -147,7 +147,7 @@ def test_normalize_decision_action_unknown_or_ambiguous_returns_none(value: str 
         ("avoid selling into weakness", "hold"),
         ("avoid trimming before earnings", "hold"),
         ("avoid reducing exposure before earnings", "hold"),
-        ("不建议清仓", "hold"),
+        ("Not recommended for clearance", "hold"),
     ],
 )
 def test_normalize_decision_action_handles_negated_trade_actions(value: str, expected: str) -> None:
@@ -157,9 +157,9 @@ def test_normalize_decision_action_handles_negated_trade_actions(value: str, exp
 @pytest.mark.parametrize(
     "advice",
     [
-        "无需买入，等待确认",
-        "无须建仓，继续观察",
-        "无需布局，等待突破",
+        "No need to buy，Waiting for confirmation",
+        "No need to open a position，Continue to observe",
+        "No layout required，Waiting for a breakthrough",
         "no buy until breakout",
         "no need to buy before confirmation",
         "cannot buy before confirmation",
@@ -171,16 +171,16 @@ def test_normalize_decision_action_handles_negated_trade_actions(value: str, exp
 def test_build_action_fields_prioritizes_negated_buy_advice_over_embedded_buy_phrase(advice: str) -> None:
     assert build_action_fields(operation_advice=advice) == {
         "action": "avoid",
-        "action_label": "回避",
+        "action_label": "Avoid",
     }
 
 
 @pytest.mark.parametrize(
     "advice",
     [
-        "无须加仓，维持仓位",
-        "无需卖出，继续持有",
-        "无须减仓，等待确认",
+        "No need to add position，Maintain position",
+        "No need to sell，continue to hold",
+        "No need to reduce positions，Waiting for confirmation",
         "no add before confirmation",
         "cannot add before confirmation",
         "no need to accumulate here",
@@ -203,7 +203,7 @@ def test_build_action_fields_prioritizes_negated_buy_advice_over_embedded_buy_ph
 def test_build_action_fields_prioritizes_negated_hold_advice_over_embedded_trade_phrase(advice: str) -> None:
     assert build_action_fields(operation_advice=advice) == {
         "action": "hold",
-        "action_label": "持有",
+        "action_label": "hold",
     }
 
 
@@ -211,7 +211,7 @@ def test_build_action_fields_prioritizes_negated_hold_advice_over_embedded_trade
     "advice",
     [
         "risk alert, avoid buying",
-        "风险预警，避免买入",
+        "Risk warning，avoid buying",
     ],
 )
 def test_build_action_fields_keeps_multi_guard_advice_empty(advice: str) -> None:
@@ -224,9 +224,9 @@ def test_build_action_fields_keeps_multi_guard_advice_empty(advice: str) -> None
 @pytest.mark.parametrize(
     "advice",
     [
-        "买盘增强，继续观察",
-        "卖压缓解，继续观察",
-        "卖方评级分歧",
+        "Buying orders strengthen，Continue to observe",
+        "Selling pressure eases，Continue to observe",
+        "Seller rating divergence",
     ],
 )
 def test_build_action_fields_keeps_chinese_financial_context_empty(advice: str) -> None:
@@ -272,8 +272,8 @@ def test_build_action_fields_keeps_hyphenated_financial_compound_terms_empty(adv
 @pytest.mark.parametrize(
     ("advice", "expected_action", "expected_label"),
     [
-        ("buy after sell-off", "buy", "买入"),
-        ("sell after buy-back rumor", "sell", "卖出"),
+        ("buy after sell-off", "buy", "Buy"),
+        ("sell after buy-back rumor", "sell", "sell"),
     ],
 )
 def test_financial_compound_mask_preserves_separate_action_terms(
@@ -289,13 +289,13 @@ def test_financial_compound_mask_preserves_separate_action_terms(
 
 
 def test_localize_action_label_uses_report_language() -> None:
-    assert localize_action_label("avoid", "zh") == "回避"
+    assert localize_action_label("avoid", "zh") == "Avoid"
     assert localize_action_label("avoid", "en") == "Avoid"
 
 
 def test_build_action_fields_respects_market_review_exclusion() -> None:
     fields = build_action_fields(
-        operation_advice="买入",
+        operation_advice="Buy",
         explicit_action="buy",
         report_type="market_review",
     )
@@ -305,12 +305,12 @@ def test_build_action_fields_respects_market_review_exclusion() -> None:
 
 def test_build_action_fields_prefers_explicit_action_over_advice() -> None:
     fields = build_action_fields(
-        operation_advice="买入",
+        operation_advice="Buy",
         explicit_action="watch",
         report_language="zh",
     )
 
-    assert fields == {"action": "watch", "action_label": "观望"}
+    assert fields == {"action": "watch", "action_label": "wait and see"}
 
 
 def test_build_action_fields_keeps_empty_action_without_advice_or_explicit_action() -> None:
@@ -347,22 +347,22 @@ def test_canonical_score_scale_boundaries(
 
 def test_build_action_fields_can_align_neutral_action_with_directional_score() -> None:
     assert build_action_fields(
-        operation_advice="持有",
+        operation_advice="hold",
         sentiment_score=72,
         align_with_score=True,
-    ) == {"action": "buy", "action_label": "买入"}
+    ) == {"action": "buy", "action_label": "Buy"}
 
     assert build_action_fields(
-        operation_advice="观望",
+        operation_advice="wait and see",
         sentiment_score=28,
         align_with_score=True,
-    ) == {"action": "reduce", "action_label": "减仓"}
+    ) == {"action": "reduce", "action_label": "Reduce positions"}
 
 
 def test_build_action_fields_keeps_neutral_score_conflict_when_guardrail_is_explicit() -> None:
     assert build_action_fields(
-        operation_advice="持有/观望待回踩",
+        operation_advice="hold/Wait and see and wait to step back",
         sentiment_score=72,
-        guardrail_reason="等待回踩确认",
+        guardrail_reason="Waiting for confirmation",
         align_with_score=True,
-    ) == {"action": "watch", "action_label": "观望"}
+    ) == {"action": "watch", "action_label": "wait and see"}

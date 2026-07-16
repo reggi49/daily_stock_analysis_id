@@ -430,7 +430,7 @@ class StockAnalysisPipeline:
                         volume_ratio = getattr(realtime_quote, 'volume_ratio', None)
                         turnover_rate = getattr(realtime_quote, 'turnover_rate', None)
                         logger.info(f"{stock_name}({code}) Realtime quote: price={realtime_quote.price}, "
-                                  f"量比={volume_ratio}, 换手率={turnover_rate}% "
+                                  f"Quantity ratio={volume_ratio}, turnover rate={turnover_rate}% "
                                   f"(source: {realtime_quote.source.value if hasattr(realtime_quote, 'source') else 'unknown'})")
                     else:
                         logger.warning(f"{stock_name}({code}) All realtime quote sources unavailable, degraded to historical close price for analysis")
@@ -524,7 +524,7 @@ class StockAnalysisPipeline:
                         df = self._augment_historical_with_realtime(df, realtime_quote, code)
                     trend_result = self.trend_analyzer.analyze(df, code)
                     logger.info(f"{stock_name}({code}) Trend analysis: {trend_result.trend_status.value}, "
-                              f"Buy signal={trend_result.buy_signal.value}, 评分={trend_result.signal_score}")
+                              f"Buy signal={trend_result.buy_signal.value}, Rating={trend_result.signal_score}")
             except Exception as e:
                 logger.warning(f"{stock_name}({code}) Trend analysis failed: {e}", exc_info=True)
 
@@ -554,7 +554,7 @@ class StockAnalysisPipeline:
                 market=market or "cn",
             )
             news_result_count: Optional[int] = None
-            self._emit_progress(46, f"{stock_name}：正在检索新闻与舆情")
+            self._emit_progress(46, f"{stock_name}：Retrieving news and public opinion")
             if self.search_service is not None and self.search_service.is_available:
                 logger.info(f"{stock_name}({code}) Starting multi-dimensional intelligence search...")
 
@@ -685,7 +685,7 @@ class StockAnalysisPipeline:
                 llm_progress_state["last_progress"] = dynamic_progress
                 self._emit_progress(
                     dynamic_progress,
-                    f"{stock_name}：LLM 正在生成分析结果（已接收 {chars_received} 字符）",
+                    f"{stock_name}：LLM Generating analysis results（Received {chars_received} character）",
                 )
 
             self._emit_progress(64, f"{stock_name}：Requesting LLM report generation")
@@ -781,7 +781,7 @@ class StockAnalysisPipeline:
             # Step 8: Save analysis history
             if result and result.success:
                 try:
-                    self._emit_progress(97, f"{stock_name}：正在保存Analysis report")
+                    self._emit_progress(97, f"{stock_name}：SavingAnalysis report")
                     context_snapshot = self._build_context_snapshot(
                         enhanced_context=enhanced_context,
                         news_content=news_context,
@@ -850,13 +850,13 @@ class StockAnalysisPipeline:
         """
         Enhance analysis context
         
-        将实时行情、Chip distribution、趋势分析结果、Stock name添加到上下文中
+        real-time quotes、Chip distribution、Trend analysis results、Stock nameadd to context
         
         Args:
             context: Original context
-            realtime_quote: Realtime quote data（UnifiedRealtimeQuote 或 None）
+            realtime_quote: Realtime quote data（UnifiedRealtimeQuote or None）
             chip_data: Chip distribution data
-            trend_result: 趋势分析结果
+            trend_result: Trend analysis results
             stock_name: Stock name
             market_phase_context: Pre-built market phase context, used to mark intraday partial bar
             
@@ -889,7 +889,7 @@ class StockAnalysisPipeline:
                 'price': getattr(realtime_quote, 'price', None),
                 'change_pct': getattr(realtime_quote, 'change_pct', None),
                 'volume_ratio': volume_ratio,
-                'volume_ratio_desc': self._describe_volume_ratio(volume_ratio) if volume_ratio else '无数据',
+                'volume_ratio_desc': self._describe_volume_ratio(volume_ratio) if volume_ratio else 'No data',
                 'turnover_rate': getattr(realtime_quote, 'turnover_rate', None),
                 'pe_ratio': getattr(realtime_quote, 'pe_ratio', None),
                 'pb_ratio': getattr(realtime_quote, 'pb_ratio', None),
@@ -1209,7 +1209,7 @@ class StockAnalysisPipeline:
         portfolio_context: Optional[Dict[str, Any]] = None,
     ) -> Optional[AnalysisResult]:
         """
-        使用 Agent 模式分析单只股票。
+        Use Agent Pattern Analysis of Single Stocks。
         """
         try:
             from src.agent.factory import build_agent_executor
@@ -1307,11 +1307,11 @@ class StockAnalysisPipeline:
             if analysis_context_pack_summary:
                 initial_context["analysis_context_pack_summary"] = analysis_context_pack_summary
 
-            # 运行 Agent
+            # run Agent
             if report_language in ("en", "ko"):
                 message = f"Analyze stock {code} ({stock_name}) and return the full decision dashboard JSON."
             else:
-                message = f"Please analyze stock {code} ({stock_name})，并生成决策仪表盘报告。"
+                message = f"Please analyze stock {code} ({stock_name})，and generate decision dashboard reports。"
             llm_started_at = time.monotonic()
             try:
                 record_llm_run_started(
@@ -1436,7 +1436,7 @@ class StockAnalysisPipeline:
                             response=news_response,
                             query_context=query_context
                         )
-                        logger.info(f"[{code}] Agent mode: news intelligence saved {len(news_response.results)} 条")
+                        logger.info(f"[{code}] Agent mode: news intelligence saved {len(news_response.results)} Article")
                 except Exception as e:
                     logger.warning(f"[{code}] Agent mode: failed to save news intelligence: {e}")
 
@@ -1495,7 +1495,7 @@ class StockAnalysisPipeline:
                         metadata_saved=False,
                         error_message=e,
                     )
-                    logger.warning(f"[{code}] 保存 Agent 分析历史Failed: {e}")
+                    logger.warning(f"[{code}] save Agent Analyze historyFailed: {e}")
 
             return result
 
@@ -1704,7 +1704,7 @@ class StockAnalysisPipeline:
         trend_result: Optional[TrendAnalysisResult] = None,
     ) -> AnalysisResult:
         """
-        将 AgentResult Convert to AnalysisResult。
+        will AgentResult Convert to AnalysisResult。
         """
         report_language = normalize_report_language(getattr(self.config, "report_language", "zh"))
         dash = None
@@ -1713,7 +1713,7 @@ class StockAnalysisPipeline:
             name=stock_name,
             sentiment_score=50,
             trend_prediction=get_unknown_text(report_language),
-            operation_advice=localize_operation_advice("观望", report_language),
+            operation_advice=localize_operation_advice("wait and see", report_language),
             confidence_level=localize_confidence_level("medium", report_language),
             report_language=report_language,
             success=agent_result.success,
@@ -1793,7 +1793,7 @@ class StockAnalysisPipeline:
                 allow_dict=True,
                 expect_text=True,
             ):
-                result.operation_advice = str(raw_advice) if raw_advice else (localize_operation_advice("观望", report_language))
+                result.operation_advice = str(raw_advice) if raw_advice else (localize_operation_advice("wait and see", report_language))
             else:
                 signal_label = self._trend_signal_fallback(trend_result, report_language)
                 if signal_label:
@@ -1872,7 +1872,7 @@ class StockAnalysisPipeline:
                 result.error_message = (
                     "Agent failed to generate a valid decision dashboard" if report_language == "en"
                     else "에이전트가 유효한 결정 대시보드를 생성하지 못했습니다" if report_language == "ko"
-                    else "Agent failed to generate a valid decision dashboard盘"
+                    else "Agent failed to generate a valid decision dashboardplate"
                 )
 
         explicit_action = dash.get("action") if isinstance(dash, dict) else None
@@ -1947,10 +1947,10 @@ class StockAnalysisPipeline:
         if not text:
             return True
         return text.lower() in {"n/a", "na", "none", "null", "unknown", "tbd"} or text in {
-            "未知",
-            "待补充",
-            "数据缺失",
-            "无",
+            "unknown",
+            "To be added",
+            "missing data",
+            "None",
         }
 
     @staticmethod
@@ -2136,7 +2136,7 @@ class StockAnalysisPipeline:
     ) -> None:
         if trend_result is None:
             result.sentiment_score = 50
-            result.operation_advice = localize_operation_advice("观望", report_language)
+            result.operation_advice = localize_operation_advice("wait and see", report_language)
             return
 
         score = getattr(trend_result, "signal_score", None)
@@ -2158,7 +2158,7 @@ class StockAnalysisPipeline:
         if signal_label:
             result.operation_advice = signal_label
         else:
-            result.operation_advice = localize_operation_advice("观望", report_language)
+            result.operation_advice = localize_operation_advice("wait and see", report_language)
 
         from src.agent.protocols import normalize_decision_signal
 
@@ -2517,7 +2517,7 @@ class StockAnalysisPipeline:
                 return None
             lines = [f"## Local intelligence evidence pool（{stock_name}/{code}）"]
             for idx, item in enumerate(collected[:limit], 1):
-                title = str(item.get("title") or "未Unnamed intelligence").strip()
+                title = str(item.get("title") or "Not yetUnnamed intelligence").strip()
                 summary = str(item.get("summary") or "").strip()
                 source = str(item.get("source") or item.get("source_name") or "local-intel").strip()
                 published = str(item.get("published_at") or "").strip()
@@ -2685,7 +2685,7 @@ class StockAnalysisPipeline:
     @staticmethod
     def _safe_to_dict(value: Any) -> Optional[Dict[str, Any]]:
         """
-        安全转换为字典
+        safe conversion to dictionary
         """
         if value is None:
             return None
@@ -2706,7 +2706,7 @@ class StockAnalysisPipeline:
         Resolve request source.
 
         Priority (high to low):
-        1. 显式传入的 query_source：调用方明确指定时优先使用，便于覆盖推断结果或兼容未来 source_message 来自非 bot 的场景
+        1. passed in explicitly query_source：Take precedence when explicitly specified by the caller，Convenient for overriding inference results or future compatibility source_message from non bot scene
         2. Infers "bot" when source_message is present: current convention is bot session context
         3. Infers "web" when query_id is present: web-triggered requests carry query_id
         4. Default "system": scheduled tasks or CLI without the above context
@@ -2727,7 +2727,7 @@ class StockAnalysisPipeline:
 
     def _build_query_context(self, query_id: Optional[str] = None) -> Dict[str, str]:
         """
-        生成用户查询关联信息
+        Generate user query related information
         """
         effective_query_id = query_id or self.query_id or ""
 
@@ -2771,15 +2771,15 @@ class StockAnalysisPipeline:
         Args:
             analysis_query_id: Query trace association ID
             code: Stock code
-            skip_analysis: 是否跳过 AI 分析
-            single_stock_notify: 是否启用单股推送模式（每分析完一只立即推送）
+            skip_analysis: Whether to skip AI analysis
+            single_stock_notify: Whether to enable single stock push mode（Immediately push each one after analysis）
             report_type: Report type enum (read from config, Issue #119)
             current_time: Frozen reference time for this run, used for unified checkpoint/resume target trading-day determination
 
         Returns:
-            AnalysisResult 或 None
+            AnalysisResult or None
         """
-        logger.info(f"========== 开始处理 {code} ==========")
+        logger.info(f"========== Start processing {code} ==========")
 
         from src.services.history_loader import set_frozen_target_date, reset_frozen_target_date
         frozen_td = self._resolve_resume_target_date(code, current_time=current_time)
@@ -2802,12 +2802,12 @@ class StockAnalysisPipeline:
             )
             
             if not success:
-                logger.warning(f"[{code}] 数据获取Failed: {error}")
+                logger.warning(f"[{code}] data acquisitionFailed: {error}")
                 # Even if fetch fails, attempt analysis with existing data
             else:
                 self._emit_progress(16, f"{code}：Market data preparation complete")
             
-            # Step 2: AI 分析
+            # Step 2: AI analysis
             if skip_analysis:
                 logger.info(f"[{code}] Skip AI analysis (dry-run mode)")
                 return None
@@ -2823,7 +2823,7 @@ class StockAnalysisPipeline:
                     f"Score {result.sentiment_score}"
                 )
                 
-                # 单股推送模式（#55）：每分析完一只股票立即推送
+                # Single stock push mode（#55）：Immediately push every stock analyzed
                 if single_stock_notify:
                     self._send_single_stock_notification(
                         result,
@@ -2838,7 +2838,7 @@ class StockAnalysisPipeline:
             return result
             
         except Exception as e:
-            # 捕获所有异常，确保单股失败不影响整体
+            # catch all exceptions，Ensure that failure of a single strand does not affect the overall
             logger.exception(f"[{code}] Unknown exception during processing: {e}")
             return None
         finally:
@@ -2863,7 +2863,7 @@ class StockAnalysisPipeline:
         4. Send notifications
 
         Args:
-            stock_codes: Stock code列表（可选，默认使用配置中的自选股）
+            stock_codes: Stock codelist（Optional，By default, the self-selected stocks in the configuration are used）
             dry_run: Fetch data only without analysis
             send_notification: Whether to send push notifications
             merge_notification: Merge notifications (skips this push, main layer merges individual + market for unified send, Issue #190)
@@ -2883,15 +2883,15 @@ class StockAnalysisPipeline:
             logger.error("No watchlist configured; please set STOCK_LIST in the .env file")
             return []
         
-        logger.info(f"===== Starting analysis of {len(stock_codes)} 只股票 =====")
+        logger.info(f"===== Starting analysis of {len(stock_codes)} only stocks =====")
         logger.info(f"Stock list: {', '.join(stock_codes)}")
-        logger.info(f"Concurrency: {self.max_workers}, 模式: {'Fetch data only' if dry_run else 'Full analysis'}")
+        logger.info(f"Concurrency: {self.max_workers}, mode: {'Fetch data only' if dry_run else 'Full analysis'}")
 
-        # 冻结本轮运行的统一参考时间，避免跨市场收盘边界时同批股票使用不同目标交易日。
+        # Freeze the unified reference time of this round of running，Avoid using different target trading days for the same batch of stocks when crossing market closing boundaries。
         resume_reference_time = current_time or datetime.now(timezone.utc)
         
-        # === 批量预取实时行情（优化：避免每只股票都触发全量拉取）===
-        # Only stock quantity >= 5 时才进行预取，少量股票直接逐个查询更高效
+        # === Batch prefetching of real-time quotes（Optimize：Avoid triggering a full pull for each stock）===
+        # Only stock quantity >= 5 Prefetching is performed only when，It is more efficient to directly query a small number of stocks one by one.
         if len(stock_codes) >= 5:
             daily_prefetch_count = self.fetcher_manager.prefetch_daily_klines(stock_codes, days=30)
             if daily_prefetch_count > 0:
@@ -2904,14 +2904,14 @@ class StockAnalysisPipeline:
 
             prefetch_count = self.fetcher_manager.prefetch_realtime_quotes(stock_codes)
             if prefetch_count > 0:
-                logger.info(f"Batch prefetch enabled: single fetch for full market data, {len(stock_codes)} 只stocks share cache")
+                logger.info(f"Batch prefetch enabled: single fetch for full market data, {len(stock_codes)} onlystocks share cache")
 
-        # Issue #455: 预取Stock name，避免并发分析时显示「stockxxxxx」
-        # dry_run 仅做数据拉取，不需要名称预取，避免额外网络开销
+        # Issue #455: prefetchStock name，Avoid displaying during concurrent analysis「stockxxxxx」
+        # dry_run Only do data pull，No name prefetching required，Avoid additional network overhead
         if not dry_run:
             self.fetcher_manager.prefetch_stock_names(stock_codes, use_bulk=False)
 
-        # 单股推送模式（#55）：从配置读取
+        # Single stock push mode（#55）：Read from configuration
         single_stock_notify = getattr(self.config, 'single_stock_notify', False)
         # Issue #119: Read report type from config
         report_type_str = getattr(self.config, 'report_type', 'simple').lower()
@@ -2926,7 +2926,7 @@ class StockAnalysisPipeline:
 
         if single_stock_notify:
             logger.info(
-                "已启用单股推送模式：分析仍并发执行，通知改为在结果收集侧串行发送（Report type: %s）",
+                "Single stock push mode enabled：Analysis is still executed concurrently，Notifications are instead sent serially on the result collection side（Report type: %s）",
                 report_type_str,
             )
         
@@ -2942,7 +2942,7 @@ class StockAnalysisPipeline:
                     code,
                     skip_analysis=dry_run,
                     single_stock_notify=False,
-                    report_type=report_type,  # Issue #119: 传递Report type
+                    report_type=report_type,  # Issue #119: pass onReport type
                     analysis_query_id=uuid.uuid4().hex,
                     current_time=resume_reference_time,
                 ): code
@@ -2970,7 +2970,7 @@ class StockAnalysisPipeline:
 
                     # Issue #128: Analysis delay - add delay between individual and market analysis
                     if idx < len(stock_codes) - 1 and analysis_delay > 0:
-                        # 注意：此 sleep 发生在"主线程收集 future 的循环"中，
+                        # Note：this sleep occurred in"Main thread collection future cycle"in，
                         # and does not prevent thread pool tasks from issuing network requests concurrently.
                         # Its effect on reducing concurrency peak is limited; the real peak is mainly determined by max_workers.
                         # This behaviour is retained (logic unchanged per requirement).
@@ -2978,7 +2978,7 @@ class StockAnalysisPipeline:
                         time.sleep(analysis_delay)
 
                 except Exception as e:
-                    logger.error(f"[{code}] 任务执行Failed: {e}")
+                    logger.error(f"[{code}] Task executionFailed: {e}")
         
         # Statistics
         elapsed_time = time.time() - start_time
@@ -3127,9 +3127,9 @@ class StockAnalysisPipeline:
         try:
             report = self._generate_aggregate_report(results, report_type)
             filepath = self.notifier.save_report_to_file(report)
-            logger.info(f"决策仪表盘日报已保存: {filepath}")
+            logger.info(f"Decision Dashboard Daily Saved: {filepath}")
         except Exception as e:
-            logger.error(f"保存本地报告Failed: {e}")
+            logger.error(f"Save local reportFailed: {e}")
 
     def _send_notifications(
         self,
@@ -3138,18 +3138,18 @@ class StockAnalysisPipeline:
         skip_push: bool = False,
     ) -> None:
         """
-        发送分析结果通知
+        Send notification of analysis results
         
-        生成决策仪表盘格式的报告
+        Generate reports in decision dashboard format
         
         Args:
             results: Analysis result list
-            skip_push: 是否跳过推送（仅保存到本地，用于单股推送模式）
+            skip_push: Whether to skip push（Only save to local，For single stock push mode）
         """
         noise_decision = None
         noise_finalized = False
         try:
-            logger.info("生成决策仪表盘日报...")
+            logger.info("Generate daily reports for decision dashboards...")
             report = self._generate_aggregate_report(results, report_type)
             
             # Skip push (single-stock / merge mode: report already saved by _save_local_report)
@@ -3230,9 +3230,9 @@ class StockAnalysisPipeline:
                     if not send_context:
                         _record_channel_result("__context__", False)
                     if send_context:
-                        logger.info("决策仪表盘推送成功")
+                        logger.info("Decision dashboard pushed successfully")
                     else:
-                        logger.warning("决策仪表盘推送失败")
+                        logger.warning("Decision dashboard push failed")
                     logger.info("Interactive message context reply mode: static notification channels skipped")
                     return
 
@@ -3298,12 +3298,12 @@ class StockAnalysisPipeline:
                     )
                     if image_bytes:
                         logger.info(
-                            "Markdown converted to image, will send to %s 发送图片",
+                            "Markdown converted to image, will send to %s Send pictures",
                             [ch.value for ch in non_wechat_channels_needing_image],
                         )
                     else:
                         logger.warning(
-                            "Markdown 转图片失败，将回退为文本发送。请检查 MARKDOWN_TO_IMAGE_CHANNELS 配置并安装 %s",
+                            "Markdown Failed to transfer picture，Send fallback as text。please check MARKDOWN_TO_IMAGE_CHANNELS Configure and install %s",
                             _get_md2img_hint(),
                         )
 
@@ -3315,7 +3315,7 @@ class StockAnalysisPipeline:
                             dashboard_content = self.notifier.generate_brief_report(results)
                         else:
                             dashboard_content = self.notifier.generate_wechat_dashboard(results)
-                        logger.info(f"WeCom dashboard length: {len(dashboard_content)} 字符")
+                        logger.info(f"WeCom dashboard length: {len(dashboard_content)} character")
                         logger.debug(f"WeCom push content:\n{dashboard_content}")
                         wechat_image_bytes = None
                         if NotificationChannel.WECHAT in channels_needing_image:
@@ -3603,9 +3603,9 @@ class StockAnalysisPipeline:
                     self.notifier.release_noise_control(noise_decision)
                     noise_finalized = True
                 if success:
-                    logger.info("决策仪表盘推送成功")
+                    logger.info("Decision dashboard pushed successfully")
                 else:
-                    logger.warning("决策仪表盘推送失败")
+                    logger.warning("Decision dashboard push failed")
                 if not has_targeted_channels and not send_context:
                     channel_label = ",".join(channel.value for channel in channels) or "report"
                     notification_run = self._build_notification_run_snapshot(

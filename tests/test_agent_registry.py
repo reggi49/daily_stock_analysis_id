@@ -337,7 +337,7 @@ class TestSkillManager(unittest.TestCase):
         instructions = self.manager.get_skill_instructions()
         self.assertIn("Test Skill (demo)", instructions)
         self.assertIn("Instructions for demo", instructions)
-        self.assertIn("技能 1:", instructions)
+        self.assertIn("Skills 1:", instructions)
 
     def test_get_required_tools(self):
         s1 = _make_skill("s1")
@@ -573,18 +573,18 @@ class TestYAMLStrategyLoading(unittest.TestCase):
 
         yaml_content = """
 name: test_yaml_strategy
-display_name: 测试YAML策略
-description: 一个用于测试的策略
+display_name: testYAMLStrategy
+description: A strategy for testing
 category: trend
 core_rules: [1, 3]
 required_tools:
   - analyze_trend
   - get_daily_history
 instructions: |
-  **测试策略**
+  **testing strategy**
 
-  这是一个用自然语言编写的测试策略。
-  判断标准：当 MA5 > MA10 时买入。
+  This is a testing strategy written in natural language。
+  Judgment criteria：When MA5 > MA10 Buy when。
 """
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, encoding='utf-8') as f:
             f.write(yaml_content)
@@ -594,11 +594,11 @@ instructions: |
             skill = load_skill_from_yaml(tmp_path)
             self.assertIsInstance(skill, Skill)
             self.assertEqual(skill.name, "test_yaml_strategy")
-            self.assertEqual(skill.display_name, "测试YAML策略")
+            self.assertEqual(skill.display_name, "testYAMLStrategy")
             self.assertEqual(skill.category, "trend")
             self.assertEqual(skill.core_rules, [1, 3])
             self.assertEqual(skill.required_tools, ["analyze_trend", "get_daily_history"])
-            self.assertIn("自然语言", skill.instructions)
+            self.assertIn("natural language", skill.instructions)
             self.assertFalse(skill.enabled)
         finally:
             os.unlink(tmp_path)
@@ -610,9 +610,9 @@ instructions: |
 
         yaml_content = """
 name: minimal
-display_name: 最简策略
-description: 最简描述
-instructions: 用自然语言描述的策略内容
+display_name: minimalist strategy
+description: Minimal description
+instructions: Policy content described in natural language
 """
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, encoding='utf-8') as f:
             f.write(yaml_content)
@@ -634,15 +634,15 @@ instructions: 用自然语言描述的策略内容
 
         yaml_content = """
 name: metadata_skill
-display_name: 元数据技能
-description: 带有默认元数据的技能
-aliases: [别名一, 别名二]
+display_name: Metadata skills
+description: Skills with default metadata
+aliases: [Alias one, Alias two]
 default_active: true
 default_router: true
 default_priority: 15
 market_regimes: [trending_up, volatile]
 instructions: |
-  这是一个测试技能。
+  This is a test skill。
 """
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, encoding='utf-8') as f:
             f.write(yaml_content)
@@ -650,7 +650,7 @@ instructions: |
 
         try:
             skill = load_skill_from_yaml(tmp_path)
-            self.assertEqual(skill.aliases, ["别名一", "别名二"])
+            self.assertEqual(skill.aliases, ["Alias one", "Alias two"])
             self.assertTrue(skill.default_active)
             self.assertTrue(skill.default_router)
             self.assertEqual(skill.default_priority, 15)
@@ -665,7 +665,7 @@ instructions: |
 
         yaml_content = """
 name: incomplete
-display_name: 不完整
+display_name: incomplete
 """
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, encoding='utf-8') as f:
             f.write(yaml_content)
@@ -695,9 +695,9 @@ display_name: 不完整
                 with open(os.path.join(tmpdir, f"{name}.yaml"), 'w', encoding='utf-8') as f:
                     f.write(f"""
 name: {name}
-display_name: 策略{chr(65 + i)}
-description: 描述{chr(65 + i)}
-instructions: 自然语言策略描述 {name}
+display_name: Strategy{chr(65 + i)}
+description: Description{chr(65 + i)}
+instructions: Natural language policy description {name}
 """)
 
             # Create an invalid YAML file (should be skipped)
@@ -767,7 +767,7 @@ When explaining code, always include an ASCII diagram.
                 """---
 name: rotation-scout
 description: Track sector rotation leaders
-aliases: [轮动, 龙头侦察]
+aliases: [rotation, Leading reconnaissance]
 default-active: true
 default-router: true
 default-priority: 12
@@ -778,7 +778,7 @@ Track hot sectors and leading stocks.
                 encoding="utf-8",
             )
             skill = load_skill_from_markdown(skill_dir / "SKILL.md")
-            self.assertEqual(skill.aliases, ["轮动", "龙头侦察"])
+            self.assertEqual(skill.aliases, ["rotation", "Leading reconnaissance"])
             self.assertTrue(skill.default_active)
             self.assertTrue(skill.default_router)
             self.assertEqual(skill.default_priority, 12)
@@ -833,14 +833,14 @@ Use RESTful naming and consistent validation.
             with open(os.path.join(tmpdir, "dragon_head.yaml"), 'w', encoding='utf-8') as f:
                 f.write("""
 name: dragon_head
-display_name: 自定义龙头策略
-description: 我自己的龙头策略
-instructions: 按照我的规则分析龙头股
+display_name: Custom leading strategy
+description: My own leading strategy
+instructions: Analyze leading stocks according to my rules
 """)
             manager.load_custom_strategies(tmpdir)
 
             overridden = manager.get("dragon_head")
-            self.assertEqual(overridden.display_name, "自定义龙头策略")
+            self.assertEqual(overridden.display_name, "Custom leading strategy")
             self.assertIn(tmpdir, overridden.source)
         finally:
             import shutil

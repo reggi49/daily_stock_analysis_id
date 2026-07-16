@@ -23,39 +23,39 @@ LEGACY_STRATEGY_AGENT_PREFIX = "strategy_"
 SKILL_CONSENSUS_AGENT_NAME = "skill_consensus"
 LEGACY_STRATEGY_CONSENSUS_AGENT_NAME = "strategy_consensus"
 
-CORE_TRADING_SKILL_POLICY_ZH = """## 默认技能基线（必须严格遵守）
+CORE_TRADING_SKILL_POLICY_ZH = """## Default skill baseline（must be strictly followed）
 
-当前激活的 skills 可以补充细化分析视角，但默认风险控制和交易节奏必须遵守以下基线。
+currently active skills Can supplement the detailed analysis perspective，But the default risk control and trading rhythm must adhere to the following baselines。
 
-### 1. 严进策略（不追高）
-- **绝对不追高**：当股价偏离 MA5 超过 5% 时，坚决不买入
-- 乖离率 < 2%：最佳买点区间
-- 乖离率 2-5%：可小仓介入
-- 乖离率 > 5%：严禁追高！直接判定为"观望"
+### 1. strict strategy（Don't chase high）
+- **Absolutely not chasing highs**：When the stock price deviates from MA5 exceed 5% time，Definitely not buying
+- deviation rate < 2%：Best buying point range
+- deviation rate 2-5%：But Ogura intervened
+- deviation rate > 5%：It is strictly forbidden to chase high！directly judged as"wait and see"
 
-### 2. 趋势交易（顺势而为）
-- **多头排列必须条件**：MA5 > MA10 > MA20
-- 只做多头排列的股票，空头排列坚决不碰
-- 均线发散上行优于均线粘合
+### 2. Trend trading（Go with the flow）
+- **Necessary conditions for multi-head arrangement**：MA5 > MA10 > MA20
+- Only do long-positioned stocks，The short arrangement will definitely not touch
+- Moving average divergence upward is better than moving average converging
 
-### 3. 效率优先（筹码结构）
-- 关注筹码集中度：90%集中度 < 15% 表示筹码集中
-- 获利比例分析：70-90% 获利盘时需警惕获利回吐
-- 平均成本与现价关系：现价高于平均成本 5-15% 为健康
+### 3. Efficiency first（Chip structure）
+- Pay attention to chip concentration：90%Concentration < 15% Indicates concentration of chips
+- Profit ratio analysis：70-90% Be wary of profit taking when taking profits
+- The relationship between average cost and current price：Current price is higher than average cost 5-15% for health
 
-### 4. 买点偏好（回踩支撑）
-- **最佳买点**：缩量回踩 MA5 获得支撑
-- **次优买点**：回踩 MA10 获得支撑
-- **观望情况**：跌破 MA20 时观望
+### 4. Buy some preferences（Step back to support）
+- **Best buy**：Shrink back MA5 get support
+- **Second best buying point**：Dislike MA10 get support
+- **wait and see situation**：fell below MA20 wait and see
 
-### 5. 风险排查重点
-- 减持公告、业绩预亏、监管处罚、行业政策利空、大额解禁
+### 5. Key points of risk investigation
+- Announcement of reduction of holdings、Pre-performance loss、regulatory penalties、Negative industry policies、Lifting the ban on large amounts
 
-### 6. 估值关注（PE/PB）
-- PE 明显偏高时需在风险点中说明
+### 6. Valuation concerns（PE/PB）
+- PE If it is obviously higher, it needs to be explained in the risk point
 
-### 7. 强势趋势股放宽
-- 强势趋势股可适当放宽乖离率要求，轻仓追踪但需设止损
+### 7. Strong trend stocks relax
+- Strong trend stocks can appropriately relax the deviation rate requirements，Light position tracking but need to set a stop loss
 """
 
 TECHNICAL_SKILL_RULES_EN = """## Default Skill Baseline

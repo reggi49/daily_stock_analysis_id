@@ -77,14 +77,14 @@ def test_normalize_and_detect_tw_suffix_codes() -> None:
 def test_market_guidelines_for_tw_keep_taiwan_context() -> None:
     tw_guidelines = get_market_guidelines("2330.TW")
 
-    assert "台股" in tw_guidelines
+    assert "Taiwan stocks" in tw_guidelines
     # Taiwan keeps its own positive framing (±10% limit + three institutional
     # groups); do NOT copy the JP/KR "no A-share price-limit board" wording.
-    assert "三大法人" in tw_guidelines
-    assert ("±10%" in tw_guidelines) or ("涨跌停" in tw_guidelines)
+    assert "Three major legal persons" in tw_guidelines
+    assert ("±10%" in tw_guidelines) or ("price limit" in tw_guidelines)
     # Only China A-share-specific concepts are excluded.
-    assert "北向资金" in tw_guidelines
-    assert "龙虎榜" in tw_guidelines
+    assert "Northbound funds" in tw_guidelines
+    assert "Dragon and Tiger List" in tw_guidelines
 
 
 def test_yfinance_keeps_tw_suffix_codes_and_indices() -> None:
@@ -105,8 +105,8 @@ def test_yfinance_keeps_tw_suffix_codes_and_indices() -> None:
     tw_indices = fetcher.get_main_indices("tw") or []
 
     assert {item["code"] for item in tw_indices} == {"TWII", "TWOII"}
-    assert ("^TWII", "台湾加权指数", "TWII") in captured
-    assert ("^TWOII", "台湾柜买指数", "TWOII") in captured
+    assert ("^TWII", "Taiwan Weighted Index", "TWII") in captured
+    assert ("^TWOII", "Taiwan counter buying index", "TWOII") in captured
 
 
 def test_data_fetcher_manager_routes_tw_daily_only_to_yfinance() -> None:

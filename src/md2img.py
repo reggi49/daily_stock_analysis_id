@@ -4,8 +4,8 @@
 Markdown and
 ===================================
 
-将 Markdown and PNG and（and Markdown notification channels）。
-支持 wkhtmltoimage (imgkit) and markdown-to-file (m2f)，The latter pair emoji better support (Issue #455)。
+will Markdown and PNG and（and Markdown notification channels）。
+support wkhtmltoimage (imgkit) and markdown-to-file (m2f)，The latter pair emoji better support (Issue #455)。
 
 Security note: imgkit passes HTML to wkhtmltoimage via stdin, not argv, so
 command injection from content is not applicable. Output is rasterized to PNG

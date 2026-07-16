@@ -32,11 +32,11 @@ CN_PROFILE = MarketProfile(
     region="cn",
     mood_index_code="000001",
     news_queries=[
-        "A股 大盘 复盘",
-        "股市 行情 分析",
-        "A股 市场 热点 板块",
+        "Ashares Market Review",
+        "stock market Quotes analysis",
+        "Ashares market Hotspot plate",
     ],
-    prompt_index_hint="分析上证、深证、创业板等各指数走势特点",
+    prompt_index_hint="Analyze the Shanghai Stock Exchange、Shenzhen Certificate、Trend characteristics of various indices such as GEM",
     has_market_stats=True,
     has_sector_rankings=True,
 )
@@ -45,11 +45,11 @@ US_PROFILE = MarketProfile(
     region="us",
     mood_index_code="SPX",
     news_queries=[
-        "美股 大盘",
+        "US stocks Market",
         "US stock market",
         "S&P 500 NASDAQ",
     ],
-    prompt_index_hint="分析标普500、纳斯达克、道指等各指数走势特点",
+    prompt_index_hint="Analyze S&P500、Nasdaq、Trend characteristics of the Dow and other indexes",
     has_market_stats=False,
     has_sector_rankings=False,
 )
@@ -58,11 +58,11 @@ HK_PROFILE = MarketProfile(
     region="hk",
     mood_index_code="HSI",
     news_queries=[
-        "港股 大盘 复盘",
+        "Hong Kong stocks Market Review",
         "Hong Kong stock market",
-        "恒生指数 行情",
+        "Hang Seng Index Quotes",
     ],
-    prompt_index_hint="分析恒生指数、恒生科技指数、国企指数等各指数走势特点",
+    prompt_index_hint="Analyze the Hang Seng Index、Hang Seng Technology Index、Trend characteristics of various indices such as the State-owned Enterprise Index",
     has_market_stats=False,
     has_sector_rankings=False,
 )
@@ -71,11 +71,11 @@ JP_PROFILE = MarketProfile(
     region="jp",
     mood_index_code="N225",
     news_queries=[
-        "日本股市 日经225",
+        "Japanese stock market Nikkei225",
         "Japan stock market Nikkei TOPIX",
-        "日经225 东证指数 行情",
+        "Nikkei225 Topix Index Quotes",
     ],
-    prompt_index_hint="分析日经225、东证指数等日本主要指数走势特点",
+    prompt_index_hint="Analyzing the Nikkei225、Trend characteristics of major Japanese indexes such as the Topix Index",
     has_market_stats=False,
     has_sector_rankings=False,
 )
@@ -84,11 +84,11 @@ KR_PROFILE = MarketProfile(
     region="kr",
     mood_index_code="KS11",
     news_queries=[
-        "韩国股市 KOSPI",
+        "Korean stock market KOSPI",
         "Korea stock market KOSPI KOSDAQ",
-        "KOSPI KOSDAQ 行情",
+        "KOSPI KOSDAQ Quotes",
     ],
-    prompt_index_hint="分析 KOSPI、KOSDAQ 等韩国主要指数走势特点",
+    prompt_index_hint="analysis KOSPI、KOSDAQ Trend characteristics of major Korean indexes such as",
     has_market_stats=False,
     has_sector_rankings=False,
 )

@@ -1,6 +1,6 @@
 # Fix Issue
 
-基于 issue 分析结果实现修复，并按仓库规则补齐验证、风险与回滚说明。
+Based on issue Analyze results and implement repairs，And complete the verification according to the warehouse rules、Risk and rollback instructions。
 
 **Repository**: https://github.com/ZhuLinsen/daily_stock_analysis
 
@@ -12,56 +12,56 @@
 
 ## Prerequisites
 
-优先先完成 `/analyze-issue <issue_number>`，确保问题成立且边界清晰。
+Complete first `/analyze-issue <issue_number>`，Make sure the problem is established and the boundaries are clear。
 
 ## Instructions
 
-### Step 1: 确认分析基线
+### Step 1: Confirm analysis baseline
 
-检查 `.claude/reviews/issues/issue-<number>.md` 是否存在；如果不存在，先补做 issue 分析或在本次修复中补齐最小分析结论。
+Check `.claude/reviews/issues/issue-<number>.md` exists；if does not exist，Make up for it first issue Analyze or complete the minimum analysis conclusion in this repair。
 
-### Step 2: 同步最新代码基线并选择安全的工作方式
+### Step 2: Sync the latest code baseline and choose a secure way to work
 
-开始修复或准备创建 / 更新 PR 前，先按 `AGENTS.md` 拉新：
+Start repairing or prepare to create / update PR before，Press first `AGENTS.md` Recruit：
 
 ```bash
 git status --short
 git fetch --all --prune
-# 仅当工作区干净且当前分支可 fast-forward 时执行：
+# Only if the workspace is clean and the current branch is available fast-forward executed when：
 git pull --ff-only
 ```
 
-- 默认基于当前工作树做最小相关改动
-- 只有在工作区干净、当前分支有可 fast-forward 的上游时，才执行并接受 `git pull --ff-only` 的结果
-- 如存在本地改动、冲突状态、未跟踪风险文件、无上游分支或无法 fast-forward，不要执行 `stash`、`reset`、强制切分支或覆盖本地状态；先记录本地 HEAD、使用的远端基线与无法更新本地工作树的原因
-- 若后续要创建 / 更新 PR，先说明当前分支与目标基线差异；必要时请求用户确认 rebase、merge 或继续基于当前分支推进
-- 不要默认切换分支或改写用户当前工作状态
-- 如果用户明确要求建分支，再执行最小必要的分支操作
+- By default, minimal relevant changes are made based on the current working tree.
+- Only clean the work area、The current branch is available fast-forward of the upstream，only then execute and accept `git pull --ff-only` the result
+- If there are local changes、Conflict status、Risk files not tracked、No upstream branch or unable to fast-forward，Don't execute `stash`、`reset`、Force branch cutting or overwrite local state；Record local first HEAD、The remote baseline used and the reason why the local working tree cannot be updated
+- If you want to create it later / update PR，First explain the difference between the current branch and the target baseline；Request user confirmation if necessary rebase、merge Or continue to advance based on the current branch
+- Do not switch branches by default or overwrite the user's current working status
+- If the user explicitly requests to create a branch，Then perform the minimum necessary branch operations
 
-### Step 3: 实施修复
+### Step 3: Implement a fix
 
-- 根据 issue 结论定位相关文件
-- 优先复用现有模块、配置入口、脚本和测试
-- 保持默认行为向后兼容，避免破坏 fallback / fail-open
-- 如果修复涉及用户可见行为、配置语义、CLI/API、部署、通知、报告结构，要同步更新相关文档、`docs/CHANGELOG.md`、`.env.example`
-- 向 `docs/CHANGELOG.md` 写入条目时，在 `[Unreleased]` 段追加一行，格式为 `- [类型] 描述`，其中 `[类型]` 从 `[新功能]/[改进]/[修复]/[文档]/[测试]/[chore]` 中按本次变更内容选择；只有修复 bug 时才使用 `[修复]`；**不要**在 `[Unreleased]` 内新增 `### 类目标题`
-- `README.md` 只承载项目定位、核心能力、快速开始、主要入口、赞助/合作等首页级信息；非必要不更新 README，避免持续膨胀
-- 更细的模块行为、页面交互、专题配置、排障说明、字段契约、实现语义和边界条件，优先更新对应 `docs/*.md`
+- According to issue Conclusion and positioning related documents
+- Prioritize reuse of existing modules、Configuration entry、Scripts and tests
+- Keep default behavior backwards compatible，avoid destruction fallback / fail-open
+- If the fix involves user-visible behavior、Configuration semantics、CLI/API、deploy、Notification、Report structure，To synchronize and update related documents、`docs/CHANGELOG.md`、`.env.example`
+- towards `docs/CHANGELOG.md` When writing an entry，in `[Unreleased]` Add a line to a paragraph，The format is `- [Type] Description`，Among them `[Type]` from `[new features]/[Improve]/[Repair]/[Documentation]/[test]/[chore]` Press the middle button to select the content of this change.；Only fix bug Use only when `[Repair]`；**Don't**in `[Unreleased]` Add within `### Category title`
+- `README.md` Only carries project positioning、core competencies、quick start、main entrance、Sponsor/Home page-level information such as cooperation；Do not update unless necessary README，Avoid continued expansion
+- More granular module behavior、Page interaction、Thematic configuration、Troubleshooting instructions、field contract、Implement semantics and boundary conditions，Prioritize update correspondence `docs/*.md`
 
-### Step 4: 按改动面验证
+### Step 4: Verify by modified surface
 
-按 `AGENTS.md` 的验证矩阵执行最接近的检查：
+press `AGENTS.md` The validation matrix performs the closest check：
 
-- 后端优先：`./scripts/ci_gate.sh`
-- 最低后端要求：`python -m py_compile <changed_python_files>`
-- 前端：`cd apps/dsa-web && npm ci && npm run lint && npm run build`
-- 桌面端：先构建 Web，再构建桌面端
+- Backend first：`./scripts/ci_gate.sh`
+- Minimum backend requirements：`python -m py_compile <changed_python_files>`
+- front end：`cd apps/dsa-web && npm ci && npm run lint && npm run build`
+- Desktop：Build first Web，Build the desktop again
 
-如无法完成完整验证，必须记录缺口、原因与潜在风险。
+If complete verification cannot be completed，Gaps must be recorded、Reasons and potential risks。
 
-### Step 5: 更新 issue 分析文档
+### Step 5: update issue Analyze documents
 
-在 `.claude/reviews/issues/issue-<number>.md` 中补充：
+in `.claude/reviews/issues/issue-<number>.md` middle supplement：
 
 ```markdown
 ## Fix Implementation
@@ -70,51 +70,51 @@ git pull --ff-only
 
 ### Changes Made
 
-- 文件与改动点：
+- Documents and changes：
 
 ### Validation
 
-- 已执行：
-- 未执行：
+- Executed：
+- Not executed：
 
 ### Risks
 
-- 风险点：
+- Risk point：
 
 ### Rollback
 
-- 回滚方式：
+- Rollback mode：
 ```
 
-### Step 6: 需要确认的后续动作
+### Step 6: Follow-up actions requiring confirmation
 
-如用户要求创建 PR、生成 PR 标题或整理 PR 描述，PR title 建议遵循 `AGENTS.md`：
+Created as requested by the user PR、generate PR Title or organize PR Description，PR title It is recommended to follow `AGENTS.md`：
 
-- 使用 `<类型>: <修改内容>` 格式，例如 `fix: 修复大盘分析历史记录丢失`
-- 类型优先使用 `fix`/`feat`/`refactor`/`docs`/`chore`/`test`/`ci`
-- 标题只描述实际改动，建议不添加 `[codex]`、`codex`、`autocode`、`copilot` 或其他工具/agent 来源前缀
-- 该约定仅用于协作一致性，不应被单独当作 process blocker
+- Use `<Type>: <Modify content>` Format，For example `fix: Repair the loss of market analysis history records`
+- Type takes precedence `fix`/`feat`/`refactor`/`docs`/`chore`/`test`/`ci`
+- The title only describes the actual changes，It is recommended not to add `[codex]`、`codex`、`autocode`、`copilot` or other tools/agent source prefix
+- This convention is only for collaborative consistency，should not be considered alone process blocker
 
-只有在用户明确确认后，才执行：
+Only after explicit confirmation by the user，before execution：
 
-- 建分支
+- Create a branch
 - `git commit`
 - `git push`
-- 创建 PR
-- 在 issue 下回复或关闭 issue
+- create PR
+- in issue Reply or close issue
 
 ## Allowed Auto-Actions (No Confirmation Needed)
 
-- 阅读和分析代码
-- 执行 `git fetch --all --prune`，并在工作区干净且可 fast-forward 时执行 `git pull --ff-only`
-- 应用与当前任务直接相关的最小修复
-- 运行非破坏性的本地验证
-- 更新本地 issue 分析文档
+- Read and analyze code
+- execute `git fetch --all --prune`，and keep the work area clean and accessible fast-forward executed when `git pull --ff-only`
+- Apply minimal fixes directly related to the current task
+- Run non-destructive local verification
+- Update local issue Analyze documents
 
 ## Actions Requiring Confirmation
 
-1. 切换或创建分支
+1. Switch or create a branch
 2. `git commit`
 3. `git push`
-4. 创建 PR
-5. 回复或关闭 issue
+4. create PR
+5. reply or close issue

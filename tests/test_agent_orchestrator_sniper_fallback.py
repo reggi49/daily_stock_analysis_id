@@ -22,11 +22,11 @@ class TestAgentOrchestratorSniperFallback(unittest.TestCase):
             tool_registry=MagicMock(),
             llm_adapter=MagicMock(),
         )
-        ctx = AgentContext(query="test", stock_code="301308", stock_name="江波龙")
+        ctx = AgentContext(query="test", stock_code="301308", stock_name="Jiang Bolong")
 
         payload = {
             "decision_type": "buy",
-            "analysis_summary": "趋势仍强，等待回踩。",
+            "analysis_summary": "The trend is still strong，Waiting for backlash。",
             "dashboard": {
                 "key_levels": {
                     "support": 301.61,
@@ -48,11 +48,11 @@ class TestAgentOrchestratorSniperFallback(unittest.TestCase):
             tool_registry=MagicMock(),
             llm_adapter=MagicMock(),
         )
-        ctx = AgentContext(query="test", stock_code="301308", stock_name="江波龙")
+        ctx = AgentContext(query="test", stock_code="301308", stock_name="Jiang Bolong")
 
         payload = {
             "decision_type": "buy",
-            "analysis_summary": "趋势仍强，等待回踩。",
+            "analysis_summary": "The trend is still strong，Waiting for backlash。",
             "dashboard": {
                 "battle_plan": {
                     "sniper_points": {

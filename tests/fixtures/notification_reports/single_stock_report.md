@@ -1,18 +1,18 @@
-# 贵州茅台 600519 分析报告
+# Kweichow Moutai 600519 analysis report
 
-## 核心判断
+## core judgment
 
-- 技术面：均线多头排列，成交量温和放大。
-- 基本面：盈利质量稳定，估值处于历史中位附近。
+- technical aspect：moving average long arrangement，Trading volume increased moderately。
+- Fundamentals：Stable earnings quality，Valuations are near historical midpoints。
 
-| 指标 | 当前值 | 解释 |
+| indicator | current value | explain |
 | --- | --- | --- |
-| RSI | 58 | 中性偏强 |
-| MACD | 金叉 | 动能改善 |
+| RSI | 58 | Neutral to strong |
+| MACD | golden fork | Momentum improvement |
 
-## 操作计划
+## Operation plan
 
-1. 回踩关键均线不破时观察。
-2. 跌破风控位时降低仓位。
+1. Observe when stepping back on the key moving average and not breaking it。
+2. Reduce positions when falling below the risk control level。
 
 `risk_level = medium`
