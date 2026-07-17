@@ -139,8 +139,6 @@ def normalize_stock_code(stock_code: str) -> str:
             return f"{base}.{suffix.upper()}"
         if suffix.upper() in ('TW', 'TWO') and base.isdigit() and 4 <= len(base) <= 6:
             return f"{base}.{suffix.upper()}"
-        if suffix.upper() == 'JK' and base.isalpha() and 2 <= len(base) <= 5:
-            return f"{base.upper()}.JK"
         if suffix.upper() == 'HK' and base.isdigit() and 1 <= len(base) <= 5:
             return f"HK{base.zfill(5)}"
         if base.upper() in ('SH', 'SS', 'SZ', 'BJ') and suffix.isdigit():
@@ -258,8 +256,6 @@ def _market_tag(code: str) -> str:
         return "kr"
     if _is_tw_market(code):
         return "tw"
-    if _is_id_market(code):
-        return "id"
     return "cn"
 
 
@@ -633,7 +629,7 @@ class DataFetcherManager:
         "TickFlowFetcher": {"cn"},
         "PytdxFetcher": {"cn"},
         "BaostockFetcher": {"cn"},
-        "YfinanceFetcher": {"cn", "hk", "us", "jp", "kr", "tw", "id"},
+        "YfinanceFetcher": {"cn", "hk", "us", "jp", "kr", "tw"},
         "LongbridgeFetcher": {"hk", "us"},
         "FinnhubFetcher": {"us"},
         "AlphaVantageFetcher": {"us"},
@@ -3143,7 +3139,7 @@ class DataFetcherManager:
         stock_code = normalize_stock_code(stock_code)
         market = _market_tag(stock_code)
         is_etf = _is_etf_code(stock_code)
-        if market in {"us", "hk", "jp", "kr", "tw", "id"}:
+        if market in {"us", "hk", "jp", "kr", "tw"}:
             return self._build_offshore_fundamental_context(
                 stock_code,
                 market=market,

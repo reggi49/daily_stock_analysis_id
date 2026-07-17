@@ -37,7 +37,7 @@ _SUFFIX_DIGIT_LENS: dict = {
     ".TW": (4, 5, 6),
 }
 
-_PRESERVE_SUFFIXES = {".T", ".KS", ".KQ", ".TW", ".TWO", ".JK"}
+_PRESERVE_SUFFIXES = {".T", ".KS", ".KQ", ".TW", ".TWO"}
 
 
 def _infer_cn_exchange(base: str) -> str:
@@ -96,8 +96,6 @@ def is_code_like(value: str) -> bool:
     if not text:
         return False
     if text.isdigit() and len(text) in (5, 6):
-        return True
-    if normalize_suffix_market_symbol(text) is not None:
         return True
     if _strip_exchange_suffix(text) is not None:
         return True

@@ -147,7 +147,7 @@ class MarketAnalyzer:
         self.search_service = search_service
         self.analyzer = analyzer
         self.data_manager = DataFetcherManager()
-        self.region = region if region in ("cn", "us", "hk", "jp", "kr") else "cn"
+        self.region = region if region in ("cn", "us", "hk", "jp", "kr", "id") else "cn"
         self.profile: MarketProfile = get_profile(self.region)
         self.strategy = get_market_strategy_blueprint(self.region)
 
@@ -199,7 +199,7 @@ class MarketAnalyzer:
         """Format raw turnover according to market-specific units."""
         if amount_raw == 0.0:
             return "N/A"
-        if self.region in ("us", "hk", "jp", "kr"):
+        if self.region in ("us", "hk", "jp", "kr", "id"):
             return f"{amount_raw / 1e9:.2f}"
         if amount_raw > 1e6:
             return f"{amount_raw / 1e8:.0f}"
@@ -1512,7 +1512,7 @@ Concepts lead the decline: {bottom_concepts_text if bottom_concepts_text else "N
         output_template_sections = self._build_output_template_sections(review_language)
         zh_market_scope_name = self._get_market_scope_name("zh")
         zh_report_title = f"{overview.date} today"
-        if self.region in ("jp", "kr"):
+        if self.region in ("jp", "kr", "id"):
             zh_report_title = f"{overview.date} {zh_market_scope_name}today"
         workflow_hint = (
             "Reporting needs to be like a trader’s after-hours desk：Give conclusion first，Click the data table again、Main line、catalytic、Plan unfold"
