@@ -439,7 +439,7 @@ class AgentOrchestrator:
         else:
             conversation_manager.add_message(
                 turn.session_id, "assistant",
-                f"[分析失败] {orch_result.error or '未知错误'}",
+                f"[Analysis Failed] {orch_result.error or 'Unknown Error'}",
             )
 
         return AgentResult(
@@ -806,7 +806,7 @@ class AgentOrchestrator:
     def _partition_skill_opinions(self, ctx: AgentContext) -> None:
         """Split skill opinions into Evidence Chain (valid) and Diagnostics (invalid).
 
-        Per docs/multi-strategy-contract.md §"Evidence Chain 与 Diagnostics 分离":
+        Per docs/multi-strategy-contract.md §"Evidence Chain and Diagnostics Separation":
         this is the ONLY partition point. After this method, ctx.opinions
         contains only valid skill opinions; invalid ones are moved to
         ctx.meta["invalid_opinions"] and never re-enter downstream evidence.
@@ -1250,10 +1250,10 @@ class AgentOrchestrator:
             getattr(base_opinion, "reasoning", ""),
         )
         if not analysis_summary:
-            analysis_summary = f"多 Agent 未生成完整仪表盘，当前按{_signal_to_operation(decision_type)}处理。"
+            analysis_summary = f"Multi-Agent failed to generate full dashboard, currently treating as {_signal_to_operation(decision_type)}."
         if risk_applied:
             transition_prefix = (
-                f"[风控下调: {application.from_signal.value} -> "
+                f"[Risk override: {application.from_signal.value} -> "
                 f"{application.post_risk_signal.value}]"
             )
             if not analysis_summary.startswith(transition_prefix):
@@ -1377,7 +1377,7 @@ class AgentOrchestrator:
             one_sentence = f"{transition_prefix} {one_sentence}"
         core["one_sentence"] = _truncate_text(one_sentence, 60)
         if not core.get("time_sensitivity"):
-            core["time_sensitivity"] = "本周内"
+            core["time_sensitivity"] = "Within this week"
         if risk_applied or not core.get("signal_type"):
             core["signal_type"] = _signal_to_signal_type(decision_type)
         core["position_advice"] = position_advice
@@ -1396,7 +1396,7 @@ class AgentOrchestrator:
             position_strategy["entry_plan"] = position_advice["no_position"]
             position_strategy.setdefault(
                 "risk_control",
-                f"止损参考：{sniper.get('stop_loss', '待补充')}",
+                f"Stop loss reference: {sniper.get('stop_loss', 'TBD')}",
             )
             battle["position_strategy"] = position_strategy
         elif not isinstance(position_strategy, dict) or not position_strategy:
@@ -1438,7 +1438,7 @@ class AgentOrchestrator:
             getattr(self._latest_opinion(ctx, {"risk"}), "reasoning", ""),
         )
         if not risk_warning:
-            risk_warning = "暂无额外风险提示"
+            risk_warning = "No additional risk warning"
         if risk_applied:
             risk_opinion = self._latest_opinion(ctx, {"risk"})
             risk_raw = (
@@ -1895,11 +1895,11 @@ def _signal_to_operation(signal: str) -> str:
 
 def _signal_to_signal_type(signal: str) -> str:
     mapping = {
-        "buy": "🟢买入信号",
-        "hold": "🟡持有观望",
-        "sell": "🔴卖出信号",
+        "buy": "🟢Buy Signal",
+        "hold": "🟡Hold",
+        "sell": "🔴Sell Signal",
     }
-    return mapping.get(signal, "⚠️风险警告")
+    return mapping.get(signal, "⚠️Risk Warning")
 
 
 def _default_position_advice(signal: str) -> Dict[str, str]:
@@ -1924,12 +1924,12 @@ def _post_risk_position_advice(signal: str) -> Dict[str, str]:
     """Return authoritative position advice after an applied risk transition."""
     mapping = {
         "hold": {
-            "no_position": "风险未解除前先观望，等待更清晰的入场条件。",
-            "has_position": "谨慎持有并收紧止损，待风险缓解后再考虑加仓。",
+            "no_position": "Wait and watch before risks are resolved, wait for clearer entry conditions.",
+            "has_position": "Hold cautiously and tighten stop-loss, consider adding positions after risks ease.",
         },
         "sell": {
-            "no_position": "风险明显偏高，暂不新开仓。",
-            "has_position": "优先控制回撤，建议减仓或退出高风险仓位。",
+            "no_position": "Risks are significantly elevated, do not open new positions for now.",
+            "has_position": "Prioritize drawdown control, suggest reducing positions or exiting high-risk positions.",
         },
     }
     return dict(mapping.get(signal, _default_position_advice(signal)))

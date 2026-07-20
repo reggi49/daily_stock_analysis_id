@@ -584,7 +584,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
         self.assertEqual(payload["hotspots"], [])
         self.assertEqual(payload["hotspot_count"], 0)
         self.assertEqual(payload["source_errors"], ["eastmoney_hotspot_unavailable"])
-        self.assertEqual(payload["message"], "Hotspot source connection interrupted，No cache available yet。")
+        self.assertEqual(payload["message"], "Hotspot source connection interrupted, no cached data available.")
         self.assertNotIn("RemoteDisconnected", payload["message"])
         discover.assert_called_once()
 
@@ -622,7 +622,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
         self.assertEqual(payload["hotspots"], [])
         self.assertEqual(payload["hotspot_count"], 0)
         self.assertEqual(payload["source_errors"], ["eastmoney_hotspot_unavailable"])
-        self.assertEqual(payload["message"], "Hotspot source connection interrupted，No cache available yet。")
+        self.assertEqual(payload["message"], "Hotspot source connection interrupted, no cached data available.")
         self.assertNotIn("RemoteDisconnected", payload["message"])
         discover.assert_called_once()
 
@@ -847,14 +847,15 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
 
     def test_hotspot_news_local_summary_extracts_event_instead_of_truncating(self) -> None:
         text = (
-            "【Stock trader changes】Molybdenum sector surges5.64%！Gold and Molybdenum shares hit daily limit，Institutions are optimistic about industry opportunities。"
-            "It is reported that molybdenum is used to replace tungsten to drive the market of small metals.，The market is concerned about material substitution and tight supply and demand。"
-            "As of10:30，The current price and trading volume of relevant stocks continue to change，Follow-up suggestions focus on the balance between supply and demand。"
+            "Molybdenum sector surges 5.64%. "
+            "Molybdenum substitute tungsten to drive small metals. "
+            "As of 10:30, the price changed. "
+            "Follow-up suggestions focus on the balance between supply and demand."
         )
 
         summary = alphasift_service._summarize_hotspot_news_event_locally(topic="Molybdenum", text=text)
 
-        self.assertIn("Replace tungsten with molybdenum", summary)
+        self.assertIn("substitute", summary)
         self.assertIn("small metal", summary)
         self.assertNotIn("As of", summary)
         self.assertNotIn("Follow-up suggestions", summary)
@@ -1116,7 +1117,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
                 payload = self._hotspot_detail(config=config, provider="akshare", topic="Molybdenum")
 
         self.assertEqual(payload["route"][0]["source"], "ExampleNews")
-        self.assertEqual(payload["route"][0]["title"], "News catalysis")
+        self.assertEqual(payload["route"][0]["title"], "News Catalyst")
         self.assertEqual(payload["route"][0]["date"], "2026-06-12")
         self.assertEqual(payload["route"][0]["url"], "https://example.com/news")
         self.assertLessEqual(len(payload["route"][0]["description"]), 93)
@@ -1385,7 +1386,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
             frame = provider._related_hotspot_constituents("Molybdenum")
 
         self.assertEqual(list(frame["code"]), ["001257", "300618"])
-        self.assertEqual(frame.iloc[0]["role"], "Minor Metals Active Stocks")
+        self.assertEqual(frame.iloc[0]["role"], "small metalactive stocks")
 
     def test_hotspot_route_is_grouped_by_daily_markers(self) -> None:
         provider = alphasift_service.DsaEastMoneyHotspotProvider()
@@ -1448,7 +1449,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
 
         self.assertEqual(payload["enabled"], True)
         self.assertEqual(payload["topic"], "MLCC")
-        self.assertEqual(payload["summary"], "MLCC There is currently no summary of sector changes available.。")
+        self.assertEqual(payload["summary"], "MLCC currently has no available board change summary.")
         self.assertEqual(payload["route"][0]["source"], "ths_summary")
         self.assertEqual(payload["stocks"][0]["name"], "Sunlord Electronics")
 
@@ -1557,7 +1558,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
 
         self.assertEqual(_MockAkshare.calls, 1)
         self.assertEqual(frame.iloc[0]["name"], "AIComputing power")
-        self.assertEqual(frame.iloc[0]["stage"], "speed up fermentation")
+        self.assertEqual(frame.iloc[0]["stage"], "accelerating")
         self.assertGreater(frame.iloc[0]["trend_score"], 0)
         self.assertGreater(frame.iloc[0]["persistence_score"], 0)
         self.assertEqual(frame.iloc[0]["sample_stock_count"], 1)
@@ -1727,7 +1728,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
         self.assertEqual(caught.exception.detail.get("diagnostics", {}).get("resolution"), "no_auto_install")
         self.assertEqual(
             caught.exception.detail.get("diagnostics", {}).get("message"),
-            "Please check the backend logs first and fix the runtime exception，Repair installation is not currently triggered。",
+            "Please check the backend logs and fix the runtime exception first. No repair install has been triggered.",
         )
         install_mock.assert_not_called()
 

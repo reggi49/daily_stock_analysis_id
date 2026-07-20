@@ -18,8 +18,8 @@ def test_alerts_doc_exists_and_links_p0_scope() -> None:
     assert "Issue #1202" in doc
     assert "AGENT_EVENT_ALERT_RULES_JSON" in doc
     assert "EventMonitor" in doc
-    assert "P1 Alert API MVP" in doc
-    assert "P0 Don't do it" in doc
+    assert "P1: Alert API MVP" in doc
+    assert "P0 Does NOT" in doc
 
 
 def test_alerts_doc_covers_legacy_runtime_rules() -> None:
@@ -64,7 +64,7 @@ def test_alerts_doc_covers_storage_evaluation_and_rollback() -> None:
     assert (PROJECT_ROOT / "src" / "storage.py").is_file()
 
     for token in (
-        "## Storage solution evaluation",
+        "## Storage Evaluation",
         "src/storage.py",
         "src/repositories/",
         "src/services/",
@@ -79,12 +79,12 @@ def test_alerts_doc_keeps_p0_non_goals_explicit() -> None:
     doc = _read_doc()
 
     for token in (
-        "P0 No new stage is added `api/v1/schemas/alerts.py`",
-        "P0 No new stage is added Web Alarm center page",
-        "P0 No new database tables are added during this stage",
-        "P0 Stage does not implement trigger history",
-        "P0 Stages are not automatically migrated、delete or overwrite `AGENT_EVENT_ALERT_RULES_JSON`",
-        "P0 Stages are not rewritten `NotificationService`",
+        "P0 does not add `api/v1/schemas/alerts.py` or Alert API",
+        "P0 does not add Web Alert Center pages",
+        "P0 does not add database tables, repositories, or migrations",
+        "P0 does not implement trigger history",
+        "P0 does not automatically migrate, delete, or overwrite `AGENT_EVENT_ALERT_RULES_JSON`",
+        "P0 does not rewrite `NotificationService` or the notification routing framework",
     ):
         assert token in doc
 
@@ -109,9 +109,9 @@ def test_alerts_doc_defines_p1_api_mvp_scope() -> None:
         "price_change_percent",
         "volume_spike",
         "unsupported",
-        "Desensitization",
+        "sanitized",
         "reserved fields",
-        "No cooling or custom notification semantics are performed",
+        "does not execute cooldown or custom notification semantics",
     ):
         assert token in doc
 
@@ -120,12 +120,12 @@ def test_alerts_doc_keeps_p1_non_goals_explicit() -> None:
     doc = _read_doc()
 
     for token in (
-        "No new addition Web Alarm center page",
-        "Don't let schedule worker Load persistence active rules",
-        "not realizing reality `alert_trigger` / `alert_notification` write",
-        "Not realized `alert_cooldown` execution semantics",
-        "Not realized MACD、KDJ、CCI、RSI",
-        "No automatic migration、Delete、overwrite or overwrite legacy Configuration",
+        "Add new Web Alert Center pages",
+        "Have the schedule worker load persisted active rules",
+        "Implement real `alert_trigger` / `alert_notification` writes",
+        "Implement `alert_cooldown` execution semantics",
+        "Implement MACD, KDJ, CCI, RSI",
+        "does not automatically migrate, delete, overwrite, or rewrite legacy configurations",
     ):
         assert token in doc
 
@@ -134,14 +134,14 @@ def test_alerts_doc_defines_p2_worker_scope() -> None:
     doc = _read_doc()
 
     for token in (
-        "## P2 Alarm evaluation Worker",
+        "## P2 Alert Evaluation Worker",
         "src/services/alert_worker.py",
         "agent_event_monitor",
-        "persistence active rules",
+        "persisted active rules",
         "legacy JSON",
-        "`triggered`、`skipped`、`degraded`、`failed`",
-        "Don't write `alert_notifications`",
-        "Not executed `cooldown_policy`",
+        "`triggered`, `skipped`, `degraded`, `failed`",
+        "Write `alert_notifications`",
+        "cooldown_policy",
     ):
         assert token in doc
 
@@ -150,11 +150,11 @@ def test_alerts_doc_describes_p1_rollback_for_created_tables() -> None:
     doc = _read_doc()
 
     for token in (
-        "P1 New Alert API code",
-        "`alert_rules` / `alert_triggers` / `alert_notifications` SQLite table",
+        "P1 adds Alert API code",
+        "SQLite tables",
         "Base.metadata.create_all()",
-        "SQLite Tables and data will not be automatically deleted",
-        "Manually delete related tables",
+        "will not be automatically deleted",
+        "manually deleting the relevant tables",
     ):
         assert token in doc
 
@@ -163,21 +163,21 @@ def test_alerts_doc_defines_p4_notification_and_cooldown_scope() -> None:
     doc = _read_doc()
 
     for token in (
-        "## P4 Notification results and persistent cooling",
+        "## P4 Notification Results and Persisted Cooldown",
         "`alert_cooldowns`",
         "`alert_notifications`",
-        "`rule_id + target + data_source + data_timestamp`",
-        "Deduplication of the same data point",
-        "`data_timestamp` No deduplication is performed when missing",
+        "rule_id + target + data_source + data_timestamp",
+        "deduplicated",
+        "when `data_timestamp` is missing, deduplication is skipped",
         "`__cooldown__`",
         "`__cooldown_read_failed__`",
         "`__noise_suppressed__`",
         "notification_noise.py",
-        "DB Persistence rules normal path usage `alert_cooldowns`",
-        "Failed to read persistent cooling status",
-        "legacy `AGENT_EVENT_ALERT_RULES_JSON` Rules continue to be used worker In-process fingerprint",
-        "will not be written or extended `alert_cooldowns`",
-        "The minimal rollback method is revert P4 PR",
+        "use `alert_cooldowns` as the alert business cooldown in the normal path",
+        "only when reading persisted cooldown state fails",
+        "Legacy `AGENT_EVENT_ALERT_RULES_JSON` rules continue to use the worker process fingerprint",
+        "does not write to or extend `alert_cooldowns`",
+        "reverting the P4 PR",
     ):
         assert token in doc
 
@@ -186,7 +186,7 @@ def test_alerts_doc_defines_p5_indicator_scope() -> None:
     doc = _read_doc()
 
     for token in (
-        "## P5 Technical indicator rules",
+        "## P5 Technical Indicator Rules",
         "ma_price_cross",
         "rsi_threshold",
         "macd_cross",
@@ -195,7 +195,7 @@ def test_alerts_doc_defines_p5_indicator_scope() -> None:
         "compute_required_bars",
         "requested_days",
         "required_bars > 365",
-        "The last two closing daily bars",
+        "the two most recently closed daily lines",
         "prev <= threshold < current",
         "Wilder",
         "SMMA",
@@ -203,19 +203,19 @@ def test_alerts_doc_defines_p5_indicator_scope() -> None:
         "EMA(fast_period)",
         "alpha=1/k_period",
         "0.015 * mean_deviation",
-        "Server local time zone heuristic",
+        "server-local timezone heuristics",
         "16:00",
-        "If the date cannot be determined, it will be discarded conservatively.",
+        "is conservatively discarded",
         "legacy JSON path",
-        "Not extended `src/agent/events.py`",
+        "Does not extend `src/agent/events.py`",
         "HTTP 400 + `validation_error`",
         "HTTP 400 + `unsupported_alert_type`",
-        "Not supported MACD Cylinder magnification/shrink",
-        "Not supported KDJ overbought/oversold zone rules",
-        "Not supported MA with MA Double moving average crossover",
-        "Does not support minute lines",
-        "revert P5 PR",
-        "skip unsupported `alert_type`",
+        "Support MACD histogram expansion/contraction",
+        "Support KDJ overbought/oversold zone rules",
+        "Support MA-to-MA dual moving average crossovers",
+        "Support intraday lines",
+        "reverting the P5 PR",
+        "unsupported `alert_type`",
     ):
         assert token in doc
 
@@ -224,8 +224,8 @@ def test_alerts_doc_defines_p6_portfolio_and_watchlist_scope() -> None:
     doc = _read_doc()
 
     for token in (
-        "## P6 Linkage between positions and self-selected stocks",
-        "P6 scope/type matrix",
+        "## P6 Portfolio and Watchlist Integration",
+        "P6 Scope/Type Matrix",
         "`watchlist`",
         "`portfolio_holdings`",
         "`portfolio_account`",
@@ -241,10 +241,10 @@ def test_alerts_doc_defines_p6_portfolio_and_watchlist_scope() -> None:
         "`degraded_count`",
         "soft cap",
         "cooldown_active",
-        "Parent rule summary",
-        "legacy `AGENT_EVENT_ALERT_RULES_JSON` Not supported watchlist、portfolio",
-        "sector level concentration",
-        "P6 PR",
+        "parent rule summary",
+        "Legacy `AGENT_EVENT_ALERT_RULES_JSON` does not support watchlist, portfolio",
+        "sector-level concentration",
+        "reverting the P6 PR",
     ):
         assert token in doc
 
@@ -253,7 +253,7 @@ def test_alerts_doc_defines_p7_market_light_scope() -> None:
     doc = _read_doc()
 
     for token in (
-        "## P7 Large market traffic light structured alarm",
+        "## P7 Market Traffic Light Structured Alerts",
         "MarketLightSnapshot",
         "`target_scope=market`",
         "`market_light_status`",
@@ -261,7 +261,7 @@ def test_alerts_doc_defines_p7_market_light_scope() -> None:
         "`statuses=[\"red\",\"yellow\"]`",
         "`min_drop > 0`",
         "`cn` / `hk` / `us`",
-        "Two-way constraints",
+        "bidirectional constraint",
         "`context_snapshot.market_light_snapshots`",
         "`data_quality=unavailable`",
         "`partial_comparison=true`",
@@ -269,29 +269,29 @@ def test_alerts_doc_defines_p7_market_light_scope() -> None:
         "canonical scorer",
         "thin wrapper",
         "`load_previous_snapshot(region, before_trade_date)`",
-        "maximum `snapshot.trade_date`",
+        "largest `snapshot.trade_date`",
         "old trading day backfill",
         "`TRADING_DAY_CHECK_ENABLED`",
         "`data_source=market_light`",
-        "legacy `AGENT_EVENT_ALERT_RULES_JSON` Not supported market rules",
-        "revert P7 PR",
+        "Legacy `AGENT_EVENT_ALERT_RULES_JSON` does not support market rules",
+        "reverting the P7 PR",
     ):
         assert token in doc
 
 
 def test_alerts_doc_covers_issue_1386_p7_user_visibility_boundary() -> None:
     doc = _read_doc()
-    p7_section = doc.split("#1386 P7 user boundaries：", 1)[1].split(
-        "\n\nRoll back this linkage",
+    p7_section = doc.split("The user boundary for #1386 P7:", 1)[1].split(
+        "Rolling back this integration",
         1,
     )[0]
 
     for token in (
-        "Summary of stages and data quality already publicly available when triggered",
-        "Will not automatically launch lightweight LLM intraday analysis",
-        "No new alarm table will be added、Rule type、environment variables or migration",
-        "analysis API / Web Manual analysis entry",
-        "Alarm notifications only retain stage labels、trigger source、partial-bar warning、Data quality level and the first two limitations",
+        "phase and data quality summary that was already public at trigger time",
+        "it does not automatically initiate lightweight LLM intraday analysis",
+        "nor does it add new alert tables, rule types, environment variables, or migrations",
+        "analysis API / Web manual analysis entry",
+        "alert notifications only retain the phase label, trigger source, partial-bar warning, data quality level, and the first two limitations",
     ):
         assert token in p7_section
 
@@ -300,27 +300,27 @@ def test_alerts_doc_defines_p8_user_and_deployment_boundaries() -> None:
     doc = _read_doc()
 
     for token in (
-        "## P8 User configuration and deployment boundaries",
+        "## P8 User Configuration and Deployment Boundaries",
         "`AGENT_EVENT_MONITOR_ENABLED`",
         "`AGENT_EVENT_MONITOR_INTERVAL_MINUTES`",
         "`NOTIFICATION_ALERT_CHANNELS`",
         "`route_type=alert`",
-        "Alert API / Web Alarm center persistence rules",
+        "Alert API / Web Alert Center persisted rules",
         "legacy `AGENT_EVENT_ALERT_RULES_JSON`",
-        "Only compatible with `single_symbol`",
-        "P5 Technical indicators、P6 watchlist/portfolio or P7 market light",
+        "Only compatible with three basic `single_symbol`",
+        "P5 technical indicators, P6 watchlist/portfolio, or P7 market light",
         "docker/Dockerfile",
         "`python main.py --schedule`",
-        "Reserve `data/` database volume",
+        "preserve the `data/` database volume",
         ".github/workflows/00-daily-analysis.yml",
-        "One-time analysis workflow",
-        "Not running `--schedule` Backstage alert worker",
-        "no mapping `AGENT_EVENT_*`",
+        "one-shot analysis workflow",
+        "without running the `--schedule` background alert worker",
+        "does not map `AGENT_EVENT_*`",
         "`/alerts`",
-        "Desktop No new native alarm management interface will be added",
-        "`triggered`、`skipped`、`degraded`、`failed`",
-        "`rule_id + target + data_source + data_timestamp`",
-        "rollback P8 Just revert Documentation、configuration instructions and Web Copywriting changes",
+        "Desktop does not add a native alert management interface",
+        "`triggered`, `skipped`, `degraded`, `failed`",
+        "rule_id + target + data_source + data_timestamp",
+        "Rolling back P8 only requires reverting documentation, configuration instructions, and Web text changes",
     ):
         assert token in doc
 

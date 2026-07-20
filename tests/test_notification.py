@@ -1079,7 +1079,7 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_brief_report([result], report_date="2026-02-01")
 
-        self.assertIn("市场状态：A股 · 盘中", out)
+        self.assertIn("US stocks：Ashare · intraday", out)
         self.assertNotIn("阶段：intraday", out)
         self.assertNotIn("触发来源：portfolio", out)
         self.assertNotIn("盘中数据提示", out)
@@ -1116,8 +1116,8 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_dashboard_report([result], report_date="2026-02-01")
 
-        self.assertIn("市场状态：A股 · 盘后", out)
-        self.assertEqual(out.count("市场状态："), 1)
+        self.assertIn("US stocks：Ashare · after hours", out)
+        self.assertEqual(out.count("US stocks："), 1)
         self.assertNotIn("阶段：postmarket", out)
         self.assertNotIn("触发来源：cli", out)
         self.assertNotIn("数据质量: good", out)
@@ -1380,13 +1380,13 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         # 财务摘要
         self.assertIn("财务摘要", out)
         self.assertIn("2024-09-30", out)
-        self.assertIn("12360.00 亿元", out)
+        self.assertIn("12360.00 billionYuan", out)
         self.assertIn("22.45%", out)
         self.assertIn("15.23%", out)
         self.assertIn("91.55%", out)
         # 股东回报
         self.assertIn("股东回报", out)
-        self.assertIn("30.8760 元", out)
+        self.assertIn("30.8760 Yuan", out)
         self.assertIn("1.85%", out)
         self.assertIn("2024-06-26", out)
         # 关联板块（白酒带行业信号；MSCI中国 带概念信号）
@@ -1486,7 +1486,7 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         self.assertNotIn("财务摘要", out)
         self.assertIn("股东回报", out)
-        self.assertIn("0.5000 元", out)
+        self.assertIn("0.5000 Yuan", out)
         self.assertNotIn("关联板块", out)
 
     @mock.patch("src.notification.get_config")
@@ -1539,13 +1539,13 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         out = service.generate_single_stock_report(result)
 
         self.assertIn("财务摘要", out)
-        self.assertIn("亿美元", out)
-        self.assertNotIn("12360.00 亿元", out)
+        self.assertIn("billionDollar", out)
+        self.assertNotIn("12360.00 billionYuan", out)
         # Sample expected formatted values
-        self.assertIn("1110.00 亿美元", out)
+        self.assertIn("1110.00 billionDollar", out)
         self.assertIn("141.47%", out)
         # Dividend per share also picks up currency suffix
-        self.assertIn("1.0500 美元", out)
+        self.assertIn("1.0500 Dollar", out)
         # Sector + industry render as belong_boards
         self.assertIn("Technology", out)
         self.assertIn("Consumer Electronics", out)
@@ -1757,9 +1757,9 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         out = service.generate_single_stock_report(result)
 
         # Income statement still rendered in CNY (financialCurrency).
-        self.assertIn("10200.00 亿元", out)
+        self.assertIn("10200.00 billionYuan", out)
         # Dividend per share follows the dividend currency, NOT the financial currency.
-        self.assertIn("1.9581 港元", out)
+        self.assertIn("1.9581 Hong Kong dollar", out)
         self.assertNotIn("1.9581 元 ", out)
         self.assertIn("Consumer Cyclical", out)
 
@@ -1794,8 +1794,8 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_single_stock_report(result)
 
-        # Without explicit dividend currency, default to 元 (matches AkShare A-share semantics).
-        self.assertIn("27.6000 元", out)
+        # Without explicit dividend currency, default to Yuan (matches AkShare A-share semantics).
+        self.assertIn("27.6000 Yuan", out)
 
     @mock.patch("src.notification.get_config")
     def test_generate_dashboard_report_appends_fundamental_blocks(

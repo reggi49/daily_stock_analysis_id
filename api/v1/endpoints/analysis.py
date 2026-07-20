@@ -1317,13 +1317,13 @@ def _build_analysis_report(
     Build a structured analysis report conforming to the API specification.
     
     Args:
-        report_data: 原始报告数据
-        query_id: 查询 ID
-        stock_code: 股票代码
-        stock_name: 股票名称
-        context_snapshot: 上下文快照（可选）
-        fallback_fundamental_payload: 基本面快照 payload（可选）
-        fallback_raw_result_payload: 原始分析结果 payload（可选）
+        report_data: Raw report data
+        query_id: Query ID
+        stock_code: Stock code
+        stock_name: Stock name
+        context_snapshot: Context snapshot (optional)
+        fallback_fundamental_payload: Fundamental snapshot payload (optional)
+        fallback_raw_result_payload: Raw analysis result payload (optional)
         
     Returns:
         AnalysisReport: Structured analysis report

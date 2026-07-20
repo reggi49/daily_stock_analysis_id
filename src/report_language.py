@@ -1,58 +1,57 @@
 # -*- coding: utf-8 -*-
-"""Helpers for report output language selection and localization."""
+"""Translation mappings and report localization helpers."""
 
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Sequence
 
+from src.enums import ReportType
 from src.schemas.decision_scale import signal_key_for_score
 
-SUPPORTED_REPORT_LANGUAGES = ("zh", "en", "ko")
+# ============================================================
+# Supported languages
+# ============================================================
+
+SUPPORTED_REPORT_LANGUAGES = {"zh", "en", "ko"}
 
 _REPORT_LANGUAGE_ALIASES = {
-    "zh-cn": "zh",
-    "zh_cn": "zh",
-    "zh-hans": "zh",
-    "zh_hans": "zh",
-    "zh-tw": "zh",
-    "zh_tw": "zh",
+    "zh": "zh",
     "cn": "zh",
+    "zh_cn": "zh",
     "chinese": "zh",
-    "english": "en",
-    "en-us": "en",
+    "en": "en",
+    "us": "en",
     "en_us": "en",
-    "en-gb": "en",
-    "en_gb": "en",
-    "korean": "ko",
+    "english": "en",
+    "ko": "ko",
     "kr": "ko",
-    "ko-kr": "ko",
     "ko_kr": "ko",
 }
 
 _OPERATION_ADVICE_CANONICAL_MAP = {
-    "Reduce positions": "strong_buy",
+    "强烈买入": "strong_buy",
     "strong buy": "strong_buy",
     "strong_buy": "strong_buy",
-    "Reduce positions": "buy",
+    "买入": "buy",
     "buy": "buy",
-    "Reduce positions": "buy",
+    "加仓": "buy",
     "accumulate": "buy",
     "add position": "buy",
-    "Reduce positions": "hold",
-    "Reduce positions": "hold",
-    "Reduce positions": "hold",
+    "持有": "hold",
+    "洗盘观察": "hold",
+    "观察": "hold",
     "hold": "hold",
-    "Reduce positions": "watch",
+    "观望": "watch",
     "watch": "watch",
     "wait": "watch",
     "wait and see": "watch",
-    "Reduce positions": "reduce",
+    "减仓": "reduce",
     "reduce": "reduce",
     "trim": "reduce",
+    "卖出": "sell",
     "sell": "sell",
-    "sell": "sell",
-    "Strongly bullish": "strong_sell",
+    "强烈卖出": "strong_sell",
     "strong sell": "strong_sell",
     "strong_sell": "strong_sell",
     "적극 매수": "strong_buy",
@@ -66,37 +65,44 @@ _OPERATION_ADVICE_CANONICAL_MAP = {
 }
 
 _OPERATION_ADVICE_TRANSLATIONS = {
-    "strong_buy": {"zh": "Reduce positions", "en": "Strong Buy", "ko": "적극 매수"},
-    "buy": {"zh": "Reduce positions", "en": "Buy", "ko": "매수"},
-    "hold": {"zh": "Reduce positions", "en": "Hold", "ko": "보유"},
-    "watch": {"zh": "Reduce positions", "en": "Watch", "ko": "관망"},
-    "reduce": {"zh": "Reduce positions", "en": "Reduce", "ko": "비중축소"},
-    "sell": {"zh": "sell", "en": "Sell", "ko": "매도"},
-    "strong_sell": {"zh": "Strongly bullish", "en": "Strong Sell", "ko": "적극 매도"},
+    "strong_buy": {"zh": "强烈买入", "en": "Strong Buy", "ko": "적극 매수"},
+    "buy": {"zh": "买入", "en": "Buy", "ko": "매수"},
+    "hold": {"zh": "持有", "en": "Hold", "ko": "보유"},
+    "watch": {"zh": "观望", "en": "Watch", "ko": "관망"},
+    "reduce": {"zh": "减仓", "en": "Reduce", "ko": "비중축소"},
+    "sell": {"zh": "卖出", "en": "Sell", "ko": "매도"},
+    "strong_sell": {"zh": "强烈卖出", "en": "Strong Sell", "ko": "적극 매도"},
 }
 
 _TREND_PREDICTION_CANONICAL_MAP = {
-    "Strong short position": "strong_bearish",
-    "Strongly bullish": "strong_bullish",
+    "multi head arrangement": "bullish",
+    "multi-head arrangement": "bullish",
+    "strong bull": "strong_bullish",
+    "weak bulls": "bullish",
+    "weak short": "bearish",
+    "short arrangement": "bearish",
+    "strong short position": "strong_bearish",
+    "强势空头": "strong_bearish",
+    "强烈看多": "strong_bullish",
     "strong bullish": "strong_bullish",
     "very bullish": "strong_bullish",
-    "Strong bull": "strong_bullish",
-    "multi-head arrangement": "bullish",
-    "Short arrangement": "bearish",
-    "Weak bulls": "bullish",
-    "Weak short": "bearish",
-    "long": "bullish",
-    "consolidation": "sideways",
+    "强势多头": "strong_bullish",
+    "多头排列": "bullish",
+    "空头排列": "bearish",
+    "弱势多头": "bullish",
+    "弱势空头": "bearish",
+    "看多": "bullish",
+    "盘整": "sideways",
     "bullish": "bullish",
     "uptrend": "bullish",
-    "shock": "sideways",
+    "震荡": "sideways",
     "neutral": "sideways",
     "sideways": "sideways",
     "range-bound": "sideways",
-    "bearish": "bearish",
+    "看空": "bearish",
     "bearish": "bearish",
     "downtrend": "bearish",
-    "Strongly bearish": "strong_bearish",
+    "强烈看空": "strong_bearish",
     "strong bearish": "strong_bearish",
     "very bearish": "strong_bearish",
     "강한 상승": "strong_bullish",
@@ -107,20 +113,20 @@ _TREND_PREDICTION_CANONICAL_MAP = {
 }
 
 _TREND_PREDICTION_TRANSLATIONS = {
-    "strong_bullish": {"zh": "Strongly bullish", "en": "Strong Bullish", "ko": "강한 상승"},
-    "bullish": {"zh": "long", "en": "Bullish", "ko": "상승"},
-    "sideways": {"zh": "shock", "en": "Sideways", "ko": "횡보"},
-    "bearish": {"zh": "bearish", "en": "Bearish", "ko": "하락"},
-    "strong_bearish": {"zh": "Strongly bearish", "en": "Strong Bearish", "ko": "강한 하락"},
+    "strong_bullish": {"zh": "强烈看多", "en": "Strong Bullish", "ko": "강한 상승"},
+    "bullish": {"zh": "看多", "en": "Bullish", "ko": "상승"},
+    "sideways": {"zh": "震荡", "en": "Sideways", "ko": "횡보"},
+    "bearish": {"zh": "看空", "en": "Bearish", "ko": "하락"},
+    "strong_bearish": {"zh": "强烈看空", "en": "Strong Bearish", "ko": "강한 하락"},
 }
 
 _CONFIDENCE_LEVEL_CANONICAL_MAP = {
+    "高": "high",
     "high": "high",
-    "high": "high",
-    "middle": "medium",
+    "中": "medium",
     "medium": "medium",
     "med": "medium",
-    "Low": "low",
+    "低": "low",
     "low": "low",
     "높음": "high",
     "보통": "medium",
@@ -128,9 +134,9 @@ _CONFIDENCE_LEVEL_CANONICAL_MAP = {
 }
 
 _CONFIDENCE_LEVEL_TRANSLATIONS = {
-    "high": {"zh": "high", "en": "High", "ko": "높음"},
-    "medium": {"zh": "middle", "en": "Medium", "ko": "보통"},
-    "low": {"zh": "Low", "en": "Low", "ko": "낮음"},
+    "high": {"zh": "高", "en": "High", "ko": "높음"},
+    "medium": {"zh": "中", "en": "Medium", "ko": "보통"},
+    "low": {"zh": "低", "en": "Low", "ko": "낮음"},
 }
 
 _STRATEGY_SIGNAL_CANONICAL_MAP = {
@@ -261,11 +267,11 @@ _STRATEGY_SKILL_TRANSLATIONS = {
 }
 
 _CHIP_HEALTH_CANONICAL_MAP = {
+    "健康": "healthy",
     "healthy": "healthy",
-    "healthy": "healthy",
-    "generally": "average",
+    "一般": "average",
     "average": "average",
-    "alert": "caution",
+    "警惕": "caution",
     "caution": "caution",
     "양호": "healthy",
     "보통": "average",
@@ -273,18 +279,18 @@ _CHIP_HEALTH_CANONICAL_MAP = {
 }
 
 _CHIP_HEALTH_TRANSLATIONS = {
-    "healthy": {"zh": "healthy", "en": "Healthy", "ko": "양호"},
-    "average": {"zh": "generally", "en": "Average", "ko": "보통"},
-    "caution": {"zh": "alert", "en": "Caution", "ko": "주의"},
+    "healthy": {"zh": "健康", "en": "Healthy", "ko": "양호"},
+    "average": {"zh": "一般", "en": "Average", "ko": "보통"},
+    "caution": {"zh": "警惕", "en": "Caution", "ko": "주의"},
 }
 
 _BIAS_STATUS_CANONICAL_MAP = {
-    "Safety": "safe",
+    "安全": "safe",
     "safe": "safe",
-    "alert": "caution",
-    "alert": "caution",
+    "警戒": "caution",
+    "警惕": "caution",
     "caution": "caution",
-    "Danger": "danger",
+    "危险": "danger",
     "risk": "danger",
     "danger": "danger",
     "안전": "safe",
@@ -293,31 +299,31 @@ _BIAS_STATUS_CANONICAL_MAP = {
 }
 
 _BIAS_STATUS_TRANSLATIONS = {
-    "safe": {"zh": "Safety", "en": "Safe", "ko": "안전"},
-    "caution": {"zh": "alert", "en": "Caution", "ko": "경계"},
-    "danger": {"zh": "Danger", "en": "Danger", "ko": "위험"},
+    "safe": {"zh": "安全", "en": "Safe", "ko": "안전"},
+    "caution": {"zh": "警戒", "en": "Caution", "ko": "경계"},
+    "danger": {"zh": "危险", "en": "Danger", "ko": "위험"},
 }
 
 _PLACEHOLDER_BY_LANGUAGE = {
-    "zh": "To be added",
+    "zh": "待补充",
     "en": "TBD",
     "ko": "미정",
 }
 
 _UNKNOWN_BY_LANGUAGE = {
-    "zh": "unknown",
+    "zh": "未知",
     "en": "Unknown",
     "ko": "알 수 없음",
 }
 
 _NO_DATA_BY_LANGUAGE = {
-    "zh": "missing data",
+    "zh": "数据缺失",
     "en": "Data unavailable",
     "ko": "데이터 없음",
 }
 
 _CHIP_UNAVAILABLE_BY_LANGUAGE = {
-    "zh": "Chip distribution is not enabled or the data source is temporarily unavailable，None。",
+    "zh": "筹码分布未启用或数据源暂不可用，未纳入筹码判断。",
     "en": "Chip distribution is disabled or temporarily unavailable; chip signals were not used.",
     "ko": "매물대가 비활성화되었거나 데이터 소스를 일시적으로 사용할 수 없어 매물대 신호를 반영하지 않았습니다.",
 }
@@ -330,15 +336,15 @@ _CHIP_PLACEHOLDER_EXACT = {
     "null",
     "unknown",
     "tbd",
-    "missing data",
-    "unknown",
-    "None",
-    "To be added",
+    "数据缺失",
+    "未知",
+    "暂无",
+    "待补充",
 }
 
 _CHIP_PLACEHOLDER_HINTS = (
-    "missing data",
-    "Unable to judge",
+    "数据缺失",
+    "无法判断",
     "data unavailable",
     "unavailable",
     "not available",
@@ -354,7 +360,7 @@ _CHIP_UNAVAILABLE_REASON_KEYS = (
 )
 
 _GENERIC_STOCK_NAME_BY_LANGUAGE = {
-    "zh": "Stocks to be confirmed",
+    "zh": "待确认股票",
     "en": "Unnamed Stock",
     "ko": "미확인 종목",
 }
@@ -411,47 +417,47 @@ _REPORT_LABELS: Dict[str, Dict[str, str]] = {
         "ma5_label": "MA5",
         "ma10_label": "MA10",
         "ma20_label": "MA20",
-        "bias_ma5_label": "deviation rate(MA5)",
-        "support_level_label": "support level",
-        "resistance_level_label": "pressure level",
-        "chip_label": "chips",
-        "phase_decision_heading": "Intraday Decision Guardrails",
-        "action_window_label": "action window",
-        "immediate_action_label": "current action",
-        "watch_conditions_label": "Observation conditions",
-        "next_check_time_label": "Check next time",
-        "confidence_reason_label": "Confidence reason",
-        "data_limitations_label": "Data limits",
-        "battle_plan_heading": "battle plan",
-        "ideal_buy_label": "Ideal buying point",
-        "secondary_buy_label": "Second best buying point",
-        "stop_loss_label": "Stop loss level",
-        "take_profit_label": "Target position",
-        "suggested_position_label": "Position recommendations",
-        "entry_plan_label": "Position building strategy",
-        "risk_control_label": "Risk control strategy",
-        "checklist_heading": "Checklist",
-        "failed_checks_heading": "Check failed items",
-        "history_compare_heading": "Historical signal comparison",
-        "time_label": "time",
-        "score_label": "score",
-        "advice_label": "suggestion",
-        "trend_label": "Generation time",
-        "generated_at_label": "Generation time",
-        "report_time_label": "Generation time",
-        "no_results": "No analysis results",
-        "report_title": "Stock analysis report",
-        "avg_score_label": "Divide equally",
-        "action_points_heading": "operating point",
-        "position_advice_heading": "Analytical model",
-        "analysis_model_label": "Analytical model",
-        "not_investment_advice": "AIgenerate，For reference only，Does not constitute investment advice",
-        "details_report_hint": "See detailed report",
-        "financial_summary_heading": "financial summary",
-        "report_date_label": "reporting period",
-        "revenue_label": "operating income",
-        "net_profit_label": "Net profit attributable to parent company",
-        "operating_cash_flow_label": "operating cash flow",
+        "bias_ma5_label": "乖离率(MA5)",
+        "support_level_label": "支撑位",
+        "resistance_level_label": "压力位",
+        "chip_label": "筹码",
+        "phase_decision_heading": "盘中决策护栏",
+        "action_window_label": "行动窗口",
+        "immediate_action_label": "当前动作",
+        "watch_conditions_label": "观察条件",
+        "next_check_time_label": "下次检查",
+        "confidence_reason_label": "置信度理由",
+        "data_limitations_label": "数据限制",
+        "battle_plan_heading": "作战计划",
+        "ideal_buy_label": "理想买入点",
+        "secondary_buy_label": "次优买入点",
+        "stop_loss_label": "止损位",
+        "take_profit_label": "目标位",
+        "suggested_position_label": "仓位建议",
+        "entry_plan_label": "建仓策略",
+        "risk_control_label": "风控策略",
+        "checklist_heading": "检查清单",
+        "failed_checks_heading": "检查未通过项",
+        "history_compare_heading": "历史信号对比",
+        "time_label": "时间",
+        "score_label": "评分",
+        "advice_label": "建议",
+        "trend_label": "趋势",
+        "generated_at_label": "报告生成时间",
+        "report_time_label": "生成时间",
+        "no_results": "无分析结果",
+        "report_title": "股票分析报告",
+        "avg_score_label": "均分",
+        "action_points_heading": "操作点位",
+        "position_advice_heading": "持仓建议",
+        "analysis_model_label": "分析模型",
+        "not_investment_advice": "AI生成，仅供参考，不构成投资建议",
+        "details_report_hint": "详细报告见",
+        "financial_summary_heading": "财务摘要",
+        "report_date_label": "报告期",
+        "revenue_label": "营业收入",
+        "net_profit_label": "归母净利润",
+        "operating_cash_flow_label": "经营现金流",
         "roe_label": "ROE",
         "revenue_yoy_label": "营收同比",
         "net_profit_yoy_label": "净利同比",
@@ -591,10 +597,10 @@ _REPORT_LABELS: Dict[str, Dict[str, str]] = {
         "net_profit_yoy_label": "Net Profit YoY",
         "gross_margin_label": "Gross Margin",
         "shareholder_return_heading": "Shareholder Return",
-        "ttm_cash_dividend_label": "TTM Cash Dividend / Share (Pre-tax)",
-        "ttm_event_count_label": "TTM Dividend Events",
+        "ttm_cash_dividend_label": "TTM Dividend per Share (Pre-Tax)",
+        "ttm_event_count_label": "TTM Dividend Frequency",
         "ttm_dividend_yield_label": "TTM Dividend Yield",
-        "latest_ex_dividend_label": "Latest Ex-dividend Date",
+        "latest_ex_dividend_label": "Latest Ex-Dividend Date",
         "institutional_flow_heading": "Institutional Flows (3 Majors)",
         "institutional_flow_note": "Positive = net buy, negative = net sell; unit: shares.",
         "inst_foreign_label": "Foreign",
@@ -721,8 +727,8 @@ _REPORT_LABELS: Dict[str, Dict[str, str]] = {
         "net_profit_label": "지배주주 순이익",
         "operating_cash_flow_label": "영업 현금흐름",
         "roe_label": "ROE",
-        "revenue_yoy_label": "매출 전년Compare",
-        "net_profit_yoy_label": "순이익 전년Compare",
+        "revenue_yoy_label": "매출 전년比",
+        "net_profit_yoy_label": "순이익 전년比",
         "gross_margin_label": "매출총이익률",
         "shareholder_return_heading": "주주 환원",
         "ttm_cash_dividend_label": "최근 12개월 주당 현금배당(세전)",
@@ -765,13 +771,13 @@ _REPORT_LABELS: Dict[str, Dict[str, str]] = {
 }
 
 _DECISION_INTENT_NEGATIONS = (
-    "No",
-    "Not",
-    "not yet",
-    "not yet",
-    "No",
-    "none",
-    "no",
+    "不",
+    "并非",
+    "并未",
+    "未",
+    "没有",
+    "无",
+    "不是",
     "no ",
     "not ",
     " never",
@@ -779,19 +785,19 @@ _DECISION_INTENT_NEGATIONS = (
 
 _DECISION_INTENT_NEGATION_SCOPE_BREAK_CHARS = "，,。；;:!?！？"
 _DECISION_INTENT_NEGATION_CONNECTORS = (
-    "suggestion",
-    "answer",
-    "should",
-    "should",
-    "First",
-    "Again",
-    "temporarily",
-    "temporary",
-    "Can",
-    "Can",
-    "need",
-    "need",
-    "continue",
+    "建议",
+    "应",
+    "应当",
+    "宜",
+    "先",
+    "再",
+    "暂",
+    "暂时",
+    "可",
+    "可以",
+    "需要",
+    "需",
+    "继续",
 )
 
 
@@ -931,14 +937,14 @@ def _is_placeholder_stock_name(value: Any, code: Any = None) -> bool:
     lowered = text.lower()
     if lowered in {"n/a", "na", "none", "null", "unknown"}:
         return True
-    if text in {"-", "—", "unknown", "To be added"}:
+    if text in {"-", "—", "未知", "待补充"}:
         return True
 
     code_text = str(code or "").strip()
     if code_text and lowered == code_text.lower():
         return True
 
-    return text.startswith("stocks")
+    return text.startswith("股票")
 
 
 def _translate_from_map(
@@ -1184,9 +1190,9 @@ def localize_strategy_synthesis_summary(strategy_synthesis: Any, language: Optio
             base = f"{opinion_count}개 전략의 종합 판단: 종합 신호는 {final_signal}, 공감도는 {consensus_level}, 감지된 전략 충돌은 없습니다."
         return base
     if conflict_count:
-        base = f"来自 {opinion_count} 个策略的综合判断：综合信号为{final_signal}，共识度为{consensus_level}，冲突强度为{conflict_severity}。"
+        base = f"来自 {opinion_count} 个策略 of 종합 판단：종합 신호는 {final_signal}，共识度为{consensus_level}，冲突强度为{conflict_severity}。"
     else:
-        base = f"来自 {opinion_count} 个策略的综合判断：综合信号为{final_signal}，共识度为{consensus_level}，未检测到策略冲突。"
+        base = f"来自 {opinion_count} 个策略 of 종합 판단：종합 신호는 {final_signal}，共识度为{consensus_level}，未检测到策略冲突。"
     return base
 
 

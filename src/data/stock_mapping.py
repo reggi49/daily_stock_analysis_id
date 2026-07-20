@@ -120,7 +120,7 @@ def is_meaningful_stock_name(name: str | None, stock_code: str) -> bool:
     if normalized_name.upper() == normalized_code:
         return False
 
-    if normalized_name.startswith("股票"):
+    if normalized_name.startswith("Stock"):
         return False
 
     placeholder_values = {

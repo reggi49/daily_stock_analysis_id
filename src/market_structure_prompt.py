@@ -102,24 +102,24 @@ def _format_zh(
     missing_fields: List[str],
 ) -> List[str]:
     lines = [
-        "\n## 市场结构上下文",
-        f"- 状态：{context.get('status', 'unknown')}",
+        "\n## Market Structure Context",
+        f"- Status: {context.get('status', 'unknown')}",
     ]
     if active_themes:
-        lines.append(f"- 活跃题材：{'，'.join(active_themes)}")
+        lines.append(f"- Active themes: {', '.join(active_themes)}")
     if leading_concepts:
-        lines.append(f"- 领涨概念：{'，'.join(leading_concepts)}")
+        lines.append(f"- Leading concepts: {', '.join(leading_concepts)}")
     if leading_industries:
-        lines.append(f"- 领涨行业：{'，'.join(leading_industries)}")
+        lines.append(f"- Leading industries: {', '.join(leading_industries)}")
     if primary_name:
-        lines.append(f"- 个股主关联题材：{primary_name}")
-    lines.append(f"- 题材阶段：{stock_position.get('theme_phase', 'unknown')}")
-    lines.append(f"- 个股位置：{stock_position.get('stock_role', 'unknown')}")
+        lines.append(f"- Stock primary theme: {primary_name}")
+    lines.append(f"- Theme phase: {stock_position.get('theme_phase', 'unknown')}")
+    lines.append(f"- Stock role: {stock_position.get('stock_role', 'unknown')}")
     if risk_tags:
-        lines.append(f"- 风险标签：{'，'.join(risk_tags)}")
+        lines.append(f"- Risk tags: {', '.join(risk_tags)}")
     if missing_fields:
-        lines.append(f"- 缺失证据：{'，'.join(missing_fields)}")
-    lines.append("- 约束：没有成分股或 leader_stocks 证据时，不要断言个股是题材龙头。")
+        lines.append(f"- Missing evidence: {', '.join(missing_fields)}")
+    lines.append("- Guardrail: do not claim leader-stock status without constituent or leader evidence.")
     return lines
 
 

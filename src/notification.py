@@ -26,6 +26,7 @@ from enum import Enum
 from src.config import Config, get_config
 from src.enums import ReportType
 from src.market_phase_summary import format_public_market_status_line, format_public_phase_pack_excerpt
+from src.services.decision_signal_summary import format_decision_signal_excerpt
 from src.notification_routing import (
     get_notification_route_config,
     split_notification_route_channels,
@@ -436,6 +437,12 @@ class NotificationService(
             getattr(result, "market_phase_summary", None),
             getattr(result, "analysis_context_pack_overview", None),
             source=getattr(result, "analysis_visibility_source", None) or "evaluator_snapshot",
+            report_language=report_language,
+        )
+
+    def _decision_signal_excerpt(self, result: AnalysisResult, report_language: str) -> str:
+        return format_decision_signal_excerpt(
+            getattr(result, "decision_signal_summary", None),
             report_language=report_language,
         )
 
@@ -1323,7 +1330,7 @@ class NotificationService(
                 if signal_excerpt:
                     report_lines.extend([signal_excerpt, ""])
 
-                # ========== 舆情与基本面概览（放在最前面）==========
+                # ========== Sentiment and Fundamentals Overview (placed at the very beginning) ==========
                 intel = dashboard.get('intelligence', {}) if dashboard else {}
                 if intel:
                     report_lines.extend([
@@ -1525,13 +1532,13 @@ class NotificationService(
                         report_lines.append(f"**🐻 {labels['strongest_bearish_signal_label']}**: {signal_attr['strongest_bearish_signal']}")
                     report_lines.append("")
 
-                # ========== 多策略综合 ==========
+                # ========== Multi-strategy Synthesis ==========
                 strategy_synthesis = normalize_strategy_synthesis_payload(
                     dashboard.get('strategy_synthesis') if dashboard else None
                 )
                 _append_strategy_synthesis_block(report_lines, strategy_synthesis, labels, report_language)
 
-                # 财务摘要 / 股东回报 / 关联板块（数据缺失时自动隐藏对应小节）
+                # Financial Summary / Shareholder Return / Related Boards (automatically hidden when data is missing)
                 self._append_fundamental_blocks(report_lines, result)
 
                 # Show legacy format dashboard，Show legacy format
@@ -1663,7 +1670,7 @@ class NotificationService(
                     lines.append(signal_excerpt)
                     lines.append("")
 
-                # 重要信息区（舆情+基本面）
+                # Important Information Area (Public Sentiment + Fundamentals)
                 info_lines = []
 
                 # performance expectations
@@ -1725,7 +1732,7 @@ class NotificationService(
                         lines.append(f"💼 {labels['has_position_label']}: {has_pos[:50]}")
                     lines.append("")
 
-                # 多策略综合
+                # Multi-strategy Synthesis
                 strategy_synthesis = normalize_strategy_synthesis_payload(
                     dashboard.get('strategy_synthesis') if dashboard else None
                 )
@@ -1751,7 +1758,7 @@ class NotificationService(
                         lines.append(summary[:80])
                     lines.append("")
 
-                # 检查清单简化版
+                # Checklist Simplified Version
                 checklist = battle.get('action_checklist', []) if battle else []
                 if checklist:
                     # Only show failed items

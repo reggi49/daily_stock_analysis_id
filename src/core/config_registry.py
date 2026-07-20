@@ -3762,7 +3762,7 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         ],
         "docs": [
             {
-                "label": "LLM 配置指南",
+                "label": "LLM Configuration Guide",
                 "href": "https://github.com/ZhuLinsen/daily_stock_analysis/blob/main/docs/LLM_CONFIG_GUIDE.md",
             },
         ],

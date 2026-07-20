@@ -187,7 +187,8 @@ def test_sina_and_tencent_history_calls_use_timeout_wrapper(
     assert captured["kwargs"]["start_date"] == "20260501"
     assert captured["kwargs"]["end_date"] == "20260525"
     assert captured["kwargs"]["adjust"] == "qfq"
-    assert list(df.columns)[:7] == ["Date", "Open", "highest", "lowest", "close", "Volume", "Turnover"]
+    expected_date = "Date" if method_name == "_fetch_stock_data_sina" else "date"
+    assert list(df.columns)[:7] == [expected_date, "opening", "Highest", "lowest", "close", "Volume", "Turnover"]
 
 
 def test_stock_data_falls_back_after_sina_timeout(monkeypatch) -> None:

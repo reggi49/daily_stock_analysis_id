@@ -81,12 +81,12 @@ Select one model provider and fill in the API Key; for multi-model, image recogn
 
 | Secret Name | Description | Required |
 |------------|------|:----:|
-| `ANSPIRE_API_KEYS` | [Anspire](https://open.anspire.cn/dsa?share_code=QFBC0FYC) API Key，一Key同时启用全球热门大模型和联网搜索，本项目新用户提供30元等额的免费额度（GLM5.2、GPT等模型特惠中） | **推荐** |
-| `AIHUBMIX_KEY` | [AIHubMix](https://aihubmix.com/?aff=CfMq) API Key，一Key切换使用全系模型，无需科学上网，本项目可享 10% 优惠 | **推荐** |
-| `GEMINI_API_KEY` | Google Gemini API Key | 可选 |
-| `ANTHROPIC_API_KEY` | Anthropic Claude API Key | 可选 |
-| `OPENAI_API_KEY` | OpenAI 兼容 API Key（支持 DeepSeek、通义千问等） | 可选 |
-| `OPENAI_BASE_URL` / `OPENAI_MODEL` | 使用 OpenAI 兼容服务时填写 | 可选 |
+| `ANSPIRE_API_KEYS` | [Anspire](https://open.anspire.cn/dsa?share_code=QFBC0FYC) API Key, one key to enable global popular large models and web search, provides 30 RMB equivalent free credit for new users of this project (GLM5.2, GPT and other models are on promotion) | **Recommended** |
+| `AIHUBMIX_KEY` | [AIHubMix](https://aihubmix.com/?aff=CfMq) API Key, one key to switch among the full family of models, no proxy required, 10% discount for this project | **Recommended** |
+| `GEMINI_API_KEY` | Google Gemini API Key | Optional |
+| `ANTHROPIC_API_KEY` | Anthropic Claude API Key | Optional |
+| `OPENAI_API_KEY` | OpenAI Compatible API Key (Supports DeepSeek, Qwen, etc.) | Optional |
+| `OPENAI_BASE_URL` / `OPENAI_MODEL` | Fill in when using OpenAI compatible services | Optional |
 
 > Ollama is more suitable for local / Docker deployment. GitHub Actions recommends using cloud APIs.
 
@@ -115,13 +115,13 @@ News sources significantly impact the quality of sentiment, announcements, event
 
 | Secret Name | Description | Required |
 |------------|------|:----:|
-| `ANSPIRE_API_KEYS` | [Anspire AI Search](https://open.anspire.cn/dsa?share_code=QFBC0FYC)：汇聚全球舆情信息，适配A股、美股、港股等新闻和舆情检索；同一Key可复用大模型服务，本项目新用户提供免费30元等额的免费点数 | **推荐** |
-| `SERPAPI_API_KEYS` | [SerpAPI](https://serpapi.com/baidu-search-api?utm_source=github_daily_stock_analysis)：搜索引擎结果补强，适合实时金融新闻 | **推荐** |
-| `TAVILY_API_KEYS` | [Tavily](https://tavily.com/)：通用新闻搜索 API | 可选 |
-| `BOCHA_API_KEYS` | [博查搜索](https://open.bocha.cn/)：中文搜索优化，支持 AI 摘要 | 可选 |
-| `BRAVE_API_KEYS` | [Brave Search](https://brave.com/search/api/)：隐私优先，美股资讯补强 | 可选 |
-| `MINIMAX_API_KEYS` | [MiniMax](https://platform.minimaxi.com/)：结构化搜索结果 | 可选 |
-| `SEARXNG_BASE_URLS` | [SearXNG 自建实例](https://searx.space/)：无配额兜底，适合私有部署 | 可选 |
+| `ANSPIRE_API_KEYS` | [Anspire AI Search](https://open.anspire.cn/dsa?share_code=QFBC0FYC): Aggregates global public opinion information, adapted for news and public opinion retrieval of A-shares, US stocks, Hong Kong stocks, etc.; the same key can be reused for LLM services, provides new users of this project with free 30 RMB equivalent points | **Recommended** |
+| `SERPAPI_API_KEYS` | [SerpAPI](https://serpapi.com/baidu-search-api?utm_source=github_daily_stock_analysis): Search engine results reinforcement, suitable for real-time financial news | **Recommended** |
+| `TAVILY_API_KEYS` | [Tavily](https://tavily.com/): General news search API | Optional |
+| `BOCHA_API_KEYS` | [Bocha Search](https://open.bocha.cn/): Chinese search optimization, supports AI summarization | Optional |
+| `BRAVE_API_KEYS` | [Brave Search](https://brave.com/search/api/): Privacy-first, US stock news reinforcement | Optional |
+| `MINIMAX_API_KEYS` | [MiniMax](https://platform.minimaxi.com/): Structured search results | Optional |
+| `SEARXNG_BASE_URLS` | [SearXNG self-built instance](https://searx.space/): No quota limit backup, suitable for private deployment | Optional |
 
 For more search sources, social sentiment, and fallback rules, see [Search Service Configuration](docs/full-guide.md#search-service-configuration).
 

@@ -454,21 +454,21 @@ When a user asks about a stock, you must call tools in the following four phases
 {language_section}
 """
 
-CODEX_CHAT_SYSTEM_PROMPT = """你是一位{market_role}投资分析 Agent，负责基于 DSA 已保存的数据解答用户的股票投资issue。
+CODEX_CHAT_SYSTEM_PROMPT = """You are a {market_role} investment analysis Agent, responsible for answering users' stock investment issues based on the saved data of DSA.
 
-## 可用数据
+## Available Data
 
-- `get_analysis_context`：读取指定股票最近一次已保存的分析上下文。
-- `get_skill_backtest_summary`：读取指定交易技能的已保存回测汇总。
-- `get_strategy_backtest_summary`：读取整体交易策略的已保存回测汇总。
+- `get_analysis_context`: Reads the most recently saved analysis context of the specified stock.
+- `get_skill_backtest_summary`: Reads the saved backtest summary of the specified trading skill.
+- `get_strategy_backtest_summary`: Reads the saved backtest summary of the overall trading strategy.
 
-## 工作方式
+## Working Method
 
-1. 询问具体股票时，先调用 `get_analysis_context`，再依据返回的已保存数据回答。
-2. 用户询问交易技能或策略表现时，按issue调用对应的回测汇总工具。
-3. 明确说明结论基于已保存数据；若数据带有分析时间，应在回答中提示其时间范围。
-4. 工具未返回回答所需的信息时，直接说明当前保存的数据不足，不得补写或猜测数据。
-5. 自由组织面向用户的回答，不需要输出 JSON。
+1. When asked about a specific stock, first call `get_analysis_context`, and then answer based on the returned saved data.
+2. When users ask about trading skills or strategy performance, call the corresponding backtest summary tool.
+3. Clearly state that the conclusion is based on saved data; if the data contains analysis time, prompt its time range in the answer.
+4. When tools do not return the information needed for the answer, directly state that current saved data is insufficient, do not supplement or guess data.
+5. Freely organize answers to users, no JSON output is required.
 
 {language_section}
 """
@@ -549,7 +549,7 @@ def prepare_agent_chat(
 
     skills_section = ""
     if skill_instructions:
-        skills_section = f"## 激活的交易技能\n\n{skill_instructions}"
+        skills_section = f"## Active Trading Skills\n\n{skill_instructions}"
     default_skill_policy_section = ""
     if default_skill_policy:
         default_skill_policy_section = f"\n{default_skill_policy}\n"
@@ -586,21 +586,21 @@ def prepare_agent_chat(
     if effective_context:
         context_parts = []
         if effective_context.get("stock_code"):
-            context_parts.append(f"股票代码: {effective_context['stock_code']}")
+            context_parts.append(f"Stock Code: {effective_context['stock_code']}")
         if effective_context.get("stock_name"):
-            context_parts.append(f"股票名称: {effective_context['stock_name']}")
+            context_parts.append(f"Stock Name: {effective_context['stock_name']}")
         if effective_context.get("previous_price"):
-            context_parts.append(f"上次分析价格: {effective_context['previous_price']}")
+            context_parts.append(f"Last analyzed price: {effective_context['previous_price']}")
         if effective_context.get("previous_change_pct"):
-            context_parts.append(f"上次涨跌幅: {effective_context['previous_change_pct']}%")
+            context_parts.append(f"Last analyzed change pct: {effective_context['previous_change_pct']}%")
         if effective_context.get("previous_analysis_summary"):
             summary = effective_context["previous_analysis_summary"]
             summary_text = json.dumps(summary, ensure_ascii=False) if isinstance(summary, dict) else str(summary)
-            context_parts.append(f"上次分析摘要:\n{summary_text}")
+            context_parts.append(f"Last analyzed summary:\n{summary_text}")
         if effective_context.get("previous_strategy"):
             strategy = effective_context["previous_strategy"]
             strategy_text = json.dumps(strategy, ensure_ascii=False) if isinstance(strategy, dict) else str(strategy)
-            context_parts.append(f"上次策略分析:\n{strategy_text}")
+            context_parts.append(f"Last analyzed strategy:\n{strategy_text}")
         daily_market_context_section = format_daily_market_context_prompt_section(
             effective_context.get("daily_market_context"),
             report_language=report_language,
@@ -616,14 +616,14 @@ def prepare_agent_chat(
         if context_parts:
             history_messages.extend(
                 [
-                    {
-                        "role": "user",
-                        "content": "[系统提供的历史分析上下文，可供参考对比]\n" + "\n".join(context_parts),
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "好的，我已了解该股票的历史分析数据。请告诉我你想了解什么？",
-                    },
+                     {
+                         "role": "user",
+                         "content": "[Historical analysis context provided by system for reference and comparison]\n" + "\n".join(context_parts),
+                     },
+                     {
+                         "role": "assistant",
+                         "content": "Understood. I have loaded the historical analysis data for this stock. What would you like to know?",
+                     },
                 ]
             )
 
@@ -742,9 +742,6 @@ class AgentExecutor:
             {"role": "system", "content": prepared.system_prompt},
             *prepared.history_messages,
         ]
-        # Inject previous analysis context if provided (data reuse from report follow-up)
-        if prepared.context_messages:
-            messages.extend(prepared.context_messages)
         messages.append({"role": "user", "content": message})
         baseline_len = len(messages)
         run_id = str(uuid.uuid4())

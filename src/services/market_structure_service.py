@@ -154,7 +154,7 @@ class MarketStructureService:
             risk_tags.append(
                 MarketStructureRiskTag(
                     code="theme_data_partial",
-                    message="市场题材数据不完整，题材强弱仅作降级参考",
+                    message="Market theme data is incomplete, theme strength is only for downgraded reference",
                 )
             )
         if related_boards and not primary_theme_has_market_match:
@@ -162,7 +162,7 @@ class MarketStructureService:
             risk_tags.append(
                 MarketStructureRiskTag(
                     code="stock_theme_evidence_partial",
-                    message="个股板块未匹配到市场题材榜单，个股位置按降级证据处理",
+                    message="Individual stock board did not match the market theme list, individual stock position treated as downgraded evidence",
                 )
             )
         if not related_boards:
@@ -170,7 +170,7 @@ class MarketStructureService:
             risk_tags.append(
                 MarketStructureRiskTag(
                     code="board_membership_missing",
-                    message="缺少个股所属板块证据，无法判断题材位置",
+                    message="Lacking evidence of the board to which individual stocks belong, cannot judge theme position",
                 )
             )
 
@@ -640,7 +640,7 @@ class MarketStructureService:
     @staticmethod
     def _is_concept_type(value: Optional[str]) -> bool:
         text = str(value or "").strip().lower()
-        return any(keyword in text for keyword in ("概念", "题材", "concept", "theme"))
+        return any(keyword in text for keyword in ("concept", "theme"))
 
     @staticmethod
     def _theme_source(value: Any) -> ThemeRankSource:

@@ -578,6 +578,9 @@ class MarketHotspotService:
                 continue
             name = self._optional_text(
                 item.get("name")
+                or item.get("board_name")
+                or item.get("concept_name")
+                or item.get("industry_name")
                 or item.get("板块名称")
                 or item.get("概念名称")
                 or item.get("行业名称")
@@ -589,6 +592,8 @@ class MarketHotspotService:
                 if "change_pct" in item
                 else item.get("pct_chg")
                 if "pct_chg" in item
+                else item.get("change_pct_cn")
+                if "change_pct_cn" in item
                 else item.get("涨跌幅")
                 if "涨跌幅" in item
                 else item.get("涨跌幅%")
@@ -596,7 +601,7 @@ class MarketHotspotService:
             normalized.append(
                 RankedThemeItem(
                     name=name,
-                    code=self._optional_text(item.get("code") or item.get("板块代码")),
+                    code=self._optional_text(item.get("code") or item.get("board_code") or item.get("板块代码")),
                     change_pct=change_pct,
                     rank=self._safe_int(item.get("rank")) or index,
                     source=source,

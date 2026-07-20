@@ -42,7 +42,7 @@ _MARKET_REVIEW_MARKETS = (
     ('us', 'us_title', 'US stocks'),
     ('jp', 'jp_title', 'Japanese stocks'),
     ('kr', 'kr_title', 'Korean stocks'),
-    ('id', 'id_title', '印尼股'),
+    ('id', 'id_title', 'Indonesian stocks'),
 )
 _MARKET_REVIEW_REGION_ORDER = tuple(market for market, _, _ in _MARKET_REVIEW_MARKETS)
 _VALID_MARKET_REVIEW_REGIONS = frozenset(_MARKET_REVIEW_REGION_ORDER)

@@ -238,7 +238,7 @@ class HistoryService:
             }
             
         except Exception as e:
-            logger.error(f"查询历史列表失败: {e}", exc_info=True)
+            logger.error(f"Failed to query history list: {e}", exc_info=True)
             raise
 
     @staticmethod
@@ -1167,7 +1167,7 @@ class HistoryService:
                 report_lines.append(f"**🐻 {labels.get('strongest_bearish_signal_label', 'Strongest Bearish Signal')}**: {bearish}")
             report_lines.append("")
 
-        # ========== 多策略综合 ==========
+        # ========== Multi-Strategy Synthesis ==========
         strategy_synthesis = normalize_strategy_synthesis_payload(
             dashboard.get('strategy_synthesis') if dashboard else None
         )
@@ -1175,35 +1175,35 @@ class HistoryService:
             confidence = strategy_synthesis.get('confidence')
             confidence_text = f"{confidence:.0%}" if isinstance(confidence, (int, float)) else "N/A"
             report_lines.extend([
-                f"### 🧩 {labels.get('strategy_synthesis_heading', '多策略综合')}",
+                f"### 🧩 {labels.get('strategy_synthesis_heading', 'Multi-Strategy Synthesis')}",
                 "",
                 (
-                    f"- {labels.get('strategy_final_signal_label', '综合信号')}: "
+                    f"- {labels.get('strategy_final_signal_label', 'Synthesis Signal')}: "
                     f"{localize_strategy_signal(strategy_synthesis.get('final_signal', 'N/A'), report_language)} | "
-                    f"{labels.get('strategy_consensus_level_label', '共识度')}: "
+                    f"{labels.get('strategy_consensus_level_label', 'Consensus')}: "
                     f"{localize_consensus_level(strategy_synthesis.get('consensus_level', 'N/A'), report_language)} | "
-                    f"{labels.get('strategy_conflict_label', '冲突')}: "
+                    f"{labels.get('strategy_conflict_label', 'Conflict')}: "
                     f"{localize_conflict_severity(strategy_synthesis.get('conflict_severity', 'none'), report_language)} "
                     f"({strategy_synthesis.get('conflict_count', 0)}) | "
-                    f"{labels.get('strategy_confidence_label', '置信度')}: {confidence_text}"
+                    f"{labels.get('strategy_confidence_label', 'Confidence')}: {confidence_text}"
                 ),
             ])
             summary = localize_strategy_synthesis_summary(strategy_synthesis, report_language)
             if summary:
-                report_lines.append(f"- {labels.get('strategy_summary_label', '综合说明')}: {summary}")
+                report_lines.append(f"- {labels.get('strategy_summary_label', 'Synthesis Summary')}: {summary}")
             report_lines.append(
-                f"- {labels.get('strategy_supporting_skills_label', '支持策略')}: "
+                f"- {labels.get('strategy_supporting_skills_label', 'Supporting Skills')}: "
                 f"{self._format_strategy_skill_items(strategy_synthesis.get('supporting_skills'), report_language)}"
             )
             report_lines.append(
-                f"- {labels.get('strategy_opposing_skills_label', '反方策略')}: "
+                f"- {labels.get('strategy_opposing_skills_label', 'Opposing Skills')}: "
                 f"{self._format_strategy_skill_items(strategy_synthesis.get('opposing_skills'), report_language)}"
             )
             invalid_count = strategy_invalid_opinion_count(strategy_synthesis)
             if invalid_count:
                 invalid_label_template = labels.get(
                     "strategy_invalid_opinions_label",
-                    "另有 {count} 个策略解析失败",
+                    "Another {count} strategy analysis failed",
                 )
                 try:
                     invalid_text = invalid_label_template.format(count=invalid_count)
@@ -1212,7 +1212,7 @@ class HistoryService:
                 report_lines.append(f"- {invalid_text}")
             report_lines.append("")
 
-        # ========== 如果没有 dashboard，显示传统格式 ==========
+        # ========== If there is no dashboard, display traditional format ==========
         if not dashboard:
             # Rationale
             if result.buy_reason:

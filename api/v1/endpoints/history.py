@@ -233,10 +233,10 @@ def get_history_list(
     "/by-code/{stock_code}",
     response_model=DeleteHistoryResponse,
     responses={
-        200: {"description": "删除成功"},
-        400: {"description": "股票代码不能为空", "model": ErrorResponse},
-        404: {"description": "未找到记录", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Deleted successfully"},
+        400: {"description": "Stock code cannot be empty", "model": ErrorResponse},
+        404: {"description": "Record not found", "model": ErrorResponse},
+        500: {"description": "Internal server error", "model": ErrorResponse},
     },
     summary="Delete history by stock code",
     description="Delete all analysis history records for a specified stock code (supports code variant normalization matching)",
@@ -250,7 +250,7 @@ def delete_history_by_code(
         if not candidates:
             raise HTTPException(
                 status_code=400,
-                detail={"error": "invalid_request", "message": "stock_code 不能为空"},
+                detail={"error": "invalid_request", "message": "stock_code cannot be empty"},
             )
 
         deleted = 0

@@ -4456,7 +4456,7 @@ class SystemConfigService:
                 {
                     "key": "AGENT_ARCH",
                     "code": "unsupported_agent_arch",
-                    "message": "Codex 本地 Agent 当前只支持单 Agent 问股，请切换为 single。",
+                    "message": "Codex local Agent currently only supports single Agent stock analysis, please switch to single.",
                     "severity": "error",
                     "expected": "single",
                     "actual": agent_arch,
@@ -4475,7 +4475,7 @@ class SystemConfigService:
                 {
                     "key": "AGENT_ORCHESTRATOR_TIMEOUT_S",
                     "code": "codex_timeout_required",
-                    "message": "Codex 本地 Agent 必须设置大于 0 的整体时限，确保每次问股都会结束。",
+                    "message": "Codex local Agent must set an overall time limit greater than 0 to ensure that every stock analysis will finish.",
                     "severity": "error",
                     "expected": ">0 when AGENT_BACKEND=codex_app_server",
                     "actual": timeout_raw,

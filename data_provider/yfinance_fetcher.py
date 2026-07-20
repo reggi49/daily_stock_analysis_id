@@ -916,7 +916,7 @@ class YfinanceFetcher(BaseFetcher):
             except Exception:
                 name = STOCK_NAME_MAP.get(symbol, '')
 
-            # 复用上方已获取的 ticker_info，无额外请求
+            # Reuse the ticker_info fetched above, no extra requests
             pe_ratio = _safe_float(ticker_info.get('trailingPE'))
             pb_ratio = _safe_float(ticker_info.get('priceToBook'))
 

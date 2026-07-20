@@ -128,7 +128,7 @@ def test_cancelled_codex_turn_is_not_persisted_as_analysis_failure() -> None:
     assert add_message.call_args_list[-1].args == (
         "session",
         "assistant",
-        "[已停止] 本次分析已由用户停止。",
+        "[Stopped] This analysis has been stopped by the user.",
     )
 
 
@@ -152,7 +152,7 @@ def test_timed_out_codex_turn_uses_codex_terminal_note() -> None:
     assert add_message.call_args_list[-1].args == (
         "session",
         "assistant",
-        "[已超时] 本次分析已在时间限制内结束。",
+        "[Timeout] This analysis has ended within the time limit.",
     )
 
 
@@ -176,7 +176,7 @@ def test_timed_out_litellm_turn_keeps_existing_analysis_failure_note() -> None:
     assert add_message.call_args_list[-1].args == (
         "session",
         "assistant",
-        "[分析失败] Agent execution timed out after 45 seconds",
+        "[Analysis Failed] Agent execution timed out after 45 seconds",
     )
 
 
@@ -200,7 +200,7 @@ def test_failed_litellm_turn_keeps_existing_analysis_failure_note() -> None:
     assert add_message.call_args_list[-1].args == (
         "session",
         "assistant",
-        "[分析失败] provider failed",
+        "[Analysis Failed] provider failed",
     )
 
 

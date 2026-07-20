@@ -172,10 +172,10 @@ should sum to 100; all-zero means no effective signal and must not be faked.
                 "",
             ]
 
-        # Feed prior opinions — Orchestrator已在 _partition_skill_opinions 中完成
-        # skill 观点的分拣，ctx.opinions 中不再含 invalid skill opinion；
-        # invalid skill 观点存于 ctx.meta["invalid_opinions"]。
-        # DecisionAgent 直接消费，不再二次过滤。
+        # Feed prior opinions — Orchestrator has done sorting of skill opinions in _partition_skill_opinions;
+        # ctx.opinions no longer contains invalid skill opinions;
+        # invalid skill opinions are stored in ctx.meta["invalid_opinions"].
+        # DecisionAgent consumes them directly without secondary filtering.
         if ctx.opinions:
             parts.append("## Agent Opinions (Evidence Chain)")
             for op in ctx.opinions:
@@ -195,8 +195,8 @@ should sum to 100; all-zero means no effective signal and must not be faked.
         if invalid_opinions:
             parts.append("## Invalid Skill Opinions (Diagnostics only — not in evidence chain)")
             parts.append(
-                f"共 {len(invalid_opinions)} 个 skill 观点因 signal 缺失或无法识别，已从证据链移除；"
-                f"仅供你在 data_limitations 中标注，不得作为决策依据。"
+                f"A total of {len(invalid_opinions)} skill opinions were removed from the evidence chain due to missing or unrecognizable signals; "
+                f"provided only for your notation in data_limitations, and must not be used as a basis for decision."
             )
             parts.append("")
 

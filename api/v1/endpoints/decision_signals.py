@@ -333,15 +333,15 @@ def get_outcome_stats(
     response_model=DecisionSignalReassessResponse,
     responses={
         **AUTH_RESPONSE,
-        400: {"model": DecisionSignalReassessErrorResponse, "description": "历史报告不适用或持久化被风控阻断"},
-        404: {"model": ErrorResponse, "description": "来源历史报告不存在"},
-        422: {"model": ErrorResponse, "description": "请求体校验失败"},
-        500: {"model": ErrorResponse, "description": "重评估失败"},
+        400: {"model": DecisionSignalReassessErrorResponse, "description": "Historical report not applicable or persistence blocked by guardrail"},
+        404: {"model": ErrorResponse, "description": "Source historical report not found"},
+        422: {"model": ErrorResponse, "description": "Request body validation failed"},
+        500: {"model": ErrorResponse, "description": "Reassessment failed"},
     },
-    summary="重评估决策风格并可选保存",
+    summary="Reassess decision profile and optionally persist",
     description=(
-        "基于 source_report_id 对应的持久化历史报告快照重新计算 decision_profile 信号；"
-        "persist=false 返回Read-only preview，persist=true 将通过 guardrail 的服务端结果写入 DecisionSignal。"
+        "Recalculate decision_profile signal based on the persisted historical report snapshot corresponding to source_report_id; "
+        "persist=false returns a read-only preview, persist=true writes the server-side result passing the guardrail to DecisionSignal."
     ),
     operation_id="reassessDecisionSignalPreview",
 )
@@ -519,9 +519,9 @@ def put_feedback(signal_id: int, request: DecisionSignalFeedbackRequest) -> Deci
     },
     summary="Update decision signal status",
     description=(
-        "只更新合法状态和可选 metadata；省略 metadata 时保留原值，null 时清空，"
-        "object 时按整包替换并保持正式 decision_profile 身份。"
-        "expired/invalidated/closed/archived 等 terminal 状态不能直接 PATCH 回 active。"
+        "Only update valid statuses and optional metadata; when metadata is omitted, preserve the original value, clear it when null, "
+        "replace the entire package when object, and maintain the official decision_profile identity. "
+        "Terminal statuses such as expired/invalidated/closed/archived cannot be patched directly back to active."
     ),
     operation_id="updateDecisionSignalStatus",
 )

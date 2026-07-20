@@ -355,7 +355,7 @@ class AlertWorkerTestCase(unittest.TestCase):
         self.assertEqual(summary["id"], all_signals[0]["id"])
         self.assertEqual(summary["action"], "sell")
         alert_text = notifier.send_with_results.call_args.args[0]
-        self.assertIn("AI decision signal", alert_text)
+        self.assertIn("AI Decision Signal", alert_text)
         self.assertIn("Breaking below key support", alert_text)
         self.assertIn("Observe whether the moving average can be recovered", alert_text)
 

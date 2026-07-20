@@ -88,7 +88,7 @@ class TelegramSender:
             telegram_content = self._convert_to_telegram_markdown(content)
 
             if len(telegram_content) <= max_length:
-                # 单条消息发送
+                # Send single message
                 return self._send_telegram_message(
                     api_url,
                     chat_id,
@@ -97,7 +97,7 @@ class TelegramSender:
                     timeout_seconds=timeout_seconds,
                 )
             else:
-                # 按 Markdown 转义后的最终 payload Segment，避免转义字符使请求超限
+                # Split by Markdown escaped final payload Segment, avoiding escape characters causing request limit overrun
                 return self._send_telegram_chunked(
                     api_url,
                     chat_id,
@@ -257,8 +257,8 @@ class TelegramSender:
         *,
         timeout_seconds: Optional[float] = None,
     ) -> bool:
-        """按已转换的 Telegram Markdown payload Segment发送长消息。"""
-        # 按段落分割
+        """Send long messages by converted Telegram Markdown payload Segment."""
+        # Split by paragraph
         sections = telegram_text.split("\n---\n")
         delimiter = "\n---\n"
         delimiter_length = len(delimiter)
@@ -274,7 +274,7 @@ class TelegramSender:
                 return all_success
 
             chunk_content = "\n---\n".join(current_chunk)
-            logger.info(f"发送 Telegram 消息块 {chunk_index}...")
+            logger.info(f"Sending Telegram message chunk {chunk_index}...")
             chunk_index += 1
             current_chunk = []
             current_length = 0
@@ -299,11 +299,11 @@ class TelegramSender:
 
         for section in sections:
             if len(section) > max_length:
-                # 单段超限时强制切片，避免依赖“\\n---\\n”边界导致的整段超长发送
+                # Force slice when a single segment exceeds the limit, avoiding sending an overly long segment due to depending on "\\n---\\n" boundary
                 if not _flush_chunk():
                     return False
                 for long_chunk in _split_long_section(section, max_length):
-                    logger.info(f"发送 Telegram 消息块 {chunk_index}...")
+                    logger.info(f"Sending Telegram message chunk {chunk_index}...")
                     chunk_index += 1
                     if not self._send_telegram_message(
                         api_url,
@@ -329,7 +329,7 @@ class TelegramSender:
             current_chunk.append(section)
             current_length += additional_length
 
-        # 发送最后一块
+        # Send the last chunk
         if not _flush_chunk():
             return False
 

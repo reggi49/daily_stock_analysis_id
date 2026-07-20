@@ -837,7 +837,7 @@ class Config:
     newsnow_base_url: str = "https://newsnow.busiyi.world"  # NewsNow HTTP API base URL (data-source side, does not affect LLM/provider base URL)
     bias_threshold: float = 5.0  # Bias rate threshold (%), warns against chasing highs above this value
 
-    # === Agent 模式配置 ===
+    # === Agent Mode Configuration ===
     agent_backend: str = "auto"
     agent_generation_backend: str = AUTO_AGENT_BACKEND_ID
     agent_litellm_model: str = ""  # Optional Agent-only primary model; empty inherits LITELLM_MODEL
@@ -1063,10 +1063,10 @@ class Config:
     # Fundamental stage total budget (seconds)
     fundamental_stage_timeout_seconds: float = FUNDAMENTAL_STAGE_TIMEOUT_SECONDS_DEFAULT
     # Per-capability source call timeout (seconds)
-    # 单能力源调用超时（秒）
+    # Single capability source call timeout (seconds)
     fundamental_fetch_timeout_seconds: float = 8.0
     # Per-capability failure retry count (includes first attempt)
-    # 单能力失败重试次数（已包含首次）
+    # Single capability failure retry count (includes first attempt)
     fundamental_retry_max: int = 1
     # Fundamental context short TTL (seconds)
     fundamental_cache_ttl_seconds: int = 120
@@ -2878,8 +2878,8 @@ class Config:
             issues.append(ConfigIssue(
                 severity="error",
                 message=(
-                    "AGENT_BACKEND 当前支持 auto、litellm、codex_app_server。"
-                    f"已配置的值为：{agent_backend}。"
+                    "AGENT_BACKEND currently supports auto, litellm, codex_app_server. "
+                    f"Configured value: {agent_backend}."
                 ),
                 field="AGENT_BACKEND",
                 code="capability_unsupported",
@@ -2887,7 +2887,7 @@ class Config:
         if agent_backend == "codex_app_server" and self.agent_arch != "single":
             issues.append(ConfigIssue(
                 severity="error",
-                message="Codex 本地 Agent 当前只支持单 Agent 问股，请将 AGENT_ARCH 设为 single。",
+                message="Local Codex Agent currently only supports single Agent analysis, please set AGENT_ARCH to single.",
                 field="AGENT_ARCH",
                 code="unsupported_agent_arch",
             ))

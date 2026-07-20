@@ -138,7 +138,7 @@ class ReportMeta(BaseModel):
     change_pct: Optional[float] = Field(None, description="Price change at analysis time (%)")
     model_used: Optional[str] = Field(
         None,
-        description="历史报告元数据中的模型快照，仅用于展示；不参与运行时模型调用路径或配置路由",
+        description="Model snapshot in historical report metadata, for display only; not involved in runtime model call paths or configuration routing",
     )
     market_phase_summary: Optional[MarketPhaseSummary] = Field(
         None,
@@ -256,12 +256,12 @@ class ReportDetails(BaseModel):
         None,
         description="Low-sensitivity summary of analysis input context pack",
     )
-    financial_report: Optional[Any] = Field(None, description="结构化财报摘要（来自 fundamental_context）")
-    dividend_metrics: Optional[Any] = Field(None, description="结构化分红指标（含 TTM 口径）")
-    belong_boards: Optional[Any] = Field(None, description="关联板块列表")
-    sector_rankings: Optional[Any] = Field(None, description="板块涨跌榜（结构 {top, bottom}）")
-    concept_rankings: Optional[Any] = Field(None, description="概念板块涨跌榜（结构 {top, bottom}）")
-    market_structure: Optional[Any] = Field(None, description="市场结构上下文（题材层 + 个股位置层）")
+    financial_report: Optional[Any] = Field(None, description="Structured financial report summary (from fundamental_context)")
+    dividend_metrics: Optional[Any] = Field(None, description="Structured dividend metrics (including TTM metrics)")
+    belong_boards: Optional[Any] = Field(None, description="List of related boards")
+    sector_rankings: Optional[Any] = Field(None, description="Sector rankings (structure {top, bottom})")
+    concept_rankings: Optional[Any] = Field(None, description="Concept rankings (structure {top, bottom})")
+    market_structure: Optional[Any] = Field(None, description="Market structure context (theme layer + stock position layer)")
 
     @model_validator(mode="after")
     def populate_context_derived_details(self) -> "ReportDetails":
@@ -352,7 +352,7 @@ class StockBarItem(BaseModel):
     last_analysis_time: Optional[str] = Field(None, description="Time of the most recent analysis")
     model_used: Optional[str] = Field(
         None,
-        description="最新分析使用的模型快照，仅用于列表展示；不改动运行时调用与配置路径",
+        description="Model snapshot used by the latest analysis, for list display only; does not change runtime calls or configuration paths",
     )
     market_phase_summary: Optional[MarketPhaseSummary] = Field(
         None,
