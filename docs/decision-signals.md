@@ -1,11 +1,11 @@
 # DecisionSignal 决策信号专题
 
-本页收口 #1390 P7，说明 DSA 如何把个股分析、Agent、告警和组合风险中的 AI 建议沉淀为可查询、可反馈、可后验评估的 `DecisionSignal` 资产。它是报告之上的结构化索引，不替代 Markdown 报告、`operation_advice`、三态 `decision_type`、告警规则或真实交易系统。
+本页收口 #1390 P7，说明 DSA 如何把个股分析、Agent、Warning和组合风险中的 AI 建议沉淀为可查询、可反馈、可后验评估的 `DecisionSignal` 资产。它是报告之上的结构化索引，不替代 Markdown 报告、`operation_advice`、三态 `decision_type`、Warning规则或真实交易系统。
 
 ## 能力边界
 
 - `DecisionSignal` 只记录建议、证据摘要、风险、观察条件、生命周期和来源，不执行下单或调仓。
-- 写入失败、提取失败、告警信号关联失败和通知发送失败都不阻断主分析、告警触发或报告保存。
+- 写入失败、提取失败、Warning信号关联失败和通知发送失败都不阻断主分析、Warning触发或报告保存。
 - #1756 已将 `decision_profile` 字段化并修正 server-side filter、去重、续期和 active 失效语义；#1757 在该正式字段契约上增加用户确认后的 reassess persist。两者都不新增环境变量、config registry 项或 `.env.example` 内容。
 - 当前没有 `DECISION_SIGNAL_*` 开关；信号功能的关闭或回滚通过 revert 对应代码完成。
 
@@ -32,7 +32,7 @@
 | `plan_quality` | `complete`、`partial`、`minimal`、`unknown` |
 | `status` | `active`、`expired`、`invalidated`、`closed`、`archived` |
 
-Web 展示必须把这些 wire value 映射为当前 UI 语言的用户可读标签；API 响应继续保留原始枚举值。
+Web 展示必须把这些 wire value 映射为当前 UI 语言的用户可读标签；API Response继续保留原始枚举值。
 
 ## Canonical 评分与 action 口径
 
@@ -70,7 +70,7 @@ Web 展示必须把这些 wire value 映射为当前 UI 语言的用户可读标
 - `POST /api/v1/decision-signals`：创建或按同源键去重，返回 `{ item, created }`。
 - `GET /api/v1/decision-signals`：分页查询，支持市场、股票、动作、阶段、`decision_profile`、来源、状态、时间范围和持仓过滤。省略或传空 `decision_profile` 不加 profile 条件，返回所有 profile；`decision_profile=unknown` 查询 `NULL` 行；合法 profile 精确匹配。
 - `GET /api/v1/decision-signals/{signal_id}`：查询单条。
-- `PATCH /api/v1/decision-signals/{signal_id}/status`：更新状态和可选 metadata。
+- `PATCH /api/v1/decision-signals/{signal_id}/status`：Update status and optional metadata。
 - `GET /api/v1/decision-signals/latest/{stock_code}`：查询股票最新 active 信号。
 - `POST /api/v1/decision-signals/outcomes/run`：显式触发后验评估。
 - `GET /api/v1/decision-signals/outcomes`、`GET /api/v1/decision-signals/outcomes/stats`、`GET /api/v1/decision-signals/{signal_id}/outcomes`：查询后验结果与统计。
@@ -95,14 +95,14 @@ Web 展示必须把这些 wire value 映射为当前 UI 语言的用户可读标
 
 契约边界：
 
-- `source_report_id` 是唯一事实来源，重评估只读取对应持久化历史报告快照。
+- `source_report_id` 是唯一事实来源，重评估Read-only取对应持久化历史报告快照。
 - Request 只允许 `source_report_id`、`decision_profile`、`persist`。不支持 `signal_id`，也不接受客户端提交 `action`、`score`、`confidence`、`horizon`、`invalidation`、`stop_loss`、`target_price`、`metadata`、`scoring_breakdown` 或 `guardrail_result` 等权威字段；额外字段会返回 HTTP 422，不会被静默忽略。
 - 重评估不会静默抓取实时行情，也不会用当前市场数据补齐历史快照。
 - 来源报告内容验证在 preview/persist 中一致：缺失或非法 `source_report_id` 返回 HTTP 422；报告不存在返回 HTTP 404 `source_report_not_found`；非个股报告返回 HTTP 400 `unsupported_report_type`；持久化快照不足以生成决策信号时返回 HTTP 400 `unsupported_report_snapshot`。Persist 还要求来源报告具有有效 `created_at`，否则返回 HTTP 400 `unsupported_report_snapshot` 且不写库；preview 不依赖该存储生命周期字段。
 - data quality 会归一为 `high`、`medium`、`low`、`poor`、`unknown`，guardrail 只使用归一化后的等级。
 - Preview 成功返回 `preview`、`item=null`、`created=false`；它不写库，也不进入列表、latest 或时间线。
 - Persist 成功返回 `preview=null`、后端权威 `item` 和 `persist_status`。`persist_status=created` 表示新建；`existing` 表示同一字段化 identity 的记录已存在且未被改写；`refreshed` 表示按既有 expired refresh / dimension-fill 语义复用并刷新记录。兼容字段 `created` 只在 `created` 时为 `true`。`persist_status` 只描述本次写入 disposition，不代表 `item.status` 必然为 active；新建的历史信号也可能因到期或被较新相反信号取代而以 `expired/invalidated` 返回。
-- Reassess persist 与 lazy backfill 使用同一历史生命周期：`created_at` 锚定来源报告时间，`expires_at` 从报告时间、horizon、market 及持久化的 `market_phase_summary` 计算。阶段摘要只保留 `phase/session_date/minutes_to_open/minutes_to_close`；不会用保存当天或实时行情重新赋予有效期。
+- Reassess persist 与 lazy backfill 使用同一历史生命周期：`created_at` Anchor source report time，`expires_at` 从报告时间、horizon、market 及持久化的 `market_phase_summary` 计算。阶段摘要只保留 `phase/session_date/minutes_to_open/minutes_to_close`；不会用保存当天或实时行情重新赋予有效期。
 - 同 profile 相反信号的失效顺序同样按历史信号不可变的 `created_at` 判断，expired refresh 的 `updated_at` 不改变历史优先级。保存旧报告不得淘汰较新的相反信号；仍在有效期内但已被较新相反信号取代的历史 item 会以 `invalidated` 返回，且 API 返回失效处理后的最终数据库状态。
 - `created` item 写入 `source_type=analysis`、原 `source_report_id`、`source_agent=decision_profile_reassess`、`trigger_source=web:decision_profile_reassess` 和正式 `decision_profile`；metadata 保存 `profile_source=user_selected`、`profile_policy_version`、`signal_generation_version`、`scoring_version`、`scoring_breakdown`、`data_quality_level` 和完整 `guardrail_result`。
 - `existing` item 原样保留最初的 source fields 和 metadata。例如普通分析已经自动生成同 identity 的 `balanced/auto_default` 信号时，用户再次确认 balanced reassess 会返回该记录，不覆盖为 `user_selected`，也不会声称新建成功。终态 existing 不会重新激活。
@@ -130,10 +130,10 @@ Web 入口位于 `/decision-signals`：
 - 时间线 status filter 只支持 `all` 与 `active`：`all` 不传 `status`，`active` 传 `status=active`。P1 不提供 terminal status filter，也不做前端 terminal 过滤。
 - 时间线支持 profile filter，复用 list API 的 server-side `decision_profile` 查询；`unknown` 只用于筛选和展示 legacy `NULL` 行。普通高级列表不新增 profile filter。
 - 信号表现统计保持全局已复盘 outcome 口径，不等于当前可见信号数量，也不随当前股票或高级列表筛选变化；当已复盘样本数为 0 时，Web 显示零样本空状态而不是一组 `0/-` 指标。
-- Web 展示优先读取正式 `decision_profile` 字段，只有字段缺失时才回退 legacy metadata；历史缺失或非法 profile 的信号显示为 `unknown`，不会误标为 `balanced`。
-- market filter 在 API / 服务层与 Web 前端均已支持 `cn/hk/us/jp/kr/tw`；`jp/kr/tw` 的前端本地化标签均已补齐，`tw` 信号可经 API 正常写入、按 `market=tw` 查询，并可在 Web DecisionSignal 页面通过市场筛选项选择台股（tw）；告警（大盘红绿灯）市场支持 `cn/hk/us/jp/kr`。
+- Web 展示优先读取正式 `decision_profile` 字段，只有字段缺失时才回退 legacy metadata；历史缺失或非法 profile signal displays as `unknown`，不会误标为 `balanced`。
+- market filter 在 API / 服务层与 Web 前端均已支持 `cn/hk/us/jp/kr/tw`；`jp/kr/tw` 的前端本地化标签均已补齐，`tw` 信号可经 API 正常写入、按 `market=tw` 查询，并可在 Web DecisionSignal 页面通过市场筛选项选择台股（tw）；Warning（大盘红绿灯）市场支持 `cn/hk/us/jp/kr`。
 - 详情抽屉展示动作、状态、评分、置信度、周期、计划质量、市场阶段、价格计划、风险、观察条件、证据、数据质量和 metadata。
-- 详情抽屉或已有来源报告 ID 的页面上下文可以发起 reassess preview；没有可用来源报告 ID 时入口禁用。Preview 本身不加入列表、latest 或时间线；通过 guardrail 后可由用户二次确认保存。保存会重新请求 `persist=true`，成功后只使用响应中的后端 `item`；`created`、`existing`、`refreshed` 使用不同反馈，existing 不会被描述为新建，终态 existing 不会被乐观注入 active latest/时间线，created/refreshed 才按返回状态更新并刷新相关视图。Web 不会把 preview 拼成本地信号。
+- 详情抽屉或已有来源报告 ID 的页面上下文可以发起 reassess preview；没有可用来源报告 ID 时入口禁用。Preview 本身不加入列表、latest 或时间线；通过 guardrail 后可由用户二次确认保存。保存会重新请求 `persist=true`，成功后只使用Response中的后端 `item`；`created`、`existing`、`refreshed` 使用不同反馈，existing 不会被描述为新建，终态 existing 不会被乐观注入 active latest/时间线，created/refreshed 才按返回状态更新并刷新相关视图。Web 不会把 preview 拼成本地信号。
 - 保存时的 guardrail 调整 warning 会保留显示。如果 persist 重算被 guardrail 阻断，Web 会显示 `blocked_reason` 和结构化 warning，保留 preview 供用户理解，且不会把失败结果加入时间线。
 - 首页分析表单不提供 `decision_profile`；默认自动生成路径仍只使用 `balanced`。
 - Web 只能把信号标记为 `closed`、`invalidated` 或 `archived`，不提供 terminal 状态恢复为 active。
@@ -173,21 +173,21 @@ Web 入口位于 `/decision-signals`：
 - `stock_role`
 - `market_structure_risk_tags`
 
-这些字段只用于解释信号所处题材背景，不参与 `action`、`score`、`horizon`、同源去重键或生命周期计算。它们也不是题材龙头证明；当 `market_structure_risk_tags` 或缺失证据显示成分股、leader stocks 不完整时，客户端和后验分析应按降级题材证据处理。
+这些字段只用于解释信号所处题材背景，不参与 `action`、`score`、`horizon`、Homologous deduplication key or lifecycle calculation。它们也不是题材龙头证明；当 `market_structure_risk_tags` 或缺失证据显示成分股、leader stocks 不完整时，客户端和后验分析应按降级题材证据处理。
 
 快照字段中的 `provider` / `dataset` 来自市场结构抽取链路元数据，属于运行后持久化证据，不参与 LLM provider/model 路由、`base URL` 解析、`.env` 写回或配置迁移；可核验范围见 `src/schemas/market_structure.py`。
 
-## 告警、通知与组合风险
+## Warning、通知与组合风险
 
-- 股票级真实告警触发会优先关联同标的 latest active 信号，并把低敏 `decision_signal_summary` 写入 `alert_triggers.diagnostics`。
-- 没有 active 信号时，告警 worker 只创建最小 `source_type=alert/action=alert` 信号。
-- 告警信号的 `trace_id=alert-rule-<hash>` 只用于同源重试的 best-effort 去重，不覆盖 active 信号本体。
+- 股票级真实Warning触发会优先关联同标的 latest active 信号，并把低敏 `decision_signal_summary` 写入 `alert_triggers.diagnostics`。
+- 没有 active 信号时，Warning worker 只创建最小 `source_type=alert/action=alert` 信号。
+- Warning信号的 `trace_id=alert-rule-<hash>` 只用于同源重试的 best-effort 去重，不覆盖 active 信号本体。
 - 通知只引用公开摘要字段：`action`、`horizon`、`reason`、`watch_conditions`、`risk_summary`、`source_report_id`。
 - 通知中的 `reason` 在脱敏后完整展示，避免固定字符数在句中截断；`watch_conditions` 和 `risk_summary` 仍保持紧凑摘要上限。
 - 通知不得输出 signal `metadata`、`evidence`、raw diagnostics、webhook URL、token 或 cookie。
 - `GET /api/v1/portfolio/risk` 的 `decision_signal_risk` 只统计当前持仓中的 active `sell/reduce/alert` 信号，查询失败时 fail-open。
 
-更多告警和通知细节见 `docs/alerts.md` 与 `docs/notifications.md`。
+更多Warning和通知细节见 `docs/alerts.md` 与 `docs/notifications.md`。
 
 ## 后验评估与反馈
 
@@ -226,5 +226,5 @@ P7 的全局验收是确认信号池、通知摘要和 Web 展示不泄露 token
 回滚说明：
 
 - 当前没有 `DECISION_SIGNAL_*` 开关；关闭信号提取/写入的回滚方式是 revert 相关代码。
-- 回滚后，普通报告保存、告警触发、通知发送和组合风险主流程仍按既有路径运行。
+- 回滚后，普通报告保存、Warning触发、通知发送和组合风险主流程仍按既有路径运行。
 - 回滚不会自动删除历史 `decision_signals`、`decision_signal_feedback` 或 `decision_signal_outcomes` 数据；如需清理，应由维护者单独制定数据清理策略。

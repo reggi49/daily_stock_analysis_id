@@ -97,7 +97,7 @@ class TelegramSender:
                     timeout_seconds=timeout_seconds,
                 )
             else:
-                # 按 Markdown 转义后的最终 payload 分段，避免转义字符使请求超限
+                # 按 Markdown 转义后的最终 payload Segment，避免转义字符使请求超限
                 return self._send_telegram_chunked(
                     api_url,
                     chat_id,
@@ -257,7 +257,7 @@ class TelegramSender:
         *,
         timeout_seconds: Optional[float] = None,
     ) -> bool:
-        """按已转换的 Telegram Markdown payload 分段发送长消息。"""
+        """按已转换的 Telegram Markdown payload Segment发送长消息。"""
         # 按段落分割
         sections = telegram_text.split("\n---\n")
         delimiter = "\n---\n"

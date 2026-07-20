@@ -341,7 +341,7 @@ def get_outcome_stats(
     summary="重评估决策风格并可选保存",
     description=(
         "基于 source_report_id 对应的持久化历史报告快照重新计算 decision_profile 信号；"
-        "persist=false 返回只读 preview，persist=true 将通过 guardrail 的服务端结果写入 DecisionSignal。"
+        "persist=false 返回Read-only preview，persist=true 将通过 guardrail 的服务端结果写入 DecisionSignal。"
     ),
     operation_id="reassessDecisionSignalPreview",
 )

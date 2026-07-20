@@ -49,9 +49,9 @@ _PUBLIC_ERROR_MESSAGES = {
     "cancelled": "本次 Codex Agent 问股已取消。",
     "output_too_large": "Codex Agent 返回的数据超过安全限制，本次问股已停止。",
     "resource_limit_exceeded": "Codex Agent 本次问股超过允许的工作量，后台任务已结束。",
-    "tool_roundtrip_failed": "Codex Agent 本次未能完成只读数据调用，请根据提示重试或切换到默认模型。",
+    "tool_roundtrip_failed": "Codex Agent 本次未能完成Read-only数据调用，请根据提示重试或切换到默认模型。",
     "resource_cleanup_failed": "Codex Agent 未能安全结束本次后台任务，请重启 DSA 服务后再试。",
-    "invalid_timeout": "Codex Agent 必须设置明确的整体时限，请在 Agent 设置中填写大于 0 的秒数。",
+    "invalid_timeout": "Codex Agent 必须设置明确的整体时限，请在 Agent 设置中填写大于 0 seconds。",
 }
 _DEFAULT_PUBLIC_ERROR_MESSAGE = "Codex Agent 暂时无法完成本次问股，请前往 Agent 设置查看运行状态。"
 
