@@ -108,20 +108,6 @@ ID_PROFILE = MarketProfile(
 )
 
 
-ID_PROFILE = MarketProfile(
-    region="id",
-    mood_index_code="JKSE",
-    news_queries=[
-        "IHSG pasar saham Indonesia",
-        "Indonesia stock market IDX JCI",
-        "IHSG BEI analisis pasar hari ini",
-    ],
-    prompt_index_hint="分析雅加达综合指数（IHSG/JKSE）、LQ45 等印尼主要指数走势特点",
-    has_market_stats=False,
-    has_sector_rankings=False,
-)
-
-
 def get_profile(region: str) -> MarketProfile:
     """Return the corresponding MarketProfile based on the region"""
     if region == "us":
@@ -132,8 +118,6 @@ def get_profile(region: str) -> MarketProfile:
         return JP_PROFILE
     if region == "kr":
         return KR_PROFILE
-    if region == "id":
-        return ID_PROFILE
     if region == "id":
         return ID_PROFILE
     return CN_PROFILE

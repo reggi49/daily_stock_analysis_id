@@ -2565,8 +2565,8 @@ class Config:
         """Parse market review region; invalid values log a warning and fall back to 'cn'."""
         import logging
         v = (value or 'cn').strip().lower()
-        supported_regions = ('cn', 'hk', 'us', 'jp', 'kr', 'both')
-        ordered_regions = ('cn', 'hk', 'us', 'jp', 'kr')
+        supported_regions = ('cn', 'hk', 'us', 'jp', 'kr', 'id', 'both')
+        ordered_regions = ('cn', 'hk', 'us', 'jp', 'kr', 'id')
 
         if v in supported_regions:
             if v == 'both':
