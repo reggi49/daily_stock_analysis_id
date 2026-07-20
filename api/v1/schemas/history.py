@@ -138,7 +138,7 @@ class ReportMeta(BaseModel):
     change_pct: Optional[float] = Field(None, description="Price change at analysis time (%)")
     model_used: Optional[str] = Field(
         None,
-        description="Model snapshot in history report metadata, for display only; does not affect Provider/Model/Base URL runtime routing",
+        description="历史报告元数据中的模型快照，仅用于展示；不参与运行时模型调用路径或配置路由",
     )
     market_phase_summary: Optional[MarketPhaseSummary] = Field(
         None,
@@ -256,23 +256,33 @@ class ReportDetails(BaseModel):
         None,
         description="Low-sensitivity summary of analysis input context pack",
     )
-    financial_report: Optional[Any] = Field(None, description="Structured financial report summary (from fundamental_context)")
-    dividend_metrics: Optional[Any] = Field(None, description="Structured dividend metrics (including TTM basis)")
-    belong_boards: Optional[Any] = Field(None, description="Related board list")
-    sector_rankings: Optional[Any] = Field(None, description="Sector gain/loss rankings (structure {top, bottom})")
-    concept_rankings: Optional[Any] = Field(None, description="Concept sector gain/loss rankings (structure {top, bottom})")
+    financial_report: Optional[Any] = Field(None, description="结构化财报摘要（来自 fundamental_context）")
+    dividend_metrics: Optional[Any] = Field(None, description="结构化分红指标（含 TTM 口径）")
+    belong_boards: Optional[Any] = Field(None, description="关联板块列表")
+    sector_rankings: Optional[Any] = Field(None, description="板块涨跌榜（结构 {top, bottom}）")
+    concept_rankings: Optional[Any] = Field(None, description="概念板块涨跌榜（结构 {top, bottom}）")
+    market_structure: Optional[Any] = Field(None, description="市场结构上下文（题材层 + 个股位置层）")
 
     @model_validator(mode="after")
-    def populate_concept_rankings_from_context(self) -> "ReportDetails":
-        if self.concept_rankings is not None or self.context_snapshot is None:
-            return self
-        try:
-            from src.utils.data_processing import extract_board_detail_fields
+    def populate_context_derived_details(self) -> "ReportDetails":
+        if self.concept_rankings is None and self.context_snapshot is not None:
+            try:
+                from src.utils.data_processing import extract_board_detail_fields
 
-            extracted = extract_board_detail_fields(self.context_snapshot)
-            self.concept_rankings = extracted.get("concept_rankings")
-        except Exception:
-            self.concept_rankings = None
+                extracted = extract_board_detail_fields(self.context_snapshot)
+                self.concept_rankings = extracted.get("concept_rankings")
+            except Exception:
+                self.concept_rankings = None
+        if self.market_structure is None:
+            try:
+                from src.utils.data_processing import extract_market_structure_detail_field
+
+                self.market_structure = extract_market_structure_detail_field(
+                    self.context_snapshot,
+                    self.raw_result,
+                )
+            except Exception:
+                self.market_structure = None
         return self
 
 
@@ -342,7 +352,7 @@ class StockBarItem(BaseModel):
     last_analysis_time: Optional[str] = Field(None, description="Time of the most recent analysis")
     model_used: Optional[str] = Field(
         None,
-        description="Model snapshot used in the latest analysis",
+        description="最新分析使用的模型快照，仅用于列表展示；不改动运行时调用与配置路径",
     )
     market_phase_summary: Optional[MarketPhaseSummary] = Field(
         None,

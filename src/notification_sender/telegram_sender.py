@@ -85,22 +85,23 @@ class TelegramSender:
             max_length = 3000
             telegram_text = self._convert_to_telegram_markdown(content)
 
-            if len(telegram_text) <= max_length:
-                # Single message send
+            telegram_content = self._convert_to_telegram_markdown(content)
+
+            if len(telegram_content) <= max_length:
+                # 单条消息发送
                 return self._send_telegram_message(
                     api_url,
                     chat_id,
-                    telegram_text,
+                    content,
                     message_thread_id,
                     timeout_seconds=timeout_seconds,
-                    prepared_text=True,
                 )
             else:
-                # Chunked send for long messages after Telegram-specific formatting.
+                # 按 Markdown 转义后的最终 payload 分段，避免转义字符使请求超限
                 return self._send_telegram_chunked(
                     api_url,
                     chat_id,
-                    telegram_text,
+                    telegram_content,
                     max_length,
                     message_thread_id,
                     timeout_seconds=timeout_seconds,
@@ -120,10 +121,11 @@ class TelegramSender:
         message_thread_id: Optional[str] = None,
         *,
         timeout_seconds: Optional[float] = None,
-        prepared_text: bool = False,
+        markdown_converted: bool = False,
     ) -> bool:
         """Send a single Telegram message with exponential backoff retry (Fixes #287)"""
-        telegram_text = text if prepared_text else self._convert_to_telegram_markdown(text)
+        # Convert Markdown to Telegram-compatible format
+        telegram_text = text if markdown_converted else self._convert_to_telegram_markdown(text)
         payload = {
             "chat_id": chat_id,
             "text": telegram_text,
@@ -255,23 +257,83 @@ class TelegramSender:
         *,
         timeout_seconds: Optional[float] = None,
     ) -> bool:
-        """Send long Telegram messages in chunks."""
-        chunks = self._split_telegram_text(telegram_text, max_length)
+        """按已转换的 Telegram Markdown payload 分段发送长消息。"""
+        # 按段落分割
+        sections = telegram_text.split("\n---\n")
+        delimiter = "\n---\n"
+        delimiter_length = len(delimiter)
+
+        current_chunk = []
+        current_length = 0
         all_success = True
         chunk_index = 1
 
-        for chunk_content in chunks:
-            logger.info(f"Sending Telegram message chunk {chunk_index}...")
+        def _flush_chunk() -> bool:
+            nonlocal current_chunk, current_length, chunk_index, all_success
+            if not current_chunk:
+                return all_success
+
+            chunk_content = "\n---\n".join(current_chunk)
+            logger.info(f"发送 Telegram 消息块 {chunk_index}...")
+            chunk_index += 1
+            current_chunk = []
+            current_length = 0
             if not self._send_telegram_message(
                 api_url,
                 chat_id,
                 chunk_content,
                 message_thread_id,
                 timeout_seconds=timeout_seconds,
-                prepared_text=True,
+                markdown_converted=True,
             ):
                 all_success = False
-            chunk_index += 1
+            return all_success
+
+        def _split_long_section(section: str, limit: int) -> list[str]:
+            if len(section) <= limit:
+                return [section]
+            chunks: list[str] = []
+            for start in range(0, len(section), limit):
+                chunks.append(section[start:start + limit])
+            return chunks
+
+        for section in sections:
+            if len(section) > max_length:
+                # 单段超限时强制切片，避免依赖“\\n---\\n”边界导致的整段超长发送
+                if not _flush_chunk():
+                    return False
+                for long_chunk in _split_long_section(section, max_length):
+                    logger.info(f"发送 Telegram 消息块 {chunk_index}...")
+                    chunk_index += 1
+                    if not self._send_telegram_message(
+                        api_url,
+                        chat_id,
+                        long_chunk,
+                        message_thread_id,
+                        timeout_seconds=timeout_seconds,
+                        markdown_converted=True,
+                    ):
+                        all_success = False
+                continue
+
+            additional_length = len(section)
+            if current_chunk:
+                additional_length += delimiter_length
+
+            if current_length + additional_length > max_length:
+                _flush_chunk()
+                current_chunk = [section]
+                current_length = len(section)
+                continue
+
+            current_chunk.append(section)
+            current_length += additional_length
+
+        # 发送最后一块
+        if not _flush_chunk():
+            return False
+
+        return all_success
 
         return all_success
 

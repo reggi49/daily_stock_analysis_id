@@ -103,6 +103,7 @@ _MANAGED_LITELLM_KEY_PROVIDERS = {"gemini", "vertex_ai", "anthropic", "openai", 
 SUPPORTED_LLM_CHANNEL_PROTOCOLS = ("openai", "anthropic", "gemini", "vertex_ai", "deepseek", "ollama")
 _FALSEY_ENV_VALUES = {"0", "false", "no", "off"}
 PROMPT_CACHE_DIAGNOSTICS_LEVELS = {"off", "basic", "debug"}
+SUPPORTED_AGENT_BACKENDS = {"auto", "litellm", "codex_app_server"}
 TICKFLOW_KLINE_ADJUST_VALUES = {"none", "forward", "backward", "forward_additive", "backward_additive"}
 # Fallback defaults used when ANSPIRE_API_KEYS is reused as legacy OpenAI-compatible source.
 # These are compatibility examples; actual availability should be validated by Anspire console/model entitlement.
@@ -836,7 +837,8 @@ class Config:
     newsnow_base_url: str = "https://newsnow.busiyi.world"  # NewsNow HTTP API base URL (data-source side, does not affect LLM/provider base URL)
     bias_threshold: float = 5.0  # Bias rate threshold (%), warns against chasing highs above this value
 
-    # === Agent Mode Configuration ===
+    # === Agent 模式配置 ===
+    agent_backend: str = "auto"
     agent_generation_backend: str = AUTO_AGENT_BACKEND_ID
     agent_litellm_model: str = ""  # Optional Agent-only primary model; empty inherits LITELLM_MODEL
     agent_mode: bool = False
@@ -848,6 +850,12 @@ class Config:
     agent_arch: str = "single"     # Agent architecture: 'single' (legacy) or 'multi' (orchestrator)
     agent_orchestrator_mode: str = "standard"  # Orchestrator mode: quick/standard/full/specialist
     agent_orchestrator_timeout_s: int = 600  # Cooperative timeout budget for the whole multi-agent pipeline
+    agent_technical_agent_timeout_s: float = 0
+    agent_intel_agent_timeout_s: float = 0
+    agent_risk_agent_timeout_s: float = 0
+    agent_decision_agent_timeout_s: float = 0
+    agent_portfolio_agent_timeout_s: float = 0
+    agent_skill_agent_timeout_s: float = 0
     agent_risk_override: bool = True  # Allow risk agent to veto buy signals
     agent_deep_research_budget: int = 30000  # Max token budget for deep research
     agent_deep_research_timeout: int = 180  # Max seconds for /research command before returning timeout
@@ -1055,8 +1063,10 @@ class Config:
     # Fundamental stage total budget (seconds)
     fundamental_stage_timeout_seconds: float = FUNDAMENTAL_STAGE_TIMEOUT_SECONDS_DEFAULT
     # Per-capability source call timeout (seconds)
-    fundamental_fetch_timeout_seconds: float = 3.0
+    # 单能力源调用超时（秒）
+    fundamental_fetch_timeout_seconds: float = 8.0
     # Per-capability failure retry count (includes first attempt)
+    # 单能力失败重试次数（已包含首次）
     fundamental_retry_max: int = 1
     # Fundamental context short TTL (seconds)
     fundamental_cache_ttl_seconds: int = 120
@@ -1735,6 +1745,7 @@ class Config:
             ),
             newsnow_base_url=((os.getenv('NEWSNOW_BASE_URL') or '').strip().rstrip('/') or 'https://newsnow.busiyi.world'),
             bias_threshold=parse_env_float(os.getenv('BIAS_THRESHOLD'), 5.0, field_name='BIAS_THRESHOLD', minimum=1.0),
+            agent_backend=(os.getenv('AGENT_BACKEND', 'auto') or 'auto').strip().lower(),
             agent_generation_backend=agent_generation_backend,
             agent_litellm_model=agent_litellm_model,
             agent_mode=os.getenv('AGENT_MODE', 'false').lower() == 'true',
@@ -1755,6 +1766,30 @@ class Config:
                 600,
                 field_name='AGENT_ORCHESTRATOR_TIMEOUT_S',
                 minimum=0,
+            ),
+            agent_technical_agent_timeout_s=parse_env_float(
+                os.getenv('AGENT_TECHNICAL_AGENT_TIMEOUT_S'), 0,
+                field_name='AGENT_TECHNICAL_AGENT_TIMEOUT_S', minimum=0,
+            ),
+            agent_intel_agent_timeout_s=parse_env_float(
+                os.getenv('AGENT_INTEL_AGENT_TIMEOUT_S'), 0,
+                field_name='AGENT_INTEL_AGENT_TIMEOUT_S', minimum=0,
+            ),
+            agent_risk_agent_timeout_s=parse_env_float(
+                os.getenv('AGENT_RISK_AGENT_TIMEOUT_S'), 0,
+                field_name='AGENT_RISK_AGENT_TIMEOUT_S', minimum=0,
+            ),
+            agent_decision_agent_timeout_s=parse_env_float(
+                os.getenv('AGENT_DECISION_AGENT_TIMEOUT_S'), 0,
+                field_name='AGENT_DECISION_AGENT_TIMEOUT_S', minimum=0,
+            ),
+            agent_portfolio_agent_timeout_s=parse_env_float(
+                os.getenv('AGENT_PORTFOLIO_AGENT_TIMEOUT_S'), 0,
+                field_name='AGENT_PORTFOLIO_AGENT_TIMEOUT_S', minimum=0,
+            ),
+            agent_skill_agent_timeout_s=parse_env_float(
+                os.getenv('AGENT_SKILL_AGENT_TIMEOUT_S'), 0,
+                field_name='AGENT_SKILL_AGENT_TIMEOUT_S', minimum=0,
             ),
             agent_risk_override=os.getenv('AGENT_RISK_OVERRIDE', 'true').lower() == 'true',
             agent_deep_research_budget=parse_env_int(
@@ -2008,7 +2043,7 @@ class Config:
             ),
             fundamental_fetch_timeout_seconds=parse_env_float(
                 os.getenv('FUNDAMENTAL_FETCH_TIMEOUT_SECONDS'),
-                3.0,
+                8.0,
                 field_name='FUNDAMENTAL_FETCH_TIMEOUT_SECONDS',
                 minimum=0.0,
             ),
@@ -2804,6 +2839,7 @@ class Config:
         agent_generation_backend = (
             self.agent_generation_backend or AUTO_AGENT_BACKEND_ID
         ).strip().lower()
+        agent_backend = (self.agent_backend or "auto").strip().lower()
         if generation_backend not in SUPPORTED_GENERATION_BACKENDS:
             issues.append(ConfigIssue(
                 severity="error",
@@ -2837,6 +2873,23 @@ class Config:
                     f"Configured value: {agent_generation_backend}."
                 ),
                 field="AGENT_GENERATION_BACKEND",
+            ))
+        if agent_backend not in SUPPORTED_AGENT_BACKENDS:
+            issues.append(ConfigIssue(
+                severity="error",
+                message=(
+                    "AGENT_BACKEND 当前支持 auto、litellm、codex_app_server。"
+                    f"已配置的值为：{agent_backend}。"
+                ),
+                field="AGENT_BACKEND",
+                code="capability_unsupported",
+            ))
+        if agent_backend == "codex_app_server" and self.agent_arch != "single":
+            issues.append(ConfigIssue(
+                severity="error",
+                message="Codex 本地 Agent 当前只支持单 Agent 问股，请将 AGENT_ARCH 设为 single。",
+                field="AGENT_ARCH",
+                code="unsupported_agent_arch",
             ))
         litellm_model_lower = (self.litellm_model or "").strip().lower()
         local_model_prefix = next(

@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-A-Share Stock Analysis System - Notification Service Unit Tests
+A股自选股智能分析系统 - 通知服务单元测试
 ===================================
 
-Responsibilities:
-1. Verify notification service config detection logic
-2. Verify notification service channel detection logic
-3. Verify notification service message sending logic
+职责：
+1. 验证通知服务的配置检测逻辑
+2. 验证通知服务的渠道检测逻辑
+3. 验证通知服务的消息发送逻辑
 
 TODO: 
-1. Add tests beyond sending channels, e.g.:
-    - Generate daily report
-2. Add tests for send_to_context
+1. 添加发送渠道以外的测试，如：
+    - 生成日报
+2. 添加 send_to_context 的测试
 """
 import os
 import sys
@@ -30,7 +30,7 @@ for optional_module in ("litellm", "json_repair"):
         sys.modules[optional_module] = mock.MagicMock()
 
 from src.config import Config
-from src.notification import NotificationService, NotificationChannel
+from src.notification import NotificationBuilder, NotificationChannel, NotificationService
 from src.notification_noise import reset_notification_noise_state
 from src.analyzer import AnalysisResult
 from bot.models import BotMessage, ChatType
@@ -53,9 +53,9 @@ def _make_response(status_code: int, json: Optional[dict] = None) -> requests.Re
 def _attach_decision_signal_summary(result: AnalysisResult) -> AnalysisResult:
     result.decision_signal_summary = {
         "action": "sell",
-        "action_label": "sell",
+        "action_label": "卖出",
         "horizon": "1d",
-        "reason": "Technical weakness",
+        "reason": "技术面走弱",
     }
     return result
 
@@ -101,31 +101,31 @@ def _make_telegram_message() -> BotMessage:
 
 
 class TestNotificationServiceSendToMethods(unittest.TestCase):
-    """Test the notification-sending service
+    """测试通知发送服务
 
-    Test design:
+    测试设计：
 
-    Tests are arranged alphabetically by channel; insert new tests in the appropriate position.
-    If long-message chunking is used, the chunking logic must be tested separately,
+    测试按照渠道的字母顺序排列，在合适位置添加新的测试方法。
+    如果采用长消息分批发送，必须单独测试分批发送的逻辑，
         e.g. test_send_to_discord_via_notification_service_with_bot_requires_chunking
 
-    1. Add mock config:
-    Use mock.patch decorator to mock get_config function,
-    use _make_config function to add config and return Config instance.
+    1. 添加模拟配置：
+    使用 mock.patch 装饰器来模拟 get_config 函数，
+    使用 _make_config 函数添加配置，并返回 Config 实例。
 
-    2. Verify config correctness:
-    Use assertIn to check whether NotificationChannel.xxxx is in
-    the return value of `NotificationService.get_available_channels()`.
+    2. 检查配置是否正确：
+    使用 assertIn 检查 NotificationChannel.xxxx 是否在
+    `NotificationService.get_available_channels()` 返回值中。
 
-    3. Mock request/response:
-    Use mock.patch decorator to mock requests.post function,
-    use _make_response function to mock request response and return Response instance.
-    If using another function to mock the response, use mock.patch decorator for that function.
+    3. 模拟请求响应：
+    使用 mock.patch 装饰器来模拟 requests.post 函数，
+    使用 _make_response 函数模拟请求响应，并返回 Response 实例。
+    若使用其他函数模拟请求响应，则使用 mock.patch 装饰器来模拟该函数。
 
-    4. Use assertTrue to check the return value of send.
+    4. 使用 assertTrue 检查 send 的返回值。
 
-    5. Use assert_called_once to check the request function was called once.
-    For chunking tests, use assertAlmostEqual(mock_post.call_count, ...) to check call count.
+    5. 使用 assert_called_once 检查请求函数是否被调用一次。
+    测试分批发送时，使用 assertAlmostEqual(mock_post.call_count, ...) 检查请求函数被调用次数
 
     """
 
@@ -660,7 +660,94 @@ class TestNotificationServiceSendToMethods(unittest.TestCase):
 
 
 class TestNotificationServiceReportGeneration(unittest.TestCase):
-    """Tests related to report generation and routing."""
+    """报告生成与选路相关测试。"""
+
+    def test_signal_metadata_uses_resolved_eight_state_action(self):
+        service = NotificationService()
+        cases = [
+            ("avoid", "Avoid", 90, ("Avoid", "🟡", "hold")),
+            ("add", "Add", 50, ("Add", "🟢", "buy")),
+            ("alert", "Alert", 85, ("Alert", "🔴", "sell")),
+        ]
+
+        for action, action_label, score, expected in cases:
+            with self.subTest(action=action):
+                result = AnalysisResult(
+                    code="AAPL",
+                    name="Apple",
+                    sentiment_score=score,
+                    trend_prediction="Neutral",
+                    operation_advice="Hold",
+                    report_language="en",
+                    action=action,
+                    action_label=action_label,
+                )
+
+                self.assertEqual(service._get_signal_level(result), expected)
+
+    def test_build_stock_summary_uses_resolved_eight_state_action(self):
+        summary = NotificationBuilder.build_stock_summary(
+            [
+                AnalysisResult(
+                    code="AVOID",
+                    name="Avoid Corp",
+                    sentiment_score=90,
+                    trend_prediction="Neutral",
+                    operation_advice="Avoid",
+                    report_language="en",
+                    action="avoid",
+                    action_label="Avoid",
+                ),
+                AnalysisResult(
+                    code="ALERT",
+                    name="Alert Corp",
+                    sentiment_score=85,
+                    trend_prediction="Neutral",
+                    operation_advice="Alert",
+                    report_language="en",
+                    action="alert",
+                    action_label="Alert",
+                ),
+                AnalysisResult(
+                    code="ADD",
+                    name="Add Corp",
+                    sentiment_score=50,
+                    trend_prediction="Neutral",
+                    operation_advice="Add",
+                    report_language="en",
+                    action="add",
+                    action_label="Add",
+                ),
+            ]
+        )
+
+        self.assertIn("🟡 Avoid Corp(AVOID): Avoid | Score 90", summary)
+        self.assertIn("🔴 Alert Corp(ALERT): Alert | Score 85", summary)
+        self.assertIn("🟢 Add Corp(ADD): Add | Score 50", summary)
+        self.assertNotIn("Buy | Score 50", summary)
+        self.assertNotIn("Strong Buy", summary)
+
+    @mock.patch("src.notification.get_config")
+    def test_report_rows_and_summary_use_same_score_aligned_action(
+        self, mock_get_config: mock.MagicMock
+    ):
+        mock_get_config.return_value = _make_config(report_renderer_enabled=False)
+        service = NotificationService()
+        result = AnalysisResult(
+            code="AAPL",
+            name="Apple",
+            sentiment_score=72,
+            trend_prediction="Bullish",
+            operation_advice="Hold",
+            decision_type="hold",
+            report_language="en",
+        )
+
+        out = service.generate_brief_report([result], report_date="2026-07-11")
+
+        self.assertIn("🟢1 🟡0 🔴0", out)
+        self.assertIn("Buy | Score 72", out)
+        self.assertNotIn("Hold | Score 72", out)
 
     @mock.patch("src.notification.get_config")
     def test_generate_aggregate_report_routes_by_report_type(self, mock_get_config: mock.MagicMock):
@@ -668,11 +755,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
 
         with mock.patch.object(service, "generate_dashboard_report", return_value="dashboard") as mock_dashboard, mock.patch.object(
@@ -692,18 +779,18 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
 
         with mock.patch("src.services.report_renderer.render") as mock_render:
             out = service.generate_single_stock_report(result)
 
         mock_render.assert_not_called()
-        self.assertIn("Kweichow Moutai", out)
+        self.assertIn("贵州茅台", out)
         self.assertIn("600519", out)
 
     @mock.patch("src.notification.get_config")
@@ -712,17 +799,17 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
             model_used="gemini/gemini-2.5-flash",
         )
 
         out = service.generate_brief_report([result], report_date="2026-02-01")
 
-        self.assertIn("*Analytical model: gemini/gemini-2.5-flash*", out)
+        self.assertIn("*分析模型: gemini/gemini-2.5-flash*", out)
 
     @mock.patch("src.notification.get_config")
     def test_generate_dashboard_report_shows_model_by_default(self, mock_get_config: mock.MagicMock):
@@ -730,17 +817,17 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
             model_used="gemini/gemini-2.5-flash",
         )
 
         out = service.generate_dashboard_report([result], report_date="2026-02-01")
 
-        self.assertIn("*Analytical model：gemini/gemini-2.5-flash*", out)
+        self.assertIn("*分析模型：gemini/gemini-2.5-flash*", out)
 
     @mock.patch("src.notification.get_config")
     def test_generate_dashboard_report_shows_phase_decision_in_default_renderer(
@@ -750,19 +837,19 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Waiting for confirmation",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="等待确认",
             dashboard={
-                "core_conclusion": {"one_sentence": "Waiting for confirmation"},
+                "core_conclusion": {"one_sentence": "等待确认"},
                 "phase_decision": {
-                    "action_window": "intraday tracking",
-                    "immediate_action": "Waiting for confirmation",
-                    "watch_conditions": ["Heavy volume breakthrough"],
+                    "action_window": "盘中跟踪",
+                    "immediate_action": "等待确认",
+                    "watch_conditions": ["放量突破"],
                     "next_check_time": "14:30",
-                    "confidence_reason": "Data quality available",
+                    "confidence_reason": "数据质量可用",
                     "data_limitations": ["quote: stale"],
                 },
             },
@@ -770,10 +857,10 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_dashboard_report([result], report_date="2026-02-01")
 
-        self.assertIn("Intraday Decision Guardrails", out)
-        self.assertIn("intraday tracking", out)
-        self.assertIn("Waiting for confirmation", out)
-        self.assertIn("Heavy volume breakthrough", out)
+        self.assertIn("盘中决策护栏", out)
+        self.assertIn("盘中跟踪", out)
+        self.assertIn("等待确认", out)
+        self.assertIn("放量突破", out)
         self.assertIn("quote: stale", out)
 
     @mock.patch("src.notification.get_config")
@@ -784,13 +871,13 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Waiting for confirmation",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="等待确认",
             dashboard={
-                "core_conclusion": {"one_sentence": "Waiting for confirmation"},
+                "core_conclusion": {"one_sentence": "等待确认"},
                 "phase_decision": {
                     "phase_context": {"phase": "intraday", "market": "cn"},
                     "watch_conditions": [],
@@ -801,83 +888,128 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_dashboard_report([result], report_date="2026-02-01")
 
-        self.assertNotIn("Intraday Decision Guardrails", out)
+        self.assertNotIn("盘中决策护栏", out)
 
     @mock.patch("src.notification.get_config")
-    def test_generate_dashboard_report_appends_decision_signal_excerpt_fallback(
+    def test_generate_dashboard_report_omits_decision_signal_excerpt_fallback(
         self, mock_get_config: mock.MagicMock
     ):
         mock_get_config.return_value = _make_config(report_renderer_enabled=False)
         service = NotificationService()
         result = _attach_decision_signal_summary(AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         ))
 
         out = service.generate_dashboard_report([result], report_date="2026-02-01")
 
-        summary_section, detail_section = out.split("---", 1)
-        self.assertNotIn("AI decision signal", summary_section)
-        self.assertIn("AI decision signal", detail_section)
-        self.assertIn("action: sell", detail_section)
-        self.assertIn("cycle: 1d", detail_section)
-        self.assertIn("Reason: Technical weakness", detail_section)
+        self.assertNotIn("AI 决策信号", out)
+        self.assertNotIn("理由: 技术面走弱", out)
 
     @mock.patch("src.notification.get_config")
-    def test_generate_daily_report_appends_decision_signal_excerpt_fallback(
+    def test_generate_daily_report_omits_decision_signal_excerpt_fallback(
         self, mock_get_config: mock.MagicMock
     ):
         mock_get_config.return_value = _make_config(report_renderer_enabled=False)
         result = _attach_decision_signal_summary(AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         ))
 
         for summary_only in (True, False):
             service = NotificationService()
             service._report_summary_only = summary_only
             out = service.generate_daily_report([result], report_date="2026-02-01")
-            self.assertEqual(out.count("AI decision signal"), 0 if summary_only else 1)
-            if summary_only:
-                self.assertNotIn("action: sell", out)
-            else:
-                self.assertIn("action: sell", out)
-                self.assertIn("cycle: 1d", out)
-                self.assertIn("Reason: Technical weakness", out)
+            self.assertNotIn("AI 决策信号", out)
+            self.assertNotIn("理由: 技术面走弱", out)
 
     @mock.patch("src.notification.get_config")
-    def test_generate_wechat_dashboard_appends_decision_signal_excerpt_fallback(
+    def test_generate_wechat_dashboard_omits_decision_signal_excerpt_fallback(
         self, mock_get_config: mock.MagicMock
     ):
         mock_get_config.return_value = _make_config(report_renderer_enabled=False)
         result = _attach_decision_signal_summary(AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         ))
 
         for summary_only in (True, False):
             service = NotificationService()
             service._report_summary_only = summary_only
             out = service.generate_wechat_dashboard([result])
-            self.assertEqual(out.count("AI decision signal"), 0 if summary_only else 1)
-            if summary_only:
-                self.assertNotIn("action: sell", out)
-            else:
-                self.assertIn("action: sell", out)
-                self.assertIn("cycle: 1d", out)
-                self.assertIn("Reason: Technical weakness", out)
+            self.assertNotIn("AI 决策信号", out)
+            self.assertNotIn("理由: 技术面走弱", out)
+
+    @mock.patch("src.notification.get_config")
+    def test_strategy_synthesis_legacy_shapes_are_safe_in_fallback_reports(
+        self, mock_get_config: mock.MagicMock
+    ):
+        mock_get_config.return_value = _make_config(report_renderer_enabled=False)
+        service = NotificationService()
+
+        for malformed in ("bad-shape", ["bad-shape"], 42, True):
+            result = AnalysisResult(
+                code="600519",
+                name="贵州茅台",
+                sentiment_score=50,
+                trend_prediction="震荡",
+                operation_advice="观望",
+                report_language="zh",
+                dashboard={
+                    "core_conclusion": {"one_sentence": "测试"},
+                    "intelligence": {},
+                    "battle_plan": {},
+                    "strategy_synthesis": malformed,
+                },
+            )
+
+            markdown = service.generate_dashboard_report([result], report_date="2026-07-19")
+            wechat = service.generate_wechat_dashboard([result])
+
+            self.assertNotIn("多策略综合", markdown)
+            self.assertNotIn("多策略综合", wechat)
+
+        result = AnalysisResult(
+            code="600519",
+            name="贵州茅台",
+            sentiment_score=50,
+            trend_prediction="震荡",
+            operation_advice="观望",
+            report_language="zh",
+            dashboard={
+                "core_conclusion": {"one_sentence": "测试"},
+                "intelligence": {},
+                "battle_plan": {},
+                "strategy_synthesis": {
+                    "final_signal": "hold",
+                    "consensus_level": "insufficient",
+                    "conflict_severity": "none",
+                    "conflict_count": 0,
+                    "supporting_skills": "bad-shape",
+                    "opposing_skills": ["bad-shape"],
+                    "conflicts": "bad-shape",
+                    "summary_params": {"invalid_opinion_count": "3"},
+                },
+            },
+        )
+
+        markdown = service.generate_dashboard_report([result], report_date="2026-07-19")
+        wechat = service.generate_wechat_dashboard([result])
+
+        self.assertIn("另有 3 个策略解析失败", markdown)
+        self.assertIn("另有 3 个策略解析失败", wechat)
 
     @mock.patch("src.notification.get_config")
     def test_generate_wechat_summary_omits_decision_signal_excerpt(
@@ -887,41 +1019,37 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = _attach_decision_signal_summary(AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         ))
 
         out = service.generate_wechat_summary([result])
 
-        self.assertNotIn("AI decision signal", out)
-        self.assertNotIn("action: sell", out)
+        self.assertNotIn("AI 决策信号", out)
+        self.assertNotIn("动作: 卖出", out)
 
     @mock.patch("src.notification.get_config")
-    def test_generate_dashboard_report_appends_decision_signal_excerpt_with_renderer(
+    def test_generate_dashboard_report_omits_decision_signal_excerpt_with_renderer(
         self, mock_get_config: mock.MagicMock
     ):
         mock_get_config.return_value = _make_config(report_renderer_enabled=True)
         service = NotificationService()
         result = _attach_decision_signal_summary(AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         ))
 
         out = service.generate_dashboard_report([result], report_date="2026-02-01")
 
-        summary_section, detail_section = out.split("---", 1)
-        self.assertNotIn("AI decision signal", summary_section)
-        self.assertIn("AI decision signal", detail_section)
-        self.assertIn("action: sell", detail_section)
-        self.assertIn("cycle: 1d", detail_section)
-        self.assertIn("Reason: Technical weakness", detail_section)
+        self.assertNotIn("AI 决策信号", out)
+        self.assertNotIn("理由: 技术面走弱", out)
 
     @mock.patch("src.notification.get_config")
     def test_aggregate_reports_show_compact_market_status_only(self, mock_get_config: mock.MagicMock):
@@ -929,11 +1057,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
         result.market_phase_summary = {
             "phase": "intraday",
@@ -951,13 +1079,13 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_brief_report([result], report_date="2026-02-01")
 
-        self.assertIn("market status：Ashares · intraday", out)
-        self.assertNotIn("stage：intraday", out)
-        self.assertNotIn("trigger source：portfolio", out)
-        self.assertNotIn("Intraday data tips", out)
-        self.assertNotIn("Data quality: limited", out)
-        self.assertNotIn("Limit: quote: stale", out)
-        self.assertNotIn("Limit: news: missing", out)
+        self.assertIn("市场状态：A股 · 盘中", out)
+        self.assertNotIn("阶段：intraday", out)
+        self.assertNotIn("触发来源：portfolio", out)
+        self.assertNotIn("盘中数据提示", out)
+        self.assertNotIn("数据质量: limited", out)
+        self.assertNotIn("限制: quote: stale", out)
+        self.assertNotIn("限制: news: missing", out)
         self.assertNotIn("portfolio_context: hidden", out)
         self.assertNotIn("raw context pack", out)
         self.assertNotIn("prompt", out.lower())
@@ -968,11 +1096,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
         result.market_phase_summary = {
             "phase": "postmarket",
@@ -988,11 +1116,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_dashboard_report([result], report_date="2026-02-01")
 
-        self.assertIn("market status：Ashares · after hours", out)
-        self.assertEqual(out.count("market status："), 1)
-        self.assertNotIn("stage：postmarket", out)
-        self.assertNotIn("trigger source：cli", out)
-        self.assertNotIn("Data quality: good", out)
+        self.assertIn("市场状态：A股 · 盘后", out)
+        self.assertEqual(out.count("市场状态："), 1)
+        self.assertNotIn("阶段：postmarket", out)
+        self.assertNotIn("触发来源：cli", out)
+        self.assertNotIn("数据质量: good", out)
         self.assertNotIn("technical: partial", out)
 
     @mock.patch("src.notification.get_config")
@@ -1001,17 +1129,17 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
 
         out = service.generate_brief_report([result], report_date="2026-02-01")
 
-        self.assertNotIn("Summary source", out)
-        self.assertNotIn("evaluator snapshot", out)
+        self.assertNotIn("摘要来源", out)
+        self.assertNotIn("评估器快照", out)
 
     @mock.patch("src.notification.get_config")
     def test_generate_dashboard_report_collapses_unavailable_chip_structure(self, mock_get_config: mock.MagicMock):
@@ -1019,18 +1147,18 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
             dashboard={
                 "data_perspective": {
                     "chip_structure": {
-                        "profit_ratio": "missing data，Unable to judge",
-                        "avg_cost": "missing data，Unable to judge",
-                        "concentration": "missing data，Unable to judge",
-                        "chip_health": "missing data，Unable to judge",
+                        "profit_ratio": "数据缺失，无法判断",
+                        "avg_cost": "数据缺失，无法判断",
+                        "concentration": "数据缺失，无法判断",
+                        "chip_health": "数据缺失，无法判断",
                     }
                 }
             },
@@ -1038,8 +1166,8 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_dashboard_report([result], report_date="2026-02-01")
 
-        self.assertIn("**chips**: Chip distribution is not enabled or the data source is temporarily unavailable，Not included in chip judgment。", out)
-        self.assertEqual(out.count("missing data，Unable to judge"), 0)
+        self.assertIn("**筹码**: 筹码分布未启用或数据源暂不可用，未纳入筹码判断。", out)
+        self.assertEqual(out.count("数据缺失，无法判断"), 0)
 
     @mock.patch("src.notification.get_config")
     def test_generate_reports_hide_model_when_disabled(self, mock_get_config: mock.MagicMock):
@@ -1050,20 +1178,20 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
             model_used="gemini/gemini-2.5-flash",
         )
 
         dashboard = service.generate_dashboard_report([result], report_date="2026-02-01")
         single = service.generate_single_stock_report(result)
 
-        self.assertNotIn("Analytical model", dashboard)
+        self.assertNotIn("分析模型", dashboard)
         self.assertNotIn("gemini/gemini-2.5-flash", dashboard)
-        self.assertNotIn("Analytical model", single)
+        self.assertNotIn("分析模型", single)
         self.assertNotIn("gemini/gemini-2.5-flash", single)
 
     @mock.patch("src.notification.get_config")
@@ -1114,8 +1242,8 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
             code="AAPL",
             name="Apple",
             sentiment_score=61,
-            trend_prediction="long",
-            operation_advice="hold",
+            trend_prediction="看多",
+            operation_advice="持有",
             analysis_summary="Wait for confirmation.",
             report_language="en",
             buy_reason="Momentum remains constructive.",
@@ -1133,13 +1261,13 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         self.assertIn("Moving Averages", out)
         self.assertIn("Volume", out)
         self.assertIn("News Flow", out)
-        self.assertNotIn("Reason for operation", out)
-        self.assertNotIn("Risk warning", out)
-        self.assertNotIn("technical aspect", out)
-        self.assertNotIn("news side", out)
+        self.assertNotIn("操作理由", out)
+        self.assertNotIn("风险提示", out)
+        self.assertNotIn("技术面", out)
+        self.assertNotIn("消息面", out)
 
     @mock.patch("src.notification.get_config")
-    def test_generate_single_stock_report_localizes_english_fallback(self, mock_get_config: mock.MagicMock):
+    def test_generate_single_stock_report_aligns_english_fallback_with_score(self, mock_get_config: mock.MagicMock):
         mock_get_config.return_value = _make_config(report_renderer_enabled=False, report_language="en")
         service = NotificationService()
         result = AnalysisResult(
@@ -1166,7 +1294,7 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         self.assertIn("Core Conclusion", out)
         self.assertIn("Action Levels", out)
-        self.assertIn("Hold", out)
+        self.assertIn("Buy", out)
 
     def _make_fundamental_context(self) -> dict:
         return {
@@ -1175,7 +1303,7 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
                 "data": {
                     "financial_report": {
                         "report_date": "2024-09-30",
-                        "revenue": 1_236_000_000_000.0,  # 1.236 trillions -> 12360.00 billion
+                        "revenue": 1_236_000_000_000.0,  # 1.236 万亿 -> 12360.00 亿元
                         "net_profit_parent": 60_800_000_000.0,
                         "operating_cash_flow": 72_500_000_000.0,
                         "roe": 22.45,
@@ -1208,11 +1336,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
                 "status": "ok",
                 "data": {
                     "top": [
-                        {"name": "Liquor", "change_pct": 3.42},
-                        {"name": "food and beverage", "change_pct": 2.10},
+                        {"name": "白酒", "change_pct": 3.42},
+                        {"name": "食品饮料", "change_pct": 2.10},
                     ],
                     "bottom": [
-                        {"name": "Photovoltaic equipment", "change_pct": -2.65},
+                        {"name": "光伏设备", "change_pct": -2.65},
                     ],
                 },
             },
@@ -1220,14 +1348,14 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
                 "status": "ok",
                 "data": {
                     "top": [
-                        {"name": "MSCIChina", "change_pct": 1.23},
+                        {"name": "MSCI中国", "change_pct": 1.23},
                     ],
                     "bottom": [],
                 },
             },
             "belong_boards": [
-                {"name": "Liquor", "code": "BK0596", "type": "Industry"},
-                {"name": "MSCIChina", "code": "BK0805", "type": "concept"},
+                {"name": "白酒", "code": "BK0596", "type": "行业"},
+                {"name": "MSCI中国", "code": "BK0805", "type": "概念"},
             ],
         }
 
@@ -1239,38 +1367,38 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
         result.fundamental_context = self._make_fundamental_context()
 
         out = service.generate_single_stock_report(result)
 
-        # Financial summary
-        self.assertIn("financial summary", out)
+        # 财务摘要
+        self.assertIn("财务摘要", out)
         self.assertIn("2024-09-30", out)
-        self.assertIn("12360.00 billion", out)
+        self.assertIn("12360.00 亿元", out)
         self.assertIn("22.45%", out)
         self.assertIn("15.23%", out)
         self.assertIn("91.55%", out)
-        # Shareholder returns
-        self.assertIn("shareholder return", out)
-        self.assertIn("30.8760 Yuan", out)
+        # 股东回报
+        self.assertIn("股东回报", out)
+        self.assertIn("30.8760 元", out)
         self.assertIn("1.85%", out)
         self.assertIn("2024-06-26", out)
-        # Related sectors (liquor carries an industry signal; MSCI China carries a concept signal)
-        self.assertIn("Related sections", out)
-        self.assertIn("Liquor", out)
-        self.assertIn("Leading the gains", out)
+        # 关联板块（白酒带行业信号；MSCI中国 带概念信号）
+        self.assertIn("关联板块", out)
+        self.assertIn("白酒", out)
+        self.assertIn("领涨", out)
         self.assertIn("+3.42%", out)
-        self.assertIn("MSCIChina", out)
-        self.assertIn("- Liquor (Industry sector Leading the gains +3.42%)", out)
-        self.assertIn("- MSCIChina (Concept section Leading the gains +1.23%)", out)
+        self.assertIn("MSCI中国", out)
+        self.assertIn("- 白酒 (行业板块 领涨 +3.42%)", out)
+        self.assertIn("- MSCI中国 (概念板块 领涨 +1.23%)", out)
         self.assertIn("+1.23%", out)
-        self.assertNotIn("| plate | Type | Sector performance | Sector rise and fall |", out)
+        self.assertNotIn("| 板块 | 类型 | 板块表现 | 板块涨跌幅 |", out)
 
     @mock.patch("src.notification.get_config")
     def test_related_boards_uses_concept_rankings_for_concept_boards(
@@ -1280,29 +1408,29 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
         result.fundamental_context = {
             "boards": {"status": "ok", "data": {
-                "top": [{"name": "Liquor", "change_pct": 2.31}],
+                "top": [{"name": "白酒", "change_pct": 2.31}],
                 "bottom": [],
             }},
             "concept_boards": {"status": "ok", "data": {
                 "top": [],
-                "bottom": [{"name": "Liquor", "change_pct": -3.2}],
+                "bottom": [{"name": "白酒", "change_pct": -3.2}],
             }},
-            "belong_boards": [{"name": "Liquor", "type": "concept"}],
+            "belong_boards": [{"name": "白酒", "type": "概念"}],
         }
 
         out = service.generate_single_stock_report(result)
 
-        self.assertIn("Related sections", out)
-        self.assertIn("- Liquor (Concept section Lead the decline -3.20%)", out)
-        self.assertNotIn("| Liquor | concept |", out)
+        self.assertIn("关联板块", out)
+        self.assertIn("- 白酒 (概念板块 领跌 -3.20%)", out)
+        self.assertNotIn("| 白酒 | 概念 |", out)
         self.assertNotIn("+2.31%", out)
 
     @mock.patch("src.notification.get_config")
@@ -1313,18 +1441,18 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
 
         out = service.generate_single_stock_report(result)
 
-        self.assertNotIn("financial summary", out)
-        self.assertNotIn("shareholder return", out)
-        self.assertNotIn("Related sections", out)
+        self.assertNotIn("财务摘要", out)
+        self.assertNotIn("股东回报", out)
+        self.assertNotIn("关联板块", out)
 
     @mock.patch("src.notification.get_config")
     def test_generate_single_stock_report_handles_partial_fundamental_context(
@@ -1335,11 +1463,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
         result.fundamental_context = {
             "earnings": {
@@ -1356,25 +1484,25 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_single_stock_report(result)
 
-        self.assertNotIn("financial summary", out)
-        self.assertIn("shareholder return", out)
-        self.assertIn("0.5000 Yuan", out)
-        self.assertNotIn("Related sections", out)
+        self.assertNotIn("财务摘要", out)
+        self.assertIn("股东回报", out)
+        self.assertIn("0.5000 元", out)
+        self.assertNotIn("关联板块", out)
 
     @mock.patch("src.notification.get_config")
     def test_generate_single_stock_report_uses_currency_for_us(
         self, mock_get_config: mock.MagicMock
     ):
-        """USD currency on financial_report yields billion-USD suffix instead of billion-CNY."""
+        """USD currency on financial_report yields 亿美元 suffix instead of 亿元."""
         mock_get_config.return_value = _make_config(report_renderer_enabled=False)
         service = NotificationService()
         result = AnalysisResult(
             code="AAPL",
             name="Apple Inc.",
             sentiment_score=64,
-            trend_prediction="shock",
-            operation_advice="wait and see",
-            analysis_summary="wait and see AI deliver rhythm。",
+            trend_prediction="震荡",
+            operation_advice="观望",
+            analysis_summary="观望等待 AI 兑现节奏。",
         )
         result.fundamental_context = {
             "earnings": {
@@ -1403,21 +1531,21 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
             },
             "growth": {"status": "ok", "data": {"revenue_yoy": 16.60, "roe": 141.47, "gross_margin": 47.86}},
             "belong_boards": [
-                {"name": "Technology", "type": "Industry"},
-                {"name": "Consumer Electronics", "type": "concept"},
+                {"name": "Technology", "type": "行业"},
+                {"name": "Consumer Electronics", "type": "概念"},
             ],
         }
 
         out = service.generate_single_stock_report(result)
 
-        self.assertIn("financial summary", out)
-        self.assertIn("billion US dollars", out)
-        self.assertNotIn("12360.00 billion", out)
+        self.assertIn("财务摘要", out)
+        self.assertIn("亿美元", out)
+        self.assertNotIn("12360.00 亿元", out)
         # Sample expected formatted values
-        self.assertIn("1110.00 billion US dollars", out)
+        self.assertIn("1110.00 亿美元", out)
         self.assertIn("141.47%", out)
         # Dividend per share also picks up currency suffix
-        self.assertIn("1.0500 US dollars", out)
+        self.assertIn("1.0500 美元", out)
         # Sector + industry render as belong_boards
         self.assertIn("Technology", out)
         self.assertIn("Consumer Electronics", out)
@@ -1426,16 +1554,16 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
     def test_related_boards_drops_signal_columns_when_no_sector_data(
         self, mock_get_config: mock.MagicMock
     ):
-        """HK/US lack sector ranking board -- drop status / change_pct columns entirely."""
+        """HK/US lack 板块涨跌榜 — drop status / change_pct columns entirely."""
         mock_get_config.return_value = _make_config(report_renderer_enabled=False)
         service = NotificationService()
         result = AnalysisResult(
             code="AAPL",
             name="Apple Inc.",
             sentiment_score=64,
-            trend_prediction="shock",
-            operation_advice="wait and see",
-            analysis_summary="wait and see AI deliver rhythm。",
+            trend_prediction="震荡",
+            operation_advice="观望",
+            analysis_summary="观望等待 AI 兑现节奏。",
         )
         result.fundamental_context = {
             "earnings": {"status": "ok", "data": {
@@ -1447,22 +1575,22 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
             }},
             "growth": {"status": "ok", "data": {"revenue_yoy": 16.60}},
             "belong_boards": [
-                {"name": "Technology", "type": "Industry"},
-                {"name": "Consumer Electronics", "type": "concept"},
+                {"name": "Technology", "type": "行业"},
+                {"name": "Consumer Electronics", "type": "概念"},
             ],
         }
 
         out = service.generate_single_stock_report(result)
 
-        self.assertIn("Related sections", out)
+        self.assertIn("关联板块", out)
         self.assertIn("Technology / Consumer Electronics", out)
         self.assertIn("Technology", out)
         self.assertIn("Consumer Electronics", out)
         # When no sector ranking data is available, drop the 4-col layout.
-        self.assertNotIn("Sector performance", out)
-        self.assertNotIn("Sector rise and fall", out)
+        self.assertNotIn("板块表现", out)
+        self.assertNotIn("板块涨跌幅", out)
         # And no table/type noise either.
-        self.assertNotIn("| plate | Type |", out)
+        self.assertNotIn("| 板块 | 类型 |", out)
         self.assertNotIn("| -- | -- |", out)
 
     @mock.patch("src.notification.get_config")
@@ -1473,30 +1601,30 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
         result.fundamental_context = {
             "earnings": {"status": "ok", "data": {}},
             "growth": {"status": "ok", "data": {}},
             "belong_boards": [
-                {"name": "LiquorⅢ"},
-                {"name": "LiquorⅡ"},
-                {"name": "food and beverage"},
-                {"name": "Guizhou plate"},
-                {"name": "winemaking concept"},
+                {"name": "白酒Ⅲ"},
+                {"name": "白酒Ⅱ"},
+                {"name": "食品饮料"},
+                {"name": "贵州板块"},
+                {"name": "酿酒概念"},
             ],
         }
 
         out = service.generate_single_stock_report(result)
 
-        self.assertIn("Related sections", out)
-        self.assertIn("LiquorⅢ / LiquorⅡ / food and beverage / Guizhou plate / winemaking concept", out)
-        self.assertNotIn("| plate | Type |", out)
-        self.assertNotIn("| LiquorⅢ | N/A |", out)
+        self.assertIn("关联板块", out)
+        self.assertIn("白酒Ⅲ / 白酒Ⅱ / 食品饮料 / 贵州板块 / 酿酒概念", out)
+        self.assertNotIn("| 板块 | 类型 |", out)
+        self.assertNotIn("| 白酒Ⅲ | N/A |", out)
 
     @mock.patch("src.notification.get_config")
     def test_related_boards_renders_each_board_signal_without_placeholder(
@@ -1507,36 +1635,36 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
         result.fundamental_context = {
             "earnings": {"status": "ok", "data": {}},
             "growth": {"status": "ok", "data": {}},
             "boards": {"status": "ok", "data": {
-                "top": [{"name": "Liquor", "change_pct": 3.42}],
+                "top": [{"name": "白酒", "change_pct": 3.42}],
                 "bottom": [],
             }},
             "belong_boards": [
-                {"name": "Liquor", "code": "BK0596", "type": "Industry"},
-                {"name": "MSCIChina", "code": "BK0805", "type": "concept"},
+                {"name": "白酒", "code": "BK0596", "type": "行业"},
+                {"name": "MSCI中国", "code": "BK0805", "type": "概念"},
             ],
         }
 
         out = service.generate_single_stock_report(result)
 
-        self.assertNotIn("Sector performance", out)
-        self.assertNotIn("Sector rise and fall", out)
-        self.assertIn("Leading the gains", out)
+        self.assertNotIn("板块表现", out)
+        self.assertNotIn("板块涨跌幅", out)
+        self.assertIn("领涨", out)
         self.assertIn("+3.42%", out)
-        self.assertIn("- Liquor (Industry sector Leading the gains +3.42%)", out)
-        self.assertIn("MSCIChina", out)
-        self.assertIn("- MSCIChina", out)
-        self.assertNotIn("- MSCIChina (", out)
-        self.assertNotIn("| MSCIChina | concept | -- | -- |", out)
+        self.assertIn("- 白酒 (行业板块 领涨 +3.42%)", out)
+        self.assertIn("MSCI中国", out)
+        self.assertIn("- MSCI中国", out)
+        self.assertNotIn("- MSCI中国 (", out)
+        self.assertNotIn("| MSCI中国 | 概念 | -- | -- |", out)
 
     @mock.patch("src.notification.get_config")
     def test_related_boards_ignores_matching_signal_without_change_pct(
@@ -1546,31 +1674,31 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
         result.fundamental_context = {
             "earnings": {"status": "ok", "data": {}},
             "growth": {"status": "ok", "data": {}},
             "boards": {"status": "ok", "data": {
-                "top": [{"name": "Liquor"}],
+                "top": [{"name": "白酒"}],
                 "bottom": [],
             }},
             "belong_boards": [
-                {"name": "Liquor", "code": "BK0596", "type": "Industry"},
+                {"name": "白酒", "code": "BK0596", "type": "行业"},
             ],
         }
 
         out = service.generate_single_stock_report(result)
 
-        self.assertIn("Related sections", out)
-        self.assertIn("Liquor", out)
-        self.assertNotIn("| Liquor | Industry |", out)
-        self.assertNotIn("Leading the gains", out)
-        self.assertNotIn("Sector rise and fall", out)
+        self.assertIn("关联板块", out)
+        self.assertIn("白酒", out)
+        self.assertNotIn("| 白酒 | 行业 |", out)
+        self.assertNotIn("领涨", out)
+        self.assertNotIn("板块涨跌幅", out)
 
     @mock.patch("src.notification.get_config")
     def test_generate_single_stock_report_uses_currency_for_hk(
@@ -1578,8 +1706,8 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
     ):
         """HK ADRs have financialCurrency=CNY but trade/pay dividends in HKD.
 
-        The financial summary must render in CNY (income statement) while
-        dividends must render in HKD -- they are NOT the same currency on
+        The financial summary must render in 元 (CNY income statement) while
+        dividends must render in 港元 — they are NOT the same currency on
         yfinance HK payloads, so the renderer must read each block's own
         ``currency`` field rather than assuming a single global currency.
         """
@@ -1587,11 +1715,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="HK09988",
-            name="Alibaba-W",
+            name="阿里巴巴-W",
             sentiment_score=68,
-            trend_prediction="long",
-            operation_advice="buy on dips",
-            analysis_summary="Cloud business returns to normal，Buyback continues。",
+            trend_prediction="看多",
+            operation_advice="逢低买入",
+            analysis_summary="云业务回正，回购持续。",
         )
         result.fundamental_context = {
             "earnings": {
@@ -1621,18 +1749,18 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
             },
             "growth": {"status": "ok", "data": {"revenue_yoy": 2.9, "roe": 9.22, "gross_margin": 39.81}},
             "belong_boards": [
-                {"name": "Consumer Cyclical", "type": "Industry"},
-                {"name": "Internet Retail", "type": "concept"},
+                {"name": "Consumer Cyclical", "type": "行业"},
+                {"name": "Internet Retail", "type": "概念"},
             ],
         }
 
         out = service.generate_single_stock_report(result)
 
         # Income statement still rendered in CNY (financialCurrency).
-        self.assertIn("10200.00 billion", out)
+        self.assertIn("10200.00 亿元", out)
         # Dividend per share follows the dividend currency, NOT the financial currency.
-        self.assertIn("1.9581 Hong Kong dollar", out)
-        self.assertNotIn("1.9581 Yuan ", out)
+        self.assertIn("1.9581 港元", out)
+        self.assertNotIn("1.9581 元 ", out)
         self.assertIn("Consumer Cyclical", out)
 
     @mock.patch("src.notification.get_config")
@@ -1644,11 +1772,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
         )
         result.fundamental_context = {
             "earnings": {
@@ -1666,8 +1794,8 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_single_stock_report(result)
 
-        # Without explicit dividend currency, default to CNY (matches AkShare A-share semantics).
-        self.assertIn("27.6000 Yuan", out)
+        # Without explicit dividend currency, default to 元 (matches AkShare A-share semantics).
+        self.assertIn("27.6000 元", out)
 
     @mock.patch("src.notification.get_config")
     def test_generate_dashboard_report_appends_fundamental_blocks(
@@ -1677,13 +1805,13 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
             dashboard={
-                "core_conclusion": {"one_sentence": "Steady hold"},
+                "core_conclusion": {"one_sentence": "稳健持有"},
                 "battle_plan": {
                     "sniper_points": {
                         "ideal_buy": "1600",
@@ -1697,11 +1825,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
 
         out = service.generate_dashboard_report([result], report_date="2026-05-20")
 
-        self.assertIn("financial summary", out)
-        self.assertIn("shareholder return", out)
-        self.assertIn("Related sections", out)
-        self.assertIn("Liquor", out)
-        self.assertIn("Leading the gains", out)
+        self.assertIn("财务摘要", out)
+        self.assertIn("股东回报", out)
+        self.assertIn("关联板块", out)
+        self.assertIn("白酒", out)
+        self.assertIn("领涨", out)
 
     @mock.patch("src.notification.get_config")
     def test_history_compare_context_uses_cache(self, mock_get_config: mock.MagicMock):
@@ -1709,11 +1837,11 @@ class TestNotificationServiceReportGeneration(unittest.TestCase):
         service = NotificationService()
         result = AnalysisResult(
             code="600519",
-            name="Kweichow Moutai",
+            name="贵州茅台",
             sentiment_score=72,
-            trend_prediction="long",
-            operation_advice="hold",
-            analysis_summary="Robust",
+            trend_prediction="看多",
+            operation_advice="持有",
+            analysis_summary="稳健",
             query_id="q-1",
         )
 
