@@ -18,7 +18,8 @@ class SuffixMarketSpec:
 
     market: str
     suffixes: tuple[str, ...]
-    digit_lengths: tuple[int, ...]
+    digit_lengths: tuple[int, ...] = ()
+    alpha_lengths: tuple[int, ...] = ()
 
 
 _SUFFIX_MARKET_SPECS: tuple[SuffixMarketSpec, ...] = (
@@ -51,7 +52,7 @@ def split_suffix_symbol(stock_code: str) -> tuple[str, str] | None:
 
 
 def get_suffix_market(stock_code: str) -> Optional[str]:
-    """Return jp/kr/tw for supported suffix-only Yahoo symbols, else None."""
+    """Return jp/kr/tw/id for supported suffix-only Yahoo symbols, else None."""
 
     parts = split_suffix_symbol(stock_code)
     if parts is None:
@@ -60,9 +61,11 @@ def get_suffix_market(stock_code: str) -> Optional[str]:
     spec = _SUFFIX_TO_SPEC.get(suffix)
     if spec is None:
         return None
-    if not (base.isdigit() and len(base) in spec.digit_lengths):
-        return None
-    return spec.market
+    if base.isdigit() and len(base) in spec.digit_lengths:
+        return spec.market
+    if base.isalpha() and len(base) in spec.alpha_lengths:
+        return spec.market
+    return None
 
 
 def is_suffix_market_symbol(stock_code: str, market: Optional[str] = None) -> bool:

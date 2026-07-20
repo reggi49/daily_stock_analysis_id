@@ -141,6 +141,8 @@ def normalize_stock_code(stock_code: str) -> str:
             return f"{base}.{suffix.upper()}"
         if suffix.upper() == 'HK' and base.isdigit() and 1 <= len(base) <= 5:
             return f"HK{base.zfill(5)}"
+        if suffix.upper() == 'JK' and base.isalpha() and 2 <= len(base) <= 5:
+            return f"{base.upper()}.{suffix.upper()}"
         if base.upper() in ('SH', 'SS', 'SZ', 'BJ') and suffix.isdigit():
             return suffix
         if suffix.upper() in ('SH', 'SZ', 'SS', 'BJ') and base.isdigit():

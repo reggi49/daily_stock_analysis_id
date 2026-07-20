@@ -93,6 +93,11 @@ class YfinanceFetcher(BaseFetcher):
         """
         return is_suffix_market_symbol(stock_code, "tw")
 
+    @staticmethod
+    def _is_id_suffix_stock(stock_code: str) -> bool:
+        """Return True for supported Indonesia suffix-only Yahoo symbols."""
+        return is_suffix_market_symbol(stock_code, "id")
+
     def _convert_stock_code(self, stock_code: str) -> str:
         """
         Convert stock symbol to Yahoo Finance Format
@@ -360,6 +365,8 @@ class YfinanceFetcher(BaseFetcher):
             return self._get_kr_main_indices(yf)
         if region == "tw":
             return self._get_tw_main_indices(yf)
+        if region == "id":
+            return self._get_id_main_indices(yf)
 
         # A stock index：akshare code -> (yfinance code, display name)
         yf_mapping = {
@@ -831,11 +838,12 @@ class YfinanceFetcher(BaseFetcher):
                 index_name=index_name,
             )
 
-        # Only deal with U.S. stocks or JP/KR/TW suffix-only stock
+        # Only deal with U.S. stocks or JP/KR/TW/ID suffix-only stock
         if not (
             self._is_us_stock(stock_code)
             or self._is_jp_kr_suffix_stock(stock_code)
             or self._is_tw_suffix_stock(stock_code)
+            or self._is_id_suffix_stock(stock_code)
         ):
             logger.debug(f"[Yfinance] {stock_code} is not a US stock or JP/KR/TW/ID suffix code, skipping")
             return None

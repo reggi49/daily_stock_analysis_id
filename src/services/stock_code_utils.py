@@ -104,6 +104,9 @@ def is_code_like(value: str) -> bool:
     # Support exchange-prefixed codes: SH600519, SZ000001, BJ920493, HK00700
     if _strip_exchange_prefix(text) is not None:
         return True
+    # Support ID suffix (.JK) codes
+    if text.endswith(".JK") and len(text) > 3 and text[:-3].isalpha() and 2 <= len(text[:-3]) <= 5:
+        return True
     return False
 
 
