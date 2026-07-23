@@ -210,7 +210,7 @@ def generate_aliases(name: str) -> List[str]:
         'Bank of Communications': ['Bank of Communications'],
         'Industrial Bank': ['Prosperity'],
         'Shanghai Pudong Development Bank': ['Pufa'],
-        'China Minsheng Bank': ['people's livelihood'],
+        'China Minsheng Bank': ["people's livelihood"],
         'CITIC Securities': ['CITIC'],
         'Oriental Fortune': ['Dongcai'],
         'Hikvision': ['Hikvision'],

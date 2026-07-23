@@ -89,6 +89,10 @@ def is_tw_suffix_symbol(stock_code: str) -> bool:
     return is_suffix_market_symbol(stock_code, "tw")
 
 
+def is_id_suffix_symbol(stock_code: str) -> bool:
+    return is_suffix_market_symbol(stock_code, "id")
+
+
 def normalize_suffix_market_symbol(stock_code: str) -> Optional[str]:
     """Normalize supported suffix-only symbols to upper-case Yahoo form."""
 
